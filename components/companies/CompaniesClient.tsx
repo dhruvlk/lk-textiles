@@ -90,7 +90,7 @@ export default function CompaniesClient() {
                         size="icon-sm"
                         onClick={(e) => {
                           e.stopPropagation()
-                          router.push(`/companies/${company.id}/edit`)
+                          router.push(`/admin/companies/${company.id}/edit`)
                         }}
                       >
                         <Pencil className="h-4 w-4" />
