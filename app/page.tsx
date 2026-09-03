@@ -554,7 +554,7 @@ export default function HomeLandingPage() {
 
           <StaggerItem className="space-y-4 md:col-span-1">
             <div className="flex items-center gap-2 text-white mb-6">
-              <span className="font-bold text-xl tracking-tight">LKTextiles</span>
+              <span className="font-bold text-4xl tracking-tight">Lk Textiles</span>
             </div>
             <p className="text-sm leading-relaxed">
               Leading the global textile industry with sustainable practices and superior manufacturing capabilities since 1995.
