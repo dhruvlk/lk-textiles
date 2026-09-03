@@ -24,7 +24,7 @@ export function AccessDenied() {
         You do not have permission to view this module. Contact your company owner if you
         need access.
       </p>
-      <Button className="mt-6" render={<Link href="/" />} nativeButton={false}>
+      <Button className="mt-6" render={<Link href="/admin" />} nativeButton={false}>
         Back to Dashboard
       </Button>
     </motion.div>

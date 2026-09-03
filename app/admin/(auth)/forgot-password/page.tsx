@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
       title="Forgot password"
       description={sent ? "Check your inbox for the reset link" : "We'll email you a secure reset link"}
       footer={
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/admin/login" className="font-medium text-primary hover:underline">
           Back to sign in
         </Link>
       }

@@ -47,7 +47,7 @@ export default function LoginPage() {
       return
     }
     toast.success("Welcome back!")
-    router.push("/")
+    router.push("/admin")
     setIsLoading(false)
   }
 
@@ -60,7 +60,7 @@ export default function LoginPage() {
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link href="/register" className="font-medium text-primary hover:underline">
+          <Link href="/admin/register" className="font-medium text-primary hover:underline">
             Register your company
           </Link>
         </>
@@ -84,7 +84,7 @@ export default function LoginPage() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
-            <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+            <Link href="/admin/forgot-password" className="text-xs text-primary hover:underline">
               Forgot password?
             </Link>
           </div>

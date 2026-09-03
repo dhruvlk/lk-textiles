@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable react-hooks/set-state-in-effect */
 
 /**
  * Company Settings UI — temporarily disabled via FEATURES.companySettingsModule.

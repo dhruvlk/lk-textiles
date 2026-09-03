@@ -40,7 +40,7 @@ export default function CompanyEditClient({ id }: { id: string }) {
       if (found) setCompany(found)
       else if (companies.length > 0) {
         toast.error("Company not found")
-        router.push("/companies")
+        router.push("/admin/companies")
       }
     }
     load()
@@ -88,7 +88,7 @@ export default function CompanyEditClient({ id }: { id: string }) {
       await refreshCompanies()
       setCompanies(companies.map((c) => (c.id === company.id ? updatedCompany : c)))
       if (selectedCompany?.id === company.id) setSelectedCompany(updatedCompany)
-      router.push("/companies")
+      router.push("/admin/companies")
     } catch {
       toast.error("Failed to update company")
     } finally {

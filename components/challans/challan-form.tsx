@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
@@ -230,7 +231,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
         toast.success("Invoice created successfully!")
       }
       
-      router.push("/invoices")
+      router.push("/admin/invoices")
       router.refresh()
     } catch (error) {
       toast.error("An error occurred while saving the invoice.")

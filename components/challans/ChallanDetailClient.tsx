@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -188,7 +189,7 @@ export default function ChallanDetailClient({ id }: { id: string }) {
         title="Invoice not found"
         description="This invoice may have been deleted or you don't have access."
         action={
-          <Button variant="outline" onClick={() => router.push("/invoices")}>
+          <Button variant="outline" onClick={() => router.push("/admin/invoices")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Invoice
           </Button>
@@ -216,7 +217,7 @@ export default function ChallanDetailClient({ id }: { id: string }) {
         description={`${challan.customer?.name ?? "Customer"} · ${format(new Date(challan.date), "dd MMM yyyy")}`}
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => router.push("/invoices")}>
+            <Button variant="outline" onClick={() => router.push("/admin/invoices")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>

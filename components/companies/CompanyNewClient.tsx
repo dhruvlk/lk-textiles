@@ -80,7 +80,7 @@ export default function CompanyNewClient() {
       await refreshCompanies()
       setCompanies([finalCompany, ...companies])
       setSelectedCompany(finalCompany)
-      router.push("/companies")
+      router.push("/admin/companies")
     } catch (error: unknown) {
       console.error("Failed to create company:", error)
       toast.error(error instanceof Error ? error.message : "Failed to create company")

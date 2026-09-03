@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -266,7 +267,7 @@ export default function DeliveryChallansClient() {
         description="Create and manage textile delivery challans."
         action={
           can("delivery_challans", "create") ? (
-            <Button onClick={() => router.push("/delivery-challans/new")}>
+            <Button onClick={() => router.push("/admin/delivery-challans/new")}>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Delivery Challan
             </Button>

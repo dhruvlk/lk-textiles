@@ -20,20 +20,20 @@ export const PAYMENT_MODES = [
 export type PaymentMode = (typeof PAYMENT_MODES)[number]
 
 export const ROUTES = {
-  HOME: '/',
-  LOGIN: '/login',
-  REGISTER: '/register',
-  FORGOT_PASSWORD: '/forgot-password',
-  RESET_PASSWORD: '/reset-password',
-  COMPANIES: '/companies',
-  PARTIES: '/parties',
+  HOME: '/admin',
+  LOGIN: '/admin/login',
+  REGISTER: '/admin/register',
+  FORGOT_PASSWORD: '/admin/forgot-password',
+  RESET_PASSWORD: '/admin/reset-password',
+  COMPANIES: '/admin/companies',
+  PARTIES: '/admin/parties',
   /** Disabled while FEATURES.productsModule is false */
-  PRODUCTS: '/products',
-  CHALLANS: '/invoices',
-  DELIVERY_CHALLANS: '/delivery-challans',
-  REPORTS: '/reports',
+  PRODUCTS: '/admin/products',
+  CHALLANS: '/admin/invoices',
+  DELIVERY_CHALLANS: '/admin/delivery-challans',
+  REPORTS: '/admin/reports',
   /** Disabled while FEATURES.companySettingsModule is false */
-  SETTINGS: '/settings',
+  SETTINGS: '/admin/settings',
 }
 
 export const STATUS = {

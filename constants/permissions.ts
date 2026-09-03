@@ -124,24 +124,24 @@ export const MODULE_CONFIG: ModuleConfig[] = [
 
 /** Route prefix → permission module */
 export const ROUTE_MODULE_MAP: { prefix: string; module: PermissionModule }[] = [
-  { prefix: '/employees', module: 'employees' },
-  { prefix: '/companies', module: 'companies' },
-  { prefix: '/parties', module: 'customers' },
-  { prefix: '/products', module: 'products' },
-  { prefix: '/stock', module: 'stock' },
-  { prefix: '/delivery-challans', module: 'delivery_challans' },
-  { prefix: '/invoices', module: 'invoices' },
-  { prefix: '/letter-pads', module: 'letter_pads' },
-  { prefix: '/reports', module: 'reports' },
-  { prefix: '/settings', module: 'settings' },
-  { prefix: '/notifications', module: 'dashboard' },
-  { prefix: '/', module: 'dashboard' },
+  { prefix: '/admin/employees', module: 'employees' },
+  { prefix: '/admin/companies', module: 'companies' },
+  { prefix: '/admin/parties', module: 'customers' },
+  { prefix: '/admin/products', module: 'products' },
+  { prefix: '/admin/stock', module: 'stock' },
+  { prefix: '/admin/delivery-challans', module: 'delivery_challans' },
+  { prefix: '/admin/invoices', module: 'invoices' },
+  { prefix: '/admin/letter-pads', module: 'letter_pads' },
+  { prefix: '/admin/reports', module: 'reports' },
+  { prefix: '/admin/settings', module: 'settings' },
+  { prefix: '/admin/notifications', module: 'dashboard' },
+  { prefix: '/admin', module: 'dashboard' },
 ];
 
 export function moduleFromPathname(pathname: string): PermissionModule | null {
   if (!pathname) return null;
   const match = ROUTE_MODULE_MAP.find((entry) => {
-    if (entry.prefix === '/') return pathname === '/';
+    if (entry.prefix === '/admin') return pathname === '/admin';
     return pathname === entry.prefix || pathname.startsWith(`${entry.prefix}/`);
   });
   return match?.module ?? null;
@@ -182,8 +182,8 @@ export function emptyPermissionMatrix(): Record<
 
 export function fullPermissionMatrix(): ReturnType<typeof emptyPermissionMatrix> {
   const matrix = emptyPermissionMatrix();
-  for (const module of PERMISSION_MODULES) {
-    matrix[module] = {
+  for (const mod of PERMISSION_MODULES) {
+    matrix[mod] = {
       can_view: true,
       can_create: true,
       can_edit: true,

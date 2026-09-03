@@ -38,19 +38,19 @@ const navigation: {
   feature?: keyof typeof FEATURES
   module: PermissionModule
 }[] = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard, module: "dashboard" },
-  { name: "Companies", href: "/companies", icon: Building2, module: "companies" },
-  { name: "Customers", href: "/parties", icon: Users, module: "customers" },
-  { name: "Products", href: "/products", icon: Package, feature: "productsModule", module: "products" },
-  { name: "Stock", href: "/stock", icon: Warehouse, module: "stock" },
-  { name: "Delivery Challans", href: "/delivery-challans", icon: Truck, module: "delivery_challans" },
-  { name: "Invoice", href: "/invoices", icon: FileText, module: "invoices" },
-  { name: "Letter Pad", href: "/letter-pads", icon: FileSignature, module: "letter_pads" },
-  { name: "Reports", href: "/reports", icon: PieChart, module: "reports" },
-  { name: "Employees", href: "/employees", icon: UsersRound, module: "employees" },
+  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, module: "dashboard" },
+  { name: "Companies", href: "/admin/companies", icon: Building2, module: "companies" },
+  { name: "Customers", href: "/admin/parties", icon: Users, module: "customers" },
+  { name: "Products", href: "/admin/products", icon: Package, feature: "productsModule", module: "products" },
+  { name: "Stock", href: "/admin/stock", icon: Warehouse, module: "stock" },
+  { name: "Delivery Challans", href: "/admin/delivery-challans", icon: Truck, module: "delivery_challans" },
+  { name: "Invoice", href: "/admin/invoices", icon: FileText, module: "invoices" },
+  { name: "Letter Pad", href: "/admin/letter-pads", icon: FileSignature, module: "letter_pads" },
+  { name: "Reports", href: "/admin/reports", icon: PieChart, module: "reports" },
+  { name: "Employees", href: "/admin/employees", icon: UsersRound, module: "employees" },
   {
     name: "Settings",
-    href: "/settings",
+    href: "/admin/settings",
     icon: Settings,
     feature: "companySettingsModule",
     module: "settings",
@@ -78,7 +78,7 @@ function SidebarContent({
     <div className="flex h-full flex-col bg-sidebar">
       <div className={cn("border-b border-sidebar-border py-4", collapsed ? "px-2" : "px-4")}>
         <Link
-          href="/"
+          href="/admin"
           className={cn(
             "group flex items-center rounded-xl p-2 transition-colors hover:bg-sidebar-accent/60",
             collapsed ? "justify-center" : "gap-3.5"
@@ -112,8 +112,8 @@ function SidebarContent({
       <nav className={cn("flex-1 space-y-0.5 overflow-auto py-4", collapsed ? "px-1.5" : "px-3")}>
         {navItems.map((item) => {
           const isActive =
-            item.href === "/"
-              ? pathname === "/"
+            item.href === "/admin"
+              ? pathname === "/admin"
               : pathname === item.href || pathname.startsWith(`${item.href}/`)
           return (
             <Link

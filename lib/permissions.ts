@@ -52,9 +52,9 @@ export function matrixFromRows(
 ): PermissionMatrix {
   const matrix = emptyPermissionMatrix();
   for (const row of rows) {
-    const module = row.module as PermissionModule;
-    if (!(module in matrix)) continue;
-    matrix[module] = {
+    const mod = row.module as PermissionModule;
+    if (!(mod in matrix)) continue;
+    matrix[mod] = {
       can_view: row.can_view,
       can_create: row.can_create,
       can_edit: row.can_edit,
@@ -71,9 +71,9 @@ export function ownerMatrix(): PermissionMatrix {
 
 export function sanitizeEmployeeMatrix(matrix: PermissionMatrix): PermissionMatrix {
   const next = emptyPermissionMatrix();
-  for (const module of Object.keys(next) as PermissionModule[]) {
-    const flags = matrix[module] ?? next[module];
-    next[module] = {
+  for (const mod of Object.keys(next) as PermissionModule[]) {
+    const flags = matrix[mod] ?? next[mod];
+    next[mod] = {
       can_view: Boolean(flags.can_view),
       can_create: Boolean(flags.can_create),
       can_edit: Boolean(flags.can_edit),
@@ -81,8 +81,8 @@ export function sanitizeEmployeeMatrix(matrix: PermissionMatrix): PermissionMatr
       can_export: Boolean(flags.can_export),
     };
     // Owner-only modules cannot be granted to employees
-    if (OWNER_ONLY_MODULES.has(module)) {
-      next[module] = {
+    if (OWNER_ONLY_MODULES.has(mod)) {
+      next[mod] = {
         can_view: false,
         can_create: false,
         can_edit: false,

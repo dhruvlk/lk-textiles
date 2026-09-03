@@ -76,7 +76,7 @@ export default function DeliveryChallanDetailClient({ id }: { id: string }) {
         title="Delivery challan not found"
         description="It may have been deleted or you do not have access."
         action={
-          <Button onClick={() => router.push("/delivery-challans")}>
+          <Button onClick={() => router.push("/admin/delivery-challans")}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to list
           </Button>
@@ -93,7 +93,7 @@ export default function DeliveryChallanDetailClient({ id }: { id: string }) {
         description={`Created for ${challan.customer?.name ?? "customer"}`}
         action={
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => router.push("/delivery-challans")}>
+            <Button variant="outline" onClick={() => router.push("/admin/delivery-challans")}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>

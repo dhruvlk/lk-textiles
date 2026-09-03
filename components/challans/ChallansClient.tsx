@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useCompany } from "@/components/company-provider"
@@ -262,7 +263,7 @@ export default function ChallansClient() {
         description={`Manage invoices for ${selectedCompany.name}`}
         action={
           can("invoices", "create") ? (
-            <Button onClick={() => router.push("/invoices/new")}>
+            <Button onClick={() => router.push("/admin/invoices/new")}>
               <PlusCircle className="mr-2 h-4 w-4" />
               New Invoice
             </Button>

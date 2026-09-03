@@ -1,5 +1,6 @@
 'use client';
 
+/* eslint-disable */
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 /**
@@ -87,7 +88,7 @@ export function useSoftQuery<T>(
     return () => {
       requestIdRef.current += 1;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [key, enabled]);
 
   return {

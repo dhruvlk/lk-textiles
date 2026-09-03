@@ -136,7 +136,7 @@ export function LetterPadsClient() {
             Manage and create professional company letters.
           </p>
         </div>
-        <Button onClick={() => router.push("/letter-pads/create")}>
+        <Button onClick={() => router.push("/admin/letter-pads/create")}>
             <Plus className="mr-2 h-4 w-4" />
             New Letter
         </Button>

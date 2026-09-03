@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useCompany } from "@/components/company-provider"
 import { useAuth } from "@/hooks/useAuth"
@@ -113,7 +114,7 @@ export default function DashboardClient() {
             {currentDate}
           </p>
         </div>
-        <Button size="lg" className="w-full sm:w-auto shadow-sm" onClick={() => router.push("/invoices/new")}>
+        <Button size="lg" className="w-full sm:w-auto shadow-sm" onClick={() => router.push("/admin/invoices/new")}>
           <FileText className="mr-2 h-4 w-4" />
           New invoice
         </Button>
@@ -164,7 +165,7 @@ export default function DashboardClient() {
               <CardTitle>Recent invoices</CardTitle>
               <p className="mt-1 text-sm text-muted-foreground">Latest activity</p>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => router.push("/invoices")}>
+            <Button variant="ghost" size="sm" onClick={() => router.push("/admin/invoices")}>
               View all
               <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
             </Button>

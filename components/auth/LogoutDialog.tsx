@@ -18,7 +18,7 @@ export function LogoutDialog({ open, onOpenChange }: LogoutDialogProps) {
     await logout()
     onOpenChange(false)
     toast.success("Logged out successfully.")
-    router.push("/login")
+    router.push("/admin/login")
   }
 
   return (

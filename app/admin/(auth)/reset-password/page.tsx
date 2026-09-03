@@ -54,7 +54,7 @@ export default function ResetPasswordPage() {
       return
     }
     toast.success("Password updated successfully")
-    router.push("/")
+    router.push("/admin")
     setIsLoading(false)
   }
 
@@ -67,7 +67,7 @@ export default function ResetPasswordPage() {
           : "Open the reset link from your email to continue"
       }
       footer={
-        <Link href="/login" className="font-medium text-primary hover:underline">
+        <Link href="/admin/login" className="font-medium text-primary hover:underline">
           Back to sign in
         </Link>
       }

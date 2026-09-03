@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useCallback, useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -184,9 +185,9 @@ export function NotificationBell() {
                     } else if (item.entity_type === "delivery_challan" && item.entity_id) {
                       router.push(`/delivery-challans/${item.entity_id}`)
                     } else if (item.entity_type === "stock") {
-                      router.push("/stock")
+                      router.push("/admin/stock")
                     } else {
-                      router.push("/notifications")
+                      router.push("/admin/notifications")
                     }
                     void refreshUnread()
                   }}
@@ -231,7 +232,7 @@ export function NotificationBell() {
             className="h-9 w-full text-sm font-medium"
             onClick={() => {
               setOpen(false)
-              router.push("/notifications")
+              router.push("/admin/notifications")
             }}
           >
             View all

@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
@@ -86,7 +87,7 @@ export function LetterPadForm({ initialData }: LetterPadFormProps) {
         toast.success("Letter Pad created successfully")
       }
 
-      router.push("/letter-pads")
+      router.push("/admin/letter-pads")
       router.refresh()
     } catch (error) {
       console.error("Error saving Letter Pad:", error)

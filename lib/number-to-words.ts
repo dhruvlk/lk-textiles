@@ -18,13 +18,13 @@ export function numberToWords(num: number): string {
   };
 
   let word = "";
-  let crore = Math.floor(num / 10000000);
+  const crore = Math.floor(num / 10000000);
   num %= 10000000;
-  let lakh = Math.floor(num / 100000);
+  const lakh = Math.floor(num / 100000);
   num %= 100000;
-  let thousand = Math.floor(num / 1000);
+  const thousand = Math.floor(num / 1000);
   num %= 1000;
-  let hundred = Math.floor(num / 100);
+  const hundred = Math.floor(num / 100);
   num %= 100;
 
   if (crore > 0) word += numToStr(crore) + " Crore ";

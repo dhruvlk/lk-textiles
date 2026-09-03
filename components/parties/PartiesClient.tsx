@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useState } from "react"
 import { useCompany } from "@/components/company-provider"

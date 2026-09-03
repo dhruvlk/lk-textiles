@@ -33,8 +33,8 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const authRoutes = ['/login', '/register'];
-  const publicAuthRoutes = ['/forgot-password', '/reset-password'];
+  const authRoutes = ['/admin/login', '/admin/register'];
+  const publicAuthRoutes = ['/admin/forgot-password', '/admin/reset-password'];
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   const isPublicAuthRoute = publicAuthRoutes.some((route) => pathname.startsWith(route));
@@ -48,13 +48,13 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = '/login';
+    url.pathname = '/admin/login';
     return NextResponse.redirect(url);
   }
 
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
-    url.pathname = '/';
+    url.pathname = '/admin';
     return NextResponse.redirect(url);
   }
 

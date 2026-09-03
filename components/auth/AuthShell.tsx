@@ -33,7 +33,7 @@ export function AuthShell({
         <Card className="shadow-float">
           <CardContent className="p-8">
             <div className="mb-8 flex flex-col items-center text-center">
-              <Link href="/login" className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-soft">
+              <Link href="/admin/login" className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-soft">
                 <FileText className="h-6 w-6 text-white" />
               </Link>
               <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>

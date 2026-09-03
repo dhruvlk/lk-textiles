@@ -33,7 +33,7 @@ export function LetterPadEditClient() {
         // Ensure the letter belongs to the currently selected company
         if (data.company_id !== selectedCompany?.id) {
           toast.error("You do not have permission to view this letter pad.")
-          router.push("/letter-pads")
+          router.push("/admin/letter-pads")
           return
         }
 
@@ -41,7 +41,7 @@ export function LetterPadEditClient() {
       } catch (error) {
         console.error(error)
         toast.error((error as Error).message)
-        router.push("/letter-pads")
+        router.push("/admin/letter-pads")
       } finally {
         setIsLoading(false)
       }

@@ -33,7 +33,7 @@ export default function CompaniesClient() {
         description="Manage your companies and their details."
         action={
           can("companies", "create") ? (
-            <Button onClick={() => router.push("/companies/new")}>
+            <Button onClick={() => router.push("/admin/companies/new")}>
               <PlusCircle className="mr-2 h-4 w-4" />
               Add company
             </Button>
@@ -48,7 +48,7 @@ export default function CompaniesClient() {
           description="Create your first company to start managing challans and customers."
           action={
             can("companies", "create") ? (
-              <Button onClick={() => router.push("/companies/new")}>
+              <Button onClick={() => router.push("/admin/companies/new")}>
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Create company
               </Button>

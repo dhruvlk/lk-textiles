@@ -426,7 +426,7 @@ export function DeliveryChallanForm({ initialData }: { initialData?: DeliveryCha
         toast.success("Delivery challan created successfully!")
       }
 
-      router.push("/delivery-challans")
+      router.push("/admin/delivery-challans")
       router.refresh()
     } catch (error) {
       toast.error(parseStockError(error) || "An error occurred while saving the delivery challan.")

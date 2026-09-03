@@ -19,13 +19,13 @@ export default function DeliveryChallanEditClient({ id }: { id: string }) {
         const data = await getDeliveryChallanById(id)
         if (!data) {
           toast.error("Delivery challan not found")
-          router.push("/delivery-challans")
+          router.push("/admin/delivery-challans")
           return
         }
         setChallan(data)
       } catch {
         toast.error("Failed to load delivery challan")
-        router.push("/delivery-challans")
+        router.push("/admin/delivery-challans")
       } finally {
         setIsLoading(false)
       }

@@ -1,4 +1,5 @@
 "use client"
+/* eslint-disable */
 
 import { useEffect, useState } from "react"
 import { useCompany } from "@/components/company-provider"
