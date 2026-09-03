@@ -604,7 +604,7 @@ export default function HomeLandingPage() {
 
         </StaggerContainer>
         <div className="container px-4 md:px-6 mx-auto mt-16 pt-8 border-t border-slate-900 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">
-          <p>© {new Date().getFullYear()} LKTextiles. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Lk Textiles. All rights reserved.</p>
           <div className="flex gap-6">
             <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
