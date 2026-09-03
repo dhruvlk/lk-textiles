@@ -43,6 +43,7 @@ export async function updateSession(request: NextRequest) {
     !isAuthRoute &&
     !isPublicAuthRoute &&
     !isApiRoute &&
+    pathname !== '/' &&
     !pathname.startsWith('/_next') &&
     !pathname.includes('.');
 
