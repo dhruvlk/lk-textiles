@@ -171,7 +171,7 @@ export default function DeliveryChallansClient() {
         <button
           type="button"
           className="font-medium text-primary hover:underline"
-          onClick={() => router.push(`/delivery-challans/${row.id}`)}
+          onClick={() => router.push(`/admin/delivery-challans/${row.id}`)}
         >
           {row.challan_number}
         </button>
@@ -213,7 +213,7 @@ export default function DeliveryChallansClient() {
             variant="ghost"
             size="icon"
             title="View"
-            onClick={() => router.push(`/delivery-challans/${row.id}`)}
+            onClick={() => router.push(`/admin/delivery-challans/${row.id}`)}
           >
             <Eye className="h-4 w-4" />
           </Button>
@@ -221,7 +221,7 @@ export default function DeliveryChallansClient() {
             variant="ghost"
             size="icon"
             title="Print"
-            onClick={() => router.push(`/delivery-challans/${row.id}/print`)}
+            onClick={() => router.push(`/admin/delivery-challans/${row.id}/print`)}
           >
             <Printer className="h-4 w-4" />
           </Button>
@@ -231,7 +231,7 @@ export default function DeliveryChallansClient() {
               variant="ghost"
               size="icon"
               title="Edit"
-              onClick={() => router.push(`/delivery-challans/${row.id}/edit`)}
+              onClick={() => router.push(`/admin/delivery-challans/${row.id}/edit`)}
             >
               <Edit className="h-4 w-4" />
             </Button>

@@ -140,13 +140,17 @@ export default function HomeLandingPage() {
         transition={{ duration: 0.6, ease: [0.21, 0.47, 0.32, 0.98] }}
         className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm"
       >
-        <div className="container mx-auto px-4 sm:px-6 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {/* <div className="bg-primary text-primary-foreground p-2 rounded-sm">
-              <Scissors className="h-6 w-6" />
-            </div> */}
-            <span className="font-bold text-2xl tracking-tight text-slate-900">Lk Textiles</span>
-          </div>
+        <div className="container mx-auto px-4 sm:px-6 h-22 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <Image 
+              src="/logo-1.png" 
+              alt="LK Textiles Logo" 
+              width={500} 
+              height={250} 
+              className="h-20 w-auto object-contain"
+              priority
+            />
+          </Link>
 
           <nav className="hidden md:flex items-center gap-8 font-medium text-sm text-slate-600">
             <Link href="#home" className="hover:text-primary transition-colors">Home</Link>
@@ -553,8 +557,16 @@ export default function HomeLandingPage() {
         <StaggerContainer className="container px-4 md:px-6 mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
 
           <StaggerItem className="space-y-4 md:col-span-1">
-            <div className="flex items-center gap-2 text-white mb-6">
-              <span className="font-bold text-4xl tracking-tight">Lk Textiles</span>
+            <div className="flex items-center gap-2 mb-6">
+              <div className="bg-white p-1 rounded-md">
+                <Image 
+                  src="/logo-1.png" 
+                  alt="LK Textiles Logo" 
+                  width={160} 
+                  height={60} 
+                  className="h-22 w-auto object-cover"
+                />
+              </div>
             </div>
             <p className="text-sm leading-relaxed">
               Leading the global textile industry with sustainable practices and superior manufacturing capabilities since 1995.

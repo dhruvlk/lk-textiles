@@ -14,6 +14,7 @@ import {
 import { toast } from "sonner"
 import { useCompany } from "@/components/company-provider"
 import { PageHeader } from "@/components/common/PageHeader"
+import { PermissionGate } from "@/components/auth/PermissionGate"
 import { PageTransition } from "@/components/common/motion"
 import { EmptyState } from "@/components/common/EmptyState"
 import { DownloadDeliveryChallanButton } from "@/components/delivery-challans/download-button"
@@ -99,7 +100,7 @@ export default function DeliveryChallanDetailClient({ id }: { id: string }) {
             </Button>
             <Button
               variant="outline"
-              onClick={() => router.push(`/delivery-challans/${challan.id}/print`)}
+              onClick={() => router.push(`/admin/delivery-challans/${challan.id}/print`)}
             >
               <Printer className="mr-2 h-4 w-4" />
               Print
@@ -111,10 +112,12 @@ export default function DeliveryChallanDetailClient({ id }: { id: string }) {
               size="default"
               showText
             />
-            <Button onClick={() => router.push(`/delivery-challans/${challan.id}/edit`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
+            <PermissionGate module="delivery_challans" action="edit">
+              <Button onClick={() => router.push(`/admin/delivery-challans/${challan.id}/edit`)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+            </PermissionGate>
           </div>
         }
       />
