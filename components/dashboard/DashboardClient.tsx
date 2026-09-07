@@ -4,7 +4,7 @@
 import { useCompany } from "@/components/company-provider"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, FileText, CalendarDays, IndianRupee, Building2, ArrowRight } from "lucide-react"
+import { Users, FileText, CalendarDays, IndianRupee, Building2, ArrowRight, Inbox, Mail } from "lucide-react"
 import { getDashboardStats } from "@/services/dashboard.service"
 import { useEffect, useMemo, useState } from "react"
 import { DashboardStats } from "@/types"
@@ -66,7 +66,6 @@ export default function DashboardClient() {
     return () => {
       cancelled = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId])
 
   const chartData = useMemo(() => {
@@ -120,7 +119,7 @@ export default function DashboardClient() {
         </Button>
       </motion.div>
 
-      <MotionStagger className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <MotionStagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <MotionStaggerItem>
           <StatCard
             title="Total customers"
@@ -153,6 +152,15 @@ export default function DashboardClient() {
             value={isLoading ? "..." : `₹${(stats?.monthlySales ?? 0).toLocaleString("en-IN")}`}
             icon={IndianRupee}
             iconClassName="bg-emerald-500/10 ring-emerald-500/15 [&_svg]:text-emerald-600"
+            isLoading={isLoading}
+          />
+        </MotionStaggerItem>
+        <MotionStaggerItem>
+          <StatCard
+            title="Website inquiries"
+            value={stats?.totalInquiries ?? 0}
+            icon={Inbox}
+            iconClassName="bg-purple-500/10 ring-purple-500/15 [&_svg]:text-purple-600"
             isLoading={isLoading}
           />
         </MotionStaggerItem>
@@ -264,6 +272,68 @@ export default function DashboardClient() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Recent Website Inquiries */}
+      <Card className="border-border/60 shadow-xs">
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Inbox className="h-5 w-5 text-primary" />
+              Recent Website Inquiries
+            </CardTitle>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Latest contact form submissions from website visitors
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/admin/inquiries")}>
+            View all inquiries
+            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+          </Button>
+        </CardHeader>
+        <CardContent className="space-y-1 pb-5">
+          {isLoading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">Loading...</p>
+          ) : stats?.recentInquiries && stats.recentInquiries.length > 0 ? (
+            stats.recentInquiries.map((inquiry) => (
+              <div
+                key={inquiry.id}
+                onClick={() => router.push("/admin/inquiries")}
+                className="flex cursor-pointer items-center justify-between gap-4 rounded-lg px-2 py-3 transition-colors hover:bg-muted/50"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Mail className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="truncate font-medium">{inquiry.full_name}</p>
+                      {inquiry.status === "new" ? (
+                        <span className="inline-flex items-center rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold text-amber-700 dark:text-amber-400">
+                          New
+                        </span>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground">Read</span>
+                      )}
+                    </div>
+                    <p className="truncate text-sm text-muted-foreground">
+                      {inquiry.subject ? `${inquiry.subject} — ` : ""}{inquiry.message}
+                    </p>
+                  </div>
+                </div>
+                <div className="shrink-0 text-right text-xs text-muted-foreground">
+                  {format(new Date(inquiry.created_at), "dd MMM yyyy")}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="py-8 text-center">
+              <p className="text-sm text-muted-foreground">
+                No inquiries yet. Contact form submissions from your website will appear here.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

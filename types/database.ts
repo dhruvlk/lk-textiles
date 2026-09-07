@@ -311,6 +311,19 @@ export type DeliveryChallanSequenceRow = {
   updated_at: string;
 };
 
+export type InquiryRow = {
+  id: string;
+  full_name: string;
+  email: string;
+  phone: string | null;
+  company: string | null;
+  subject: string | null;
+  message: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -546,6 +559,23 @@ export interface Database {
             referencedColumns: ["id"]
           }
         ];
+      };
+      inquiries: {
+        Row: InquiryRow;
+        Insert: {
+          id?: string;
+          full_name: string;
+          email: string;
+          phone?: string | null;
+          company?: string | null;
+          subject?: string | null;
+          message: string;
+          status?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<InquiryRow>;
+        Relationships: [];
       };
     };
     Views: Record<string, never>;

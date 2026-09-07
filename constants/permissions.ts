@@ -134,6 +134,7 @@ export const ROUTE_MODULE_MAP: { prefix: string; module: PermissionModule }[] = 
   { prefix: '/admin/letter-pads', module: 'letter_pads' },
   { prefix: '/admin/reports', module: 'reports' },
   { prefix: '/admin/settings', module: 'settings' },
+  { prefix: '/admin/inquiries', module: 'dashboard' },
   { prefix: '/admin/notifications', module: 'dashboard' },
   { prefix: '/admin', module: 'dashboard' },
 ];

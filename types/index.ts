@@ -232,6 +232,8 @@ export interface DashboardStats {
   todayChallans: number;
   monthlySales: number;
   recentChallans: Challan[];
+  totalInquiries?: number;
+  recentInquiries?: Inquiry[];
 }
 
 export interface PaginationParams {
@@ -378,3 +380,23 @@ export interface LetterPadFilters {
   dateTo?: string;
 }
 
+export type InquiryStatus = 'new' | 'read';
+
+export interface Inquiry {
+  id: string;
+  full_name: string;
+  email: string;
+  phone?: string | null;
+  company?: string | null;
+  subject?: string | null;
+  message: string;
+  status: InquiryStatus;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InquiryFilters {
+  search?: string;
+  status?: InquiryStatus | 'all' | '';
+  sort?: TableSort;
+}

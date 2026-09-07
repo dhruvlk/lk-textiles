@@ -6,6 +6,7 @@ import { motion } from "framer-motion"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
+  Inbox,
   Building2,
   Users,
   Package,
@@ -38,24 +39,25 @@ const navigation: {
   feature?: keyof typeof FEATURES
   module: PermissionModule
 }[] = [
-  { name: "Dashboard", href: "/admin", icon: LayoutDashboard, module: "dashboard" },
-  { name: "Companies", href: "/admin/companies", icon: Building2, module: "companies" },
-  { name: "Customers", href: "/admin/parties", icon: Users, module: "customers" },
-  { name: "Products", href: "/admin/products", icon: Package, feature: "productsModule", module: "products" },
-  { name: "Stock", href: "/admin/stock", icon: Warehouse, module: "stock" },
-  { name: "Delivery Challans", href: "/admin/delivery-challans", icon: Truck, module: "delivery_challans" },
-  { name: "Invoice", href: "/admin/invoices", icon: FileText, module: "invoices" },
-  { name: "Letter Pad", href: "/admin/letter-pads", icon: FileSignature, module: "letter_pads" },
-  { name: "Reports", href: "/admin/reports", icon: PieChart, module: "reports" },
-  { name: "Employees", href: "/admin/employees", icon: UsersRound, module: "employees" },
-  {
-    name: "Settings",
-    href: "/admin/settings",
-    icon: Settings,
-    feature: "companySettingsModule",
-    module: "settings",
-  },
-]
+    { name: "Dashboard", href: "/admin", icon: LayoutDashboard, module: "dashboard" },
+    { name: "Companies", href: "/admin/companies", icon: Building2, module: "companies" },
+    { name: "Customers", href: "/admin/parties", icon: Users, module: "customers" },
+    { name: "Products", href: "/admin/products", icon: Package, feature: "productsModule", module: "products" },
+    { name: "Stock", href: "/admin/stock", icon: Warehouse, module: "stock" },
+    { name: "Delivery Challans", href: "/admin/delivery-challans", icon: Truck, module: "delivery_challans" },
+    { name: "Invoice", href: "/admin/invoices", icon: FileText, module: "invoices" },
+    { name: "Letter Pad", href: "/admin/letter-pads", icon: FileSignature, module: "letter_pads" },
+    { name: "Reports", href: "/admin/reports", icon: PieChart, module: "reports" },
+    { name: "Employees", href: "/admin/employees", icon: UsersRound, module: "employees" },
+    { name: "Inquiries", href: "/admin/inquiries", icon: Inbox, module: "dashboard" },
+    {
+      name: "Settings",
+      href: "/admin/settings",
+      icon: Settings,
+      feature: "companySettingsModule",
+      module: "settings",
+    },
+  ]
 
 interface SidebarContentProps {
   pathname: string

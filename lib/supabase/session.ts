@@ -28,8 +28,12 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // API routes must return JSON errors, not HTML redirects to /login
-  if (!user && request.nextUrl.pathname.startsWith('/api/')) {
+  // Public API routes accessible without login
+  const publicApiRoutes = ['/api/contact', '/api/auth/'];
+  const isPublicApi = publicApiRoutes.some((r) => request.nextUrl.pathname.startsWith(r));
+
+  // Protected API routes must return JSON errors, not HTML redirects to /login
+  if (!user && request.nextUrl.pathname.startsWith('/api/') && !isPublicApi) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
