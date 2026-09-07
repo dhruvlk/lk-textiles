@@ -131,7 +131,7 @@ export const sendUserConfirmationEmail = async (data: ContactFormData) => {
           </div>
           
           <p style="margin-bottom: 0; color: #475569; font-size: 15px; line-height: 1.6;">
-            If you need immediate assistance, please reply directly to this email or call us at <strong>+91 98765 43210</strong>.
+            If you need immediate assistance, please reply directly to this email or call us at <strong>+91 98251 21931</strong> or <strong>+91 70698 66165</strong>.
           </p>
           
           <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #f1f5f9;">
