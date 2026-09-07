@@ -116,7 +116,7 @@ export function ContactSection() {
                 <Input
                   id="fullName"
                   placeholder="John Doe"
-                  className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg transition-colors"
+                  className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
                   {...register("fullName")}
                   disabled={isSubmitting}
                 />
@@ -130,7 +130,7 @@ export function ContactSection() {
                     id="email"
                     type="email"
                     placeholder="john@company.com"
-                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg transition-colors"
+                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
                     {...register("email")}
                     disabled={isSubmitting}
                   />
@@ -142,7 +142,7 @@ export function ContactSection() {
                     id="phone"
                     type="tel"
                     placeholder="+91 98765 43210"
-                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg transition-colors"
+                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
                     {...register("phone", {
                       onChange: (e) => {
                         let val = e.target.value;
@@ -172,7 +172,7 @@ export function ContactSection() {
                   <Input
                     id="company"
                     placeholder="e.g. Acme Apparel"
-                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg transition-colors"
+                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
                     {...register("company")}
                     disabled={isSubmitting}
                   />
@@ -182,7 +182,7 @@ export function ContactSection() {
                   <Input
                     id="subject"
                     placeholder="Bulk Inquiry"
-                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg transition-colors"
+                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
                     {...register("subject")}
                     disabled={isSubmitting}
                   />
@@ -194,13 +194,13 @@ export function ContactSection() {
                 <Textarea
                   id="message"
                   placeholder="Tell us about your fabric needs..."
-                  className="border-2 border-slate-200 rounded-xl p-4 focus-visible:ring-0 focus-visible:border-primary bg-slate-50 text-base resize-none min-h-[120px] transition-colors"
+                  className="border-2 border-slate-200 rounded-xl p-4 focus-visible:ring-0 focus-visible:border-primary bg-slate-50 text-base text-slate-900 placeholder:text-slate-300 resize-none min-h-[120px] transition-colors"
                   {...register("message")}
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between items-center mt-2">
                   <div>{errors.message && <p className="text-red-500 text-xs">{errors.message.message}</p>}</div>
-                  <span className={cn("text-xs font-medium", wordCount >= 100 ? "text-red-500" : "text-slate-400")}>
+                  <span className={cn("text-xs font-medium", wordCount >= 100 ? "text-red-500" : "text-slate-500")}>
                     {wordCount} / 100 words
                   </span>
                 </div>
