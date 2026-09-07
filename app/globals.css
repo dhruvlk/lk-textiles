@@ -54,7 +54,7 @@
   --card-foreground: oklch(0.18 0.02 264);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.18 0.02 264);
-  --primary: oklch(0.35 0.1 260);
+  --primary: oklch(0.35 0.12 250); /* Deep Navy Blue */
   --primary-foreground: oklch(0.99 0 0);
   --secondary: oklch(0.965 0.01 264);
   --secondary-foreground: oklch(0.18 0.02 264);
@@ -65,7 +65,7 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.91 0.01 264);
   --input: oklch(0.93 0.01 264);
-  --ring: oklch(0.35 0.1 260);
+  --ring: oklch(0.35 0.12 250);
   --chart-1: oklch(0.35 0.1 260);
   --chart-2: oklch(0.62 0.17 200);
   --chart-3: oklch(0.55 0.14 150);
