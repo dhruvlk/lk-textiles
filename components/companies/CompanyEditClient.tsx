@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useCompany } from "@/components/company-provider"
-import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -18,7 +17,6 @@ import { getCompanyById, updateCompany, uploadCompanyLogo } from "@/services/com
 
 export default function CompanyEditClient({ id }: { id: string }) {
   const router = useRouter()
-  const { user } = useAuth()
   const { companies, setCompanies, selectedCompany, setSelectedCompany, refreshCompanies } = useCompany()
   const [isLoading, setIsLoading] = useState(false)
   const [company, setCompany] = useState<Company | null>(null)

@@ -9,9 +9,8 @@ import * as z from "zod"
 import { useAuth } from "@/hooks/useAuth"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { PasswordInput } from "@/components/ui/password-input"
 import { AuthShell } from "@/components/auth/AuthShell"
 import { createClient } from "@/lib/supabase/client"
 
@@ -30,7 +29,6 @@ type ResetFormValues = z.infer<typeof resetSchema>
 export default function ResetPasswordPage() {
   const router = useRouter()
   const { updatePassword } = useAuth()
-  const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [ready, setReady] = useState(false)
 
@@ -75,22 +73,12 @@ export default function ResetPasswordPage() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         <div className="space-y-2">
           <Label htmlFor="password">New Password</Label>
-          <div className="relative">
-            <Input
-              id="password"
-              type={showPassword ? "text" : "password"}
-              className="pr-10"
-              disabled={!ready}
-              {...form.register("password")}
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
-          </div>
+          <PasswordInput
+            id="password"
+            placeholder="••••••••"
+            disabled={!ready}
+            {...form.register("password")}
+          />
           {form.formState.errors.password && (
             <p className="text-sm text-destructive">{form.formState.errors.password.message}</p>
           )}
@@ -98,9 +86,9 @@ export default function ResetPasswordPage() {
 
         <div className="space-y-2">
           <Label htmlFor="confirmPassword">Confirm Password</Label>
-          <Input
+          <PasswordInput
             id="confirmPassword"
-            type="password"
+            placeholder="••••••••"
             disabled={!ready}
             {...form.register("confirmPassword")}
           />
@@ -109,15 +97,8 @@ export default function ResetPasswordPage() {
           )}
         </div>
 
-        <Button type="submit" className="h-10 w-full" disabled={isLoading || !ready}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Updating...
-            </>
-          ) : (
-            "Update password"
-          )}
+        <Button type="submit" className="h-10 w-full" disabled={!ready} loading={isLoading}>
+          {isLoading ? "Updating..." : "Update password"}
         </Button>
       </form>
     </AuthShell>

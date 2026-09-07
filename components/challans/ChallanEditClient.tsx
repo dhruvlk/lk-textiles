@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { ChallanForm } from "@/components/challans/challan-form"
 import { getChallanById } from "@/services/challans.service"
-import { notFound } from "next/navigation"
+import { PageLoader } from "@/components/common/LoadingSpinner"
 import { Challan } from "@/types"
 
 export default function ChallanEditClient({ id }: { id: string }) {
@@ -21,10 +21,10 @@ export default function ChallanEditClient({ id }: { id: string }) {
     loadChallan()
   }, [id])
 
-  if (loading) return <div>Loading...</div>
+  if (loading) return <PageLoader text="Loading challan details..." />
 
   if (!challan) {
-    return <div>Challan not found.</div>
+    return <div className="py-12 text-center text-sm text-muted-foreground">Challan not found.</div>
   }
 
   return (

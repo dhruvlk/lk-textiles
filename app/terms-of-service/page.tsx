@@ -1,5 +1,11 @@
+import type { Metadata } from "next"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
+
+export const metadata: Metadata = {
+  title: "Terms of Service | LK Textiles",
+  description: "Terms and conditions of service for LK Textiles.",
+}
 
 export default function TermsOfServicePage() {
   return (

@@ -74,7 +74,6 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     void refreshCompanies()
     // Only re-fetch when auth identity changes — not on every render
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isAuthenticated, companyId])
 
   const handleSetSelectedCompany = useCallback(async (company: Company | null) => {

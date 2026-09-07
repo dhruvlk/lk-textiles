@@ -118,7 +118,6 @@ export default function ChallansClient() {
 
   useEffect(() => {
     void loadChallans({ silent: challans.length > 0 })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     companyId,
     search,

@@ -1,7 +1,7 @@
 "use client"
 /* eslint-disable react-hooks/set-state-in-effect */
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import {
   Banknote,
   Boxes,
@@ -66,21 +66,6 @@ export default function ReportsClient() {
   const [bundle, setBundle] = useState<ReportsBundle | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isPending, startTransition] = useTransition()
-
-  const load = useCallback(async () => {
-    if (!companyId) return
-    const isFirst = bundle === null
-    if (isFirst) setIsLoading(true)
-    try {
-      const data = await getReportsBundle(companyId, filters)
-      startTransition(() => setBundle(data))
-    } catch {
-      toast.error("Failed to load reports")
-    } finally {
-      setIsLoading(false)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters, companyId])
 
   useEffect(() => {
     if (!companyId) return

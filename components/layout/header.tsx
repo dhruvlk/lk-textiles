@@ -9,16 +9,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Building2, Check } from "lucide-react"
-import { useAuth } from "@/hooks/useAuth"
-import { useIsClient } from "@/hooks/useIsClient"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { NotificationBell } from "@/components/notifications/NotificationBell"
-import { cn } from "@/lib/utils"
+import { useAuth } from "@/hooks/useAuth"
 
 export function Header() {
   const { selectedCompany, companies, setSelectedCompany } = useCompany()
   const { user } = useAuth()
-  const isClient = useIsClient()
   const hasMultipleCompanies = companies.length > 1
 
   const companyLabel = (

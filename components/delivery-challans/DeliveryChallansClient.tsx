@@ -114,7 +114,6 @@ export default function DeliveryChallansClient() {
 
   useEffect(() => {
     void load({ silent: challans.length > 0 })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, search, statusFilter, customerFilter, dateFrom, dateTo, sortKey, page, pageSize])
 
   const confirmDelete = async () => {

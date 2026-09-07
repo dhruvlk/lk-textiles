@@ -3,7 +3,7 @@ import {
   emptyPermissionMatrix,
 } from '@/constants/permissions';
 import { matrixFromRows } from '@/lib/permissions';
-import type { Employee, PermissionMatrix } from '@/types/permissions';
+import type { Employee } from '@/types/permissions';
 
 type ListEmployeeRow = {
   membership_id: string;

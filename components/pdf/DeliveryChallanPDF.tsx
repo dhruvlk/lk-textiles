@@ -1,7 +1,7 @@
 import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon, Circle } from '@react-pdf/renderer';
 import type { Company, Customer, DeliveryChallan } from '@/types';
-import { formatCompanyAddress, resolveDeliveryChallanTerms } from '@/lib/pdf-utils';
+import { formatCompanyAddress } from '@/lib/pdf-utils';
 
 Font.register({
   family: 'Gujarati',
@@ -14,7 +14,6 @@ Font.register({
 const PRIMARY_COLOR = '#091A42'; // Dark Blue
 const SECONDARY_COLOR = '#DCA86A'; // Gold/Beige
 const BORDER_COLOR = '#EFE3D3'; // Light beige for borders and bg
-const TEXT_COLOR = '#000000';
 
 const PhoneIcon = () => (
   <Svg viewBox="0 0 24 24" width="12" height="12">

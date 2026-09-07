@@ -48,7 +48,7 @@ export function PartyFormDialog({ onPartyAdded, initialData, trigger }: PartyFor
       await onPartyAdded(newParty)
       toast.success(initialData ? "Party updated successfully." : "Party created successfully!")
       setOpen(false)
-    } catch (error) {
+    } catch {
       toast.error("Failed to save party.")
     } finally {
       setIsLoading(false)

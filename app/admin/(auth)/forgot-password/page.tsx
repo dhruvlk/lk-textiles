@@ -10,7 +10,6 @@ import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Loader2 } from "lucide-react"
 import { AuthShell } from "@/components/auth/AuthShell"
 
 const forgotSchema = z.object({
@@ -67,17 +66,8 @@ export default function ForgotPasswordPage() {
           )}
         </div>
 
-        <Button type="submit" className="h-10 w-full" disabled={isLoading || sent}>
-          {isLoading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Sending...
-            </>
-          ) : sent ? (
-            "Email sent"
-          ) : (
-            "Send reset link"
-          )}
+        <Button type="submit" className="h-10 w-full" disabled={sent} loading={isLoading}>
+          {sent ? "Email sent" : "Send reset link"}
         </Button>
       </form>
     </AuthShell>
