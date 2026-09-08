@@ -35,7 +35,7 @@ export function StatCard({
         className
       )}
     >
-      <CardContent className="flex h-full items-start justify-between gap-3 p-5">
+      <CardContent className="flex h-full items-start justify-between gap-3">
         <div className="flex min-w-0 flex-1 flex-col gap-2 pr-1">
           <p className="line-clamp-2 min-h-[2.5rem] text-sm font-medium leading-5 text-muted-foreground">
             {title}
