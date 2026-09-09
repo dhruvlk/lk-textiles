@@ -13,19 +13,19 @@ const baseUrl =
   (process.env.VERCEL_PROJECT_PRODUCTION_URL
     ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
     : process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
-    : "https://lk-textiles.vercel.app");
+      ? `https://${process.env.VERCEL_URL}`
+      : "https://lk-textiles.vercel.app");
 
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
-  title: "LK Textiles | Modern Textile Challan System",
+  title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
   description:
-    "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
   openGraph: {
     siteName: "LK Textiles",
-    title: "LK Textiles | Modern Textile Challan System",
+    title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
     type: "website",
     locale: "en_US",
     images: [
@@ -41,9 +41,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LK Textiles | Modern Textile Challan System",
+    title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
     images: ["/og-image.png"],
   },
 };

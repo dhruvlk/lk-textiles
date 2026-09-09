@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { LandingPageClient } from "@/components/landing/LandingPageClient"
 
 export const metadata: Metadata = {
-  title: "LK Textiles | Modern Textile Challan System",
+  title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
   description:
-    "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
   keywords: [
     "Textile Challan System",
     "Delivery Challan",
@@ -15,9 +15,9 @@ export const metadata: Metadata = {
   ],
   openGraph: {
     siteName: "LK Textiles",
-    title: "LK Textiles | Modern Textile Challan System",
+    title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
     type: "website",
     locale: "en_US",
     images: [
@@ -33,9 +33,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "LK Textiles | Modern Textile Challan System",
+    title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "Enterprise multi-company textile challan, delivery notes, and stock ledger system for modern manufacturers.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
     images: ["/og-image.png"],
   },
 }
