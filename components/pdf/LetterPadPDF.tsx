@@ -144,7 +144,8 @@ const styles = StyleSheet.create({
   },
   phoneText: {
     fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
   },
   companyName: {
     fontSize: 40,
@@ -229,7 +230,8 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    fontFamily: 'Helvetica',
+    fontWeight: 'bold',
     color: PRIMARY_COLOR,
     letterSpacing: 1,
   },
@@ -241,12 +243,12 @@ const htmlStyles = StyleSheet.create({
   ul: { margin: 0, marginBottom: 12 },
   ol: { margin: 0, marginBottom: 12 },
   li: { marginBottom: 4 },
-  strong: { fontFamily: 'Helvetica-Bold' },
-  em: { fontStyle: 'italic' },
+  strong: { fontFamily: 'Helvetica', fontWeight: 'bold' },
+  em: { fontFamily: 'Helvetica', fontStyle: 'italic' },
   u: { textDecoration: 'underline' },
-  h1: { fontSize: 16, fontFamily: 'Helvetica-Bold', marginBottom: 12 },
-  h2: { fontSize: 14, fontFamily: 'Helvetica-Bold', marginBottom: 10 },
-  h3: { fontSize: 12, fontFamily: 'Helvetica-Bold', marginBottom: 8 },
+  h1: { fontSize: 16, fontFamily: 'Helvetica', fontWeight: 'bold', marginBottom: 12 },
+  h2: { fontSize: 14, fontFamily: 'Helvetica', fontWeight: 'bold', marginBottom: 10 },
+  h3: { fontSize: 12, fontFamily: 'Helvetica', fontWeight: 'bold', marginBottom: 8 },
 })
 
 interface LetterPadPDFProps {
@@ -329,7 +331,7 @@ export function LetterPadPDF({ letterPad, company }: LetterPadPDFProps) {
             </View>
 
             {letterPad.subject && (
-              <Text style={[styles.bodyText, { fontFamily: 'Helvetica-Bold', marginBottom: 15 }]}>
+              <Text style={[styles.bodyText, { fontFamily: 'Helvetica', fontWeight: 'bold', marginBottom: 15 }]}>
                 Subject: {letterPad.subject}
               </Text>
             )}
