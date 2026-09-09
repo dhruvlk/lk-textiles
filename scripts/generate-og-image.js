@@ -418,17 +418,15 @@ async function main() {
     fs.unlinkSync(tempHtmlPath);
   }
 
-  const metadata = await sharp(outputPath).metadata();
-  console.log('Rendered OG image:', metadata.width, 'x', metadata.height, 'Format:', metadata.format);
+  console.log('Optimizing OG image with Sharp for WhatsApp and social crawlers (<200KB)...');
+  await sharp(outputPath)
+    .resize(1200, 630, { fit: 'cover' })
+    .png({ palette: true, quality: 90, compressionLevel: 9, effort: 10 })
+    .toFile(path.join(rootDir, 'public', 'og-image-opt.png'));
 
-  if (metadata.width !== 1200 || metadata.height !== 630) {
-    console.log('Adjusting to exact 1200x630 with Sharp...');
-    await sharp(outputPath)
-      .resize(1200, 630, { fit: 'cover' })
-      .png({ quality: 95, compressionLevel: 8 })
-      .toFile(path.join(rootDir, 'public', 'og-image-exact.png'));
-    fs.renameSync(path.join(rootDir, 'public', 'og-image-exact.png'), outputPath);
-  }
+  fs.renameSync(path.join(rootDir, 'public', 'og-image-opt.png'), outputPath);
+  const optMeta = await sharp(outputPath).metadata();
+  console.log('Final optimized OG image:', optMeta.width, 'x', optMeta.height, 'Format:', optMeta.format, 'Size:', fs.statSync(outputPath).size, 'bytes');
 
   const appOgPath = path.join(rootDir, 'app', 'opengraph-image.png');
   fs.copyFileSync(outputPath, appOgPath);
