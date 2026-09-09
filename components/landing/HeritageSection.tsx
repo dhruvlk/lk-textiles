@@ -13,10 +13,10 @@ export function HeritageSection() {
           {/* Images Grid */}
           <div className="relative h-[500px] md:h-[600px] w-full hidden md:block">
             <div className="absolute top-0 left-0 w-[60%] h-[70%] rounded-2xl overflow-hidden shadow-2xl z-10 border border-white/10">
-              <Image src="https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&q=80" alt="Loom" fill className="object-cover" />
+              <Image src="https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&q=80" alt="LK Textiles Grey Fabric Manufacturing Loom" fill className="object-cover" />
             </div>
             <div className="absolute bottom-0 right-0 w-[55%] h-[60%] rounded-2xl overflow-hidden shadow-2xl z-20 border border-white/10 translate-y-8 -translate-x-4">
-              <Image src="https://images.unsplash.com/photo-1605289355680-75fb41239154?auto=format&fit=crop&q=80" alt="Yarn" fill className="object-cover" />
+              <Image src="https://images.unsplash.com/photo-1605289355680-75fb41239154?auto=format&fit=crop&q=80" alt="Art Silk Textile Yarns" fill className="object-cover" />
             </div>
           </div>
 
@@ -26,10 +26,10 @@ export function HeritageSection() {
               Our Heritage
             </div>
             <h2 className="reveal-text text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
-              Decades of Mastery <br />Woven into Every Thread.
+              Decades of Mastery <br /> as a Surat Textile Manufacturer.
             </h2>
             <p className="reveal-text text-lg text-slate-400 leading-relaxed">
-              Since our inception, LK Textiles has championed the fusion of traditional textile craftsmanship with cutting-edge manufacturing. We don&apos;t just produce fabrics; we engineer materials that define the tactile experience of the world&apos;s most prestigious brands.
+              Since our inception, LK Textiles has championed the fusion of traditional textile craftsmanship with cutting-edge manufacturing. As a leading Textile Manufacturer in Surat, we don&apos;t just produce fabrics; we supply high-quality Grey Fabric and Art Silk Cloth to the world&apos;s most prestigious brands.
             </p>
 
             <div className="reveal-text grid grid-cols-2 gap-8 pt-6">

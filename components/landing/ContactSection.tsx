@@ -85,14 +85,14 @@ export function ContactSection() {
         <div className="hidden lg:block relative h-full w-full">
           <Image
             src="https://images.unsplash.com/photo-1542272201-b1ca555f8505?auto=format&fit=crop&q=80"
-            alt="Denim Texture"
+            alt="Textile manufacturing facility by LK Textiles"
             fill
             className="object-cover opacity-60"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
           <div className="absolute bottom-16 left-16 max-w-md">
-            <h3 className="text-4xl font-bold text-white mb-4">Let&apos;s craft something exceptional.</h3>
-            <p className="text-slate-300 text-lg">Partner with us to elevate your product line with world-class textiles.</p>
+            <h3 className="text-4xl font-bold text-white mb-4">Contact LK Textiles.</h3>
+            <p className="text-slate-300 text-lg">Partner with your trusted textile fabric supplier in Surat to elevate your product line with world-class textiles.</p>
           </div>
         </div>
         {/* Right Form Pane Background */}

@@ -4,20 +4,24 @@ import { LandingPageClient } from "@/components/landing/LandingPageClient"
 export const metadata: Metadata = {
   title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
   description:
-    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
+    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
   keywords: [
-    "Textile Challan System",
-    "Delivery Challan",
-    "Textile Billing",
-    "Grey Fabric Management",
+    "Grey Fabric Manufacturer",
+    "Art Silk Fabric Supplier",
+    "Textile Manufacturer in Surat",
+    "Grey Cloth Supplier",
     "LK Textiles Surat",
-    "Taka Stock Management",
+    "Textile Fabric Manufacturer",
   ],
+  alternates: {
+    canonical: "https://lk-textiles.vercel.app/",
+  },
   openGraph: {
     siteName: "LK Textiles",
     title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+    url: "https://lk-textiles.vercel.app/",
     type: "website",
     locale: "en_US",
     images: [
@@ -41,5 +45,21 @@ export const metadata: Metadata = {
 }
 
 export default function HomeLandingPage() {
-  return <LandingPageClient />
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "LK Textiles",
+    description: "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+    url: "https://lk-textiles.vercel.app/",
+  }
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <LandingPageClient />
+    </>
+  )
 }

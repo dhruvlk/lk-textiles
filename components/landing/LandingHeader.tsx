@@ -10,8 +10,8 @@ import { buttonVariants } from "@/components/ui/button"
 
 const navItems = [
   { label: "Home", href: "#home", icon: Home, description: "Overview & Highlights" },
-  { label: "Heritage", href: "#about", icon: History, description: "Our 30-Year Legacy" },
-  { label: "Capabilities", href: "#categories", icon: Layers, description: "Fabrics, Knits & Yarns" },
+  { label: "About Us", href: "#about", icon: History, description: "Our 30-Year Legacy" },
+  { label: "Our Textile Fabrics", href: "#categories", icon: Layers, description: "Grey Fabric & Art Silk" },
   { label: "Contact", href: "#contact", icon: Send, description: "Get in touch with us" },
 ]
 

@@ -4,7 +4,15 @@ import { ChevronLeft } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Terms of Service | LK Textiles",
-  description: "Terms and conditions of service for LK Textiles.",
+  description: "Terms and conditions of service for LK Textiles. Please read these terms carefully before using our website or services.",
+  alternates: {
+    canonical: "https://lk-textiles.vercel.app/terms-of-service",
+  },
+  openGraph: {
+    title: "Terms of Service | LK Textiles",
+    description: "Terms and conditions of service for LK Textiles. Please read these terms carefully before using our website or services.",
+    url: "https://lk-textiles.vercel.app/terms-of-service",
+  },
 }
 
 export default function TermsOfServicePage() {

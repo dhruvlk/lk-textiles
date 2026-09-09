@@ -4,7 +4,15 @@ import { ChevronLeft } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Privacy Policy | LK Textiles",
-  description: "Privacy policy and data handling information for LK Textiles.",
+  description: "Privacy policy and data handling information for LK Textiles. We are committed to protecting your privacy and personal information.",
+  alternates: {
+    canonical: "https://lk-textiles.vercel.app/privacy-policy",
+  },
+  openGraph: {
+    title: "Privacy Policy | LK Textiles",
+    description: "Privacy policy and data handling information for LK Textiles. We are committed to protecting your privacy and personal information.",
+    url: "https://lk-textiles.vercel.app/privacy-policy",
+  },
 }
 
 export default function PrivacyPolicyPage() {

@@ -41,8 +41,8 @@ export function HeroSection() {
               transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]"
             >
-              Weave Your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">Legacy in Fabric.</span>
+              Surat&apos;s Premier <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">Grey Fabric & Art Silk Fabric Manufacturer.</span>
             </motion.h1>
 
             <motion.p
@@ -51,7 +51,7 @@ export function HeroSection() {
               transition={{ duration: 1, delay: 0.6 }}
               className="text-lg md:text-xl text-slate-600 max-w-lg leading-relaxed"
             >
-              LK Textiles architects the finest materials for global brands, marrying age-old craftsmanship with state-of-the-art innovation.
+              LK Textiles is a trusted textile manufacturer and supplier of quality grey cloth and art silk fabrics, marrying age-old craftsmanship with state-of-the-art innovation for global brands.
             </motion.p>
 
             <motion.div
@@ -87,7 +87,7 @@ export function HeroSection() {
             >
               <Image
                 src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80"
-                alt="Premium Fabric Texture"
+                alt="Premium Grey Fabric and Art Silk Fabric manufactured by LK Textiles"
                 fill
                 className="object-cover scale-110"
                 priority

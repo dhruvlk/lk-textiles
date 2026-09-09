@@ -15,7 +15,7 @@ export function LandingFooter() {
               <Image src="/logo-1.png" alt="LK Textiles Logo" width={140} height={60} className="h-12 w-auto object-contain brightness-0 invert" />
             </div>
             <p className="text-sm leading-relaxed max-w-sm">
-              Redefining the standards of global textile manufacturing with uncompromising quality and sustainable innovation.
+              Redefining the standards of global textile manufacturing with uncompromising quality and sustainable innovation. As a trusted Surat Textile Manufacturer, we deliver excellence in every fabric.
             </p>
           </div>
 
@@ -23,19 +23,19 @@ export function LandingFooter() {
             <h4 className="text-white font-bold tracking-wide uppercase text-sm">Navigation</h4>
             <ul className="space-y-3 text-sm">
               <li><Link href="#home" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link href="#about" className="hover:text-white transition-colors">Heritage</Link></li>
-              <li><Link href="#categories" className="hover:text-white transition-colors">Capabilities</Link></li>
+              <li><Link href="#about" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="#categories" className="hover:text-white transition-colors">Our Textile Fabrics</Link></li>
               <li><Link href="#contact" className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-4 lg:col-span-3 space-y-6">
-            <h4 className="text-white font-bold tracking-wide uppercase text-sm">Capabilities</h4>
+            <h4 className="text-white font-bold tracking-wide uppercase text-sm">Our Products</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="#" className="hover:text-white transition-colors">Precision Woven Fabrics</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Performance Knits</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Sustainable Solutions</Link></li>
-              <li><Link href="#" className="hover:text-white transition-colors">Specialty Yarns</Link></li>
+              <li><Link href="#categories" className="hover:text-white transition-colors">Grey Fabric</Link></li>
+              <li><Link href="#categories" className="hover:text-white transition-colors">Art Silk Cloth</Link></li>
+              <li><Link href="#categories" className="hover:text-white transition-colors">Sustainable Textile Solutions</Link></li>
+              <li><Link href="#categories" className="hover:text-white transition-colors">Specialty Textile Yarns</Link></li>
             </ul>
           </div>
 

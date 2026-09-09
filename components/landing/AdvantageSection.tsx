@@ -8,8 +8,8 @@ export function AdvantageSection() {
       <div className="container px-6 mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
           <div className="max-w-xl">
-            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-4">The LK Advantage</h2>
-            <p className="text-slate-600 text-lg">Why industry leaders trust our manufacturing ecosystem.</p>
+            <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 mb-4">Why Choose LK Textiles</h2>
+            <p className="text-slate-600 text-lg">Why industry leaders trust us as their quality fabric manufacturer and textile supplier.</p>
           </div>
         </div>
 
