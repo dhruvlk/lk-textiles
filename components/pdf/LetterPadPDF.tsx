@@ -29,20 +29,7 @@ Font.register({
   ],
 })
 
-Font.register({
-  family: 'Times-Roman',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/tinos/v30/WwkbxPW1E165zjD_wHs.ttf' },
-    { src: 'https://fonts.gstatic.com/s/tinos/v30/WwkfxPW1E165zjAD0HskFw.ttf', fontWeight: 'bold' },
-  ]
-})
 
-Font.register({
-  family: 'Helvetica',
-  fonts: [
-    { src: 'https://fonts.gstatic.com/s/helveticaneue/v70/1Ptsg8zYS_SKggPNyCg4TYFq.ttf' },
-  ],
-})
 
 const PRIMARY_COLOR = '#091A42' // Dark Blue
 const SECONDARY_COLOR = '#DCA86A' // Gold/Beige
