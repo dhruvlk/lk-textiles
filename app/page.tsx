@@ -4,7 +4,7 @@ import { LandingPageClient } from "@/components/landing/LandingPageClient"
 export const metadata: Metadata = {
   title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
   description:
-    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
   keywords: [
     "Textile Challan System",
     "Delivery Challan",
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "LK Textiles",
     title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
     type: "website",
     locale: "en_US",
     images: [
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
     images: ["/og-image.png"],
   },
 }

@@ -20,12 +20,12 @@ export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
   description:
-    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+    "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
   openGraph: {
     siteName: "LK Textiles",
     title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
     type: "website",
     locale: "en_US",
     images: [
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "LK Textiles | Grey Fabric & Art Silk Cloth Manufacturers",
     description:
-      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our textile products, fabrics and manufacturing solutions.",
+      "LK Textiles is a trusted manufacturer and supplier of quality Grey Fabric and Art Silk Fabric. Explore our products.",
     images: ["/og-image.png"],
   },
 };
