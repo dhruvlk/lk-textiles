@@ -221,12 +221,12 @@ export default function ChallanDetailClient({ id }: { id: string }) {
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back
             </Button>
-            <Button variant="outline" onClick={() => router.push(`/invoices/${id}/print`)}>
+            <Button variant="outline" onClick={() => router.push(`/admin/invoices/${id}/print`)}>
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
             <DownloadChallanButton challan={challan} company={selectedCompany} />
-            <Button variant="outline" onClick={() => router.push(`/invoices/${id}/edit`)}>
+            <Button variant="outline" onClick={() => router.push(`/admin/invoices/${id}/edit`)}>
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </Button>

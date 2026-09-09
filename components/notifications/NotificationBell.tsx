@@ -181,9 +181,9 @@ export function NotificationBell() {
                     }
                     setOpen(false)
                     if (item.entity_type === "challan" && item.entity_id) {
-                      router.push(`/invoices/${item.entity_id}`)
+                      router.push(`/admin/invoices/${item.entity_id}`)
                     } else if (item.entity_type === "delivery_challan" && item.entity_id) {
-                      router.push(`/delivery-challans/${item.entity_id}`)
+                      router.push(`/admin/delivery-challans/${item.entity_id}`)
                     } else if (item.entity_type === "stock") {
                       router.push("/admin/stock")
                     } else {

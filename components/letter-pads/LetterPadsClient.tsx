@@ -192,7 +192,7 @@ export function LetterPadsClient() {
                       <DropdownMenuContent align="end" className="w-48">
                         <LetterPadActions letter={pad} />
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => router.push(`/letter-pads/${pad.id}/edit`)}>
+                        <DropdownMenuItem onClick={() => router.push(`/admin/letter-pads/${pad.id}/edit`)}>
                           <Pencil className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>

@@ -227,15 +227,15 @@ export default function ChallansClient() {
       className: "text-right",
       cell: (c: Challan) => (
         <div className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="icon" onClick={() => router.push(`/invoices/${c.id}`)} title="View details">
+          <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}`)} title="View details">
             <Eye className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => router.push(`/invoices/${c.id}/print`)} title="Print">
+          <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}/print`)} title="Print">
             <Printer className="h-4 w-4" />
           </Button>
           <DownloadChallanButton challan={c} company={selectedCompany} />
           <PermissionGate module="invoices" action="edit">
-            <Button variant="ghost" size="icon" onClick={() => router.push(`/invoices/${c.id}/edit`)}>
+            <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}/edit`)}>
               <Edit className="h-4 w-4" />
             </Button>
           </PermissionGate>
