@@ -421,13 +421,6 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
               </TableHeader>
               <TableBody>
                 {fields.map((field, index) => {
-                  const qtyText = form.watch(`items.${index}.quantity_display`) || ""
-                  const r = form.watch(`items.${index}.rate`) || 0
-                  const qtyNum = parseQuantityNumeric(qtyText)
-                  if (qtyNum * r !== form.getValues(`items.${index}.amount`)) {
-                     form.setValue(`items.${index}.amount`, qtyNum * r)
-                  }
-
                   return (
                     <TableRow key={field.id}>
                       <TableCell className="p-2">
@@ -444,7 +437,15 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                       </TableCell>
                       <TableCell className="p-2">
                         <Input
-                          {...form.register(`items.${index}.quantity_display`)}
+                          {...form.register(`items.${index}.quantity_display`, {
+                            onChange: (e) => {
+                              const qtyNum = parseQuantityNumeric(e.target.value);
+                              const rate = form.getValues(`items.${index}.rate`) || 0;
+                              if (qtyNum && rate) {
+                                form.setValue(`items.${index}.amount`, Number((qtyNum * rate).toFixed(2)));
+                              }
+                            }
+                          })}
                           className="h-8"
                           placeholder="e.g. 4500 Mts"
                         />
@@ -453,10 +454,19 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         <Input type="number" step="0.01" {...form.register(`items.${index}.weight`)} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
-                        <Input type="number" step="0.01" {...form.register(`items.${index}.rate`)} className="h-8" />
+                        <Input type="number" step="0.01" {...form.register(`items.${index}.rate`, {
+                          onChange: (e) => {
+                            const rate = Number(e.target.value);
+                            const qtyText = form.getValues(`items.${index}.quantity_display`) || "";
+                            const qtyNum = parseQuantityNumeric(qtyText);
+                            if (qtyNum && rate) {
+                              form.setValue(`items.${index}.amount`, Number((qtyNum * rate).toFixed(2)));
+                            }
+                          }
+                        })} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
-                        <Input type="number" step="0.01" {...form.register(`items.${index}.amount`)} readOnly className="h-8 bg-muted" />
+                        <Input type="number" step="0.01" {...form.register(`items.${index}.amount`)} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => remove(index)}>
