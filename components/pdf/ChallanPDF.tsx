@@ -1,4 +1,3 @@
-import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon, Circle } from '@react-pdf/renderer';
 import { Challan, Company, Customer } from '@/types';
 import { numberToWords } from '@/lib/number-to-words';

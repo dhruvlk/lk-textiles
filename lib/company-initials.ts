@@ -105,9 +105,3 @@ export function getCompanyAvatarPalette(name: string): CompanyAvatarPalette {
   const hash = hashString(name.trim().toLowerCase() || 'company');
   return AVATAR_PALETTES[hash % AVATAR_PALETTES.length];
 }
-
-/** @deprecated Use getCompanyAvatarPalette */
-export function getCompanyAvatarGradient(name: string): string {
-  const palette = getCompanyAvatarPalette(name);
-  return palette.background;
-}

@@ -15,7 +15,6 @@ import { StatCard } from "@/components/common/StatCard"
 import { EmptyState } from "@/components/common/EmptyState"
 import { MotionStagger, MotionStaggerItem } from "@/components/common/motion"
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis } from "recharts"
-import Link from "next/link"
 import { motion } from "framer-motion"
 const listIconColors = [
   "bg-violet-500/10 text-violet-600",

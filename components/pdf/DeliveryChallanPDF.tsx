@@ -1,4 +1,3 @@
-import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon, Circle } from '@react-pdf/renderer';
 import type { Company, Customer, DeliveryChallan } from '@/types';
 import { formatCompanyAddress } from '@/lib/pdf-utils';

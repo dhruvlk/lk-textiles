@@ -200,8 +200,6 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
     setIsSubmitting(true)
     
     try {
-      const party = parties.find(p => p.id === values.party_id)
-
       const challanPayload = {
         company_id: selectedCompany.id,
         customer_id: values.party_id,
