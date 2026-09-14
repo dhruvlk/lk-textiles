@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/client';
 import { mapCompany, companyToInsert } from '@/lib/mappers';
+import { formatPhoneToStorage } from '@/lib/validations/phone';
 import type { Company } from '@/types';
 
 const supabase = () => createClient();
@@ -87,6 +88,7 @@ export async function updateCompany(company: Company): Promise<Company> {
   const { id, user_id: _uid, created_at: _ca, updated_at: _ua, ...rest } = company;
   const payload = {
     ...rest,
+    phone: rest.phone ? formatPhoneToStorage(rest.phone) : null,
     invoice_start_number: rest.invoice_start_number ?? 1,
     delivery_challan_start_number: rest.delivery_challan_start_number ?? 1,
     number_fy_format: rest.number_fy_format ?? 'YYYY',

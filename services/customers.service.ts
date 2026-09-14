@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { formatPhoneToStorage } from '@/lib/validations/phone';
 import type { Customer, PaginatedResult, PaginationParams } from '@/types';
 import type { CustomerRow } from '@/types/database';
 
@@ -13,7 +14,7 @@ function toCustomerInsert(customer: Omit<Customer, 'id' | 'created_at' | 'update
     company_id: customer.company_id,
     name: customer.name,
     contact_person: customer.contact_person ?? null,
-    mobile: customer.mobile ?? null,
+    mobile: customer.mobile ? formatPhoneToStorage(customer.mobile) : null,
     email: customer.email ?? null,
     gst_number: customer.gst_number ?? null,
     address: customer.address ?? null,

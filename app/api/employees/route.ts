@@ -8,6 +8,7 @@ import {
 } from '@/lib/employees-api';
 import { emptyPermissionMatrix } from '@/constants/permissions';
 import { sanitizeEmployeeMatrix } from '@/lib/permissions';
+import { isValidIndianMobile, formatPhoneToStorage } from '@/lib/validations/phone';
 import type { PermissionMatrix } from '@/types/permissions';
 
 type CreateBody = {
@@ -160,7 +161,11 @@ export async function POST(request: Request) {
     const companyId = body.companyId?.trim();
     const fullName = body.fullName?.trim();
     const email = body.email?.trim().toLowerCase();
-    const mobile = body.mobile?.trim() || null;
+    const rawMobile = body.mobile?.trim() || null;
+    if (rawMobile && !isValidIndianMobile(rawMobile)) {
+      return apiError('Mobile number must be exactly 10 digits with +91', 400);
+    }
+    const mobile = formatPhoneToStorage(rawMobile);
     const designation = body.designation?.trim() || null;
     const password = body.password?.trim();
     const sendInvite = Boolean(body.sendInvite);
@@ -352,7 +357,14 @@ export async function PATCH(request: Request) {
     }
 
     const fullName = body.fullName?.trim();
-    const mobile = body.mobile === undefined ? undefined : body.mobile?.trim() || null;
+    let mobile: string | null | undefined = undefined;
+    if (body.mobile !== undefined) {
+      const rawMobile = body.mobile?.trim() || null;
+      if (rawMobile && !isValidIndianMobile(rawMobile)) {
+        return apiError('Mobile number must be exactly 10 digits with +91', 400);
+      }
+      mobile = formatPhoneToStorage(rawMobile);
+    }
     const designation =
       body.designation === undefined ? undefined : body.designation?.trim() || null;
 

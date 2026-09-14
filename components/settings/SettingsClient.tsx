@@ -19,6 +19,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { isValidIndianMobile } from "@/lib/validations/phone"
 import {
   Select,
   SelectContent,
@@ -118,6 +120,11 @@ export default function SettingsClient() {
   }
 
   const save = async () => {
+    if (form.phone && !isValidIndianMobile(form.phone)) {
+      toast.error("Mobile number must be exactly 10 digits")
+      return
+    }
+
     setSaving(true)
     try {
       const payload: Company = {
@@ -211,7 +218,15 @@ export default function SettingsClient() {
             <Field label="Owner Name" value={form.owner_name} onChange={(v) => set("owner_name", v)} />
             <Field label="GST Number" value={form.gst_number} onChange={(v) => set("gst_number", v.toUpperCase())} />
             <Field label="PAN Number" value={form.pan_number} onChange={(v) => set("pan_number", v.toUpperCase())} />
-            <Field label="Mobile Number" value={form.phone} onChange={(v) => set("phone", v)} />
+            <div className="space-y-1.5">
+              <Label>Mobile Number</Label>
+              <PhoneInput
+                id="phone"
+                value={form.phone}
+                onChange={(v) => set("phone", v || null)}
+                containerClassName="min-h-11"
+              />
+            </div>
             <Field label="Email" value={form.email} onChange={(v) => set("email", v)} />
             <Field label="Website" value={form.website} onChange={(v) => set("website", v)} />
             <Field label="Tagline" value={form.tagline} onChange={(v) => set("tagline", v)} />

@@ -1,6 +1,6 @@
 "use client"
 
-import { useForm, useWatch } from "react-hook-form"
+import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
 import Image from "next/image"
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneInput } from "@/components/ui/phone-input"
 import { cn } from "@/lib/utils"
 
 const triggerFireworks = () => {
@@ -48,13 +49,12 @@ export function ContactSection() {
     handleSubmit,
     control,
     reset,
-    setValue,
     formState: { errors, isSubmitting, isValid }
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
     mode: "onChange",
     defaultValues: {
-      fullName: "", email: "", phone: "+91 ", company: "", subject: "", message: ""
+      fullName: "", email: "", phone: "", company: "", subject: "", message: ""
     }
   })
 
@@ -138,29 +138,21 @@ export function ContactSection() {
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="phone" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    className="border-0 border-b-2 border-slate-200 rounded-none px-0 py-2 focus-visible:ring-0 focus-visible:border-primary bg-transparent text-lg text-slate-900 placeholder:text-slate-300 transition-colors"
-                    {...register("phone", {
-                      onChange: (e) => {
-                        let val = e.target.value;
-                        if (val.length === 1 && /\d/.test(val)) val = "+91 " + val;
-                        else if (val.length < 4) val = "+91 ";
-                        else if (!val.startsWith("+91 ")) {
-                          if (val.startsWith("+91")) val = "+91 " + val.slice(3);
-                          else if (val.startsWith("91") && val.replace(/\D/g, "").length > 10) val = "+91 " + val.slice(2);
-                          else val = "+91 " + val;
-                        }
-                        let digits = val.slice(4).replace(/\D/g, "");
-                        if (digits.length > 10) digits = digits.slice(0, 10);
-                        const finalValue = "+91 " + digits;
-                        e.target.value = finalValue;
-                        setValue("phone", finalValue, { shouldValidate: true });
-                      }
-                    })}
-                    disabled={isSubmitting}
+                  <Controller
+                    control={control}
+                    name="phone"
+                    render={({ field, fieldState }) => (
+                      <PhoneInput
+                        id="phone"
+                        variant="underline"
+                        value={field.value}
+                        onChange={field.onChange}
+                        onBlur={field.onBlur}
+                        error={fieldState.error?.message}
+                        showError={false}
+                        disabled={isSubmitting}
+                      />
+                    )}
                   />
                   {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
                 </div>

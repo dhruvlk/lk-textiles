@@ -13,6 +13,8 @@ import { toast } from "sonner"
 import { Loader2 } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { CompanyAvatar } from "@/components/companies/CompanyAvatar"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { isValidIndianMobile } from "@/lib/validations/phone"
 import { addCompany, updateCompany, uploadCompanyLogo } from "@/services/companies.service"
 
 export default function CompanyNewClient() {
@@ -40,8 +42,15 @@ export default function CompanyNewClient() {
       return
     }
 
-    setIsLoading(true)
     const formData = new FormData(e.currentTarget)
+    const phoneValue = (formData.get("phone") as string) || null
+
+    if (phoneValue && !isValidIndianMobile(phoneValue)) {
+      toast.error("Phone number must be exactly 10 digits")
+      return
+    }
+
+    setIsLoading(true)
 
     try {
       const newCompany = await addCompany({
@@ -54,7 +63,7 @@ export default function CompanyNewClient() {
         city: (formData.get("city") as string) || null,
         state: (formData.get("state") as string) || null,
         pincode: (formData.get("pincode") as string) || null,
-        phone: (formData.get("phone") as string) || null,
+        phone: phoneValue,
         email: (formData.get("email") as string) || null,
         website: (formData.get("website") as string) || null,
         pan_number: (formData.get("pan_number") as string) || null,
@@ -142,7 +151,7 @@ export default function CompanyNewClient() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" name="phone" />
+                  <PhoneInput id="phone" name="phone" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>

@@ -10,31 +10,51 @@ import { Textarea } from "@/components/ui/textarea"
 import { toast } from "sonner"
 import { Loader2, PlusCircle } from "lucide-react"
 import { Customer } from "@/types"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { isValidIndianMobile } from "@/lib/validations/phone"
 
 interface PartyFormDialogProps {
-  onPartyAdded: (party: Customer) => Promise<void> | void
   initialData?: Customer
+  onPartyAdded: (party: Customer) => Promise<void>
   trigger?: React.ReactElement
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
-export function PartyFormDialog({ onPartyAdded, initialData, trigger }: PartyFormDialogProps) {
+export function PartyFormDialog({ 
+  initialData, 
+  onPartyAdded, 
+  trigger,
+  open: controlledOpen,
+  onOpenChange: setControlledOpen 
+}: PartyFormDialogProps) {
   const { selectedCompany } = useCompany()
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = setControlledOpen || setInternalOpen
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!selectedCompany) return
 
-    setIsLoading(true)
     const formData = new FormData(e.currentTarget)
+    const mobileValue = (formData.get('mobile') as string) || null
+
+    if (mobileValue && !isValidIndianMobile(mobileValue)) {
+      toast.error("Mobile number must be exactly 10 digits")
+      return
+    }
+
+    setIsLoading(true)
     try {
       const newParty: Customer = {
         id: initialData ? initialData.id : '',
         company_id: initialData ? initialData.company_id : selectedCompany.id,
         name: formData.get('name') as string,
         contact_person: (formData.get('contact_person') as string) || null,
-        mobile: (formData.get('mobile') as string) || null,
+        mobile: mobileValue,
         email: (formData.get('email') as string) || null,
         gst_number: (formData.get('gst_number') as string) || null,
         address: (formData.get('address') as string) || null,
@@ -87,7 +107,11 @@ export function PartyFormDialog({ onPartyAdded, initialData, trigger }: PartyFor
             </div>
             <div className="space-y-2">
               <Label htmlFor="mobile">Mobile Number</Label>
-              <Input id="mobile" name="mobile" placeholder="+91 9876543210" defaultValue={initialData?.mobile || ""} />
+              <PhoneInput
+                id="mobile"
+                name="mobile"
+                defaultValue={initialData?.mobile}
+              />
             </div>
           </div>
 

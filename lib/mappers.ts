@@ -1,3 +1,4 @@
+import { formatPhoneToStorage } from '@/lib/validations/phone';
 import type { Company } from '@/types';
 import type { CompanyRow } from '@/types/database';
 
@@ -20,7 +21,7 @@ export function companyToInsert(
     city: company.city ?? null,
     state: company.state ?? null,
     pincode: company.pincode ?? null,
-    phone: company.phone ?? null,
+    phone: company.phone ? formatPhoneToStorage(company.phone) : null,
     email: company.email ?? null,
     website: company.website ?? null,
     pan_number: company.pan_number ?? null,

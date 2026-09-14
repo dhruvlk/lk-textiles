@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { isValidIndianMobile, formatPhoneToStorage } from '@/lib/validations/phone';
 import type { RegisterCompanyInput } from '@/types/auth';
 
 const supabase = () => createClient();
@@ -20,6 +21,10 @@ type AuthRpcClient = {
 };
 
 export async function registerCompanyAccount(input: RegisterCompanyInput) {
+  if (!isValidIndianMobile(input.mobile, { required: true })) {
+    throw new Error('Mobile number must be a valid 10-digit number prefixed with +91');
+  }
+  const mobile = formatPhoneToStorage(input.mobile)!;
   const client = supabase();
 
   const { data: authData, error: signUpError } = await client.auth.signUp({
@@ -29,7 +34,7 @@ export async function registerCompanyAccount(input: RegisterCompanyInput) {
       data: {
         name: input.ownerName,
         owner_name: input.ownerName,
-        mobile: input.mobile,
+        mobile,
         role: 'Owner',
         company_name: input.companyName,
         gst_number: input.gstNumber ?? null,
@@ -50,7 +55,7 @@ export async function registerCompanyAccount(input: RegisterCompanyInput) {
     {
       p_company_name: input.companyName,
       p_owner_name: input.ownerName,
-      p_mobile: input.mobile,
+      p_mobile: mobile,
       p_gst_number: input.gstNumber ?? null,
       p_address: input.address ?? null,
     }

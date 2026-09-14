@@ -13,6 +13,8 @@ import { Loader2 } from "lucide-react"
 import { Company } from "@/types"
 import { PageHeader } from "@/components/common/PageHeader"
 import { CompanyAvatar } from "@/components/companies/CompanyAvatar"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { isValidIndianMobile } from "@/lib/validations/phone"
 import { getCompanyById, updateCompany, uploadCompanyLogo } from "@/services/companies.service"
 
 export default function CompanyEditClient({ id }: { id: string }) {
@@ -48,8 +50,15 @@ export default function CompanyEditClient({ id }: { id: string }) {
     e.preventDefault()
     if (!company) return
 
-    setIsLoading(true)
     const formData = new FormData(e.currentTarget)
+    const phoneValue = (formData.get("phone") as string) || null
+
+    if (phoneValue && !isValidIndianMobile(phoneValue)) {
+      toast.error("Phone number must be exactly 10 digits")
+      return
+    }
+
+    setIsLoading(true)
 
     try {
       let logoUrl = company.logo_url ?? null
@@ -67,7 +76,7 @@ export default function CompanyEditClient({ id }: { id: string }) {
         city: (formData.get("city") as string) || null,
         state: (formData.get("state") as string) || null,
         pincode: (formData.get("pincode") as string) || null,
-        phone: (formData.get("phone") as string) || null,
+        phone: phoneValue,
         email: (formData.get("email") as string) || null,
         website: (formData.get("website") as string) || null,
         pan_number: (formData.get("pan_number") as string) || null,
@@ -154,7 +163,7 @@ export default function CompanyEditClient({ id }: { id: string }) {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
-                  <Input id="phone" name="phone" defaultValue={company.phone || ""} />
+                  <PhoneInput id="phone" name="phone" defaultValue={company.phone} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>

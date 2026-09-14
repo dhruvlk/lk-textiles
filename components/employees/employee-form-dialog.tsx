@@ -25,6 +25,8 @@ import { toast } from "sonner"
 import { Eye, EyeOff, Loader2, PlusCircle } from "lucide-react"
 import { PermissionMatrixEditor } from "@/components/employees/PermissionMatrix"
 import { emptyPermissionMatrix } from "@/constants/permissions"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { isValidIndianMobile } from "@/lib/validations/phone"
 import {
   createEmployeeRequest,
   updateEmployeeRequest,
@@ -87,6 +89,11 @@ export function EmployeeFormDialog({
 
     if (!fullName) {
       toast.error("Full name is required")
+      return
+    }
+
+    if (mobile && !isValidIndianMobile(mobile)) {
+      toast.error("Mobile number must be exactly 10 digits")
       return
     }
 
@@ -181,11 +188,10 @@ export function EmployeeFormDialog({
             </div>
             <div className="space-y-2">
               <Label htmlFor="mobile">Mobile Number</Label>
-              <Input
+              <PhoneInput
                 id="mobile"
                 name="mobile"
-                defaultValue={initialData?.mobile ?? ""}
-                placeholder="9876543210"
+                defaultValue={initialData?.mobile}
               />
             </div>
             <div className="space-y-2">

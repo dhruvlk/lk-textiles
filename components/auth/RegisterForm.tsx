@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { useForm } from "react-hook-form"
+import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useAuth } from "@/hooks/useAuth"
@@ -14,16 +14,15 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { PasswordInput } from "@/components/ui/password-input"
 import { AuthShell } from "@/components/auth/AuthShell"
+import { PhoneInput } from "@/components/ui/phone-input"
+import { phoneZodRequired } from "@/lib/validations/phone"
 
 export const registerSchema = z
   .object({
     companyName: z.string().min(2, "Company name is required"),
     ownerName: z.string().min(2, "Owner name is required"),
     email: z.string().email("Invalid email address"),
-    mobile: z
-      .string()
-      .min(10, "Enter a valid mobile number")
-      .regex(/^[0-9+\-\s()]+$/, "Invalid mobile number"),
+    mobile: phoneZodRequired,
     gstNumber: z.string().optional(),
     address: z.string().min(5, "Company address is required"),
     password: z.string().min(8, "Password must be at least 8 characters"),
@@ -137,7 +136,20 @@ export function RegisterForm({
 
           <div className="space-y-2">
             <Label htmlFor="mobile">Mobile Number</Label>
-            <Input id="mobile" placeholder="+91 98765 43210" {...form.register("mobile")} />
+            <Controller
+              control={form.control}
+              name="mobile"
+              render={({ field, fieldState }) => (
+                <PhoneInput
+                  id="mobile"
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                  error={fieldState.error?.message}
+                  showError={false}
+                />
+              )}
+            />
             {form.formState.errors.mobile && (
               <p className="text-sm text-destructive">{form.formState.errors.mobile.message}</p>
             )}

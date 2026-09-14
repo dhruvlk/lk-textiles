@@ -30,8 +30,12 @@ export async function POST(req: Request) {
     }
 
     // Process both emails sequentially to ensure Admin gets it before confirming to User
-    await sendAdminEmail(validatedData);
-    await sendUserConfirmationEmail(validatedData);
+    const emailData = {
+      ...validatedData,
+      phone: validatedData.phone || undefined,
+    };
+    await sendAdminEmail(emailData);
+    await sendUserConfirmationEmail(emailData);
 
     return NextResponse.json(
       { success: true, message: 'Message sent successfully' },
