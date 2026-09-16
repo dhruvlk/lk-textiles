@@ -11,8 +11,8 @@ export function LandingFooter() {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 mb-16">
 
           <div className="md:col-span-12 lg:col-span-4 space-y-6">
-            <div className="bg-white/10 p-4 rounded-2xl w-fit backdrop-blur-sm border border-white/5">
-              <Image src="/logo-1.png" alt="LK Textiles Logo" width={140} height={60} className="h-12 w-auto object-contain brightness-0 invert" />
+            <div className="bg-white p-2 rounded-2xl w-fit">
+              <Image src="/logo-1.png" alt="LK Textiles Logo" width={340} height={120} className="h-20 w-auto object-contain " />
             </div>
             <p className="text-sm leading-relaxed max-w-sm">
               Redefining the standards of global textile manufacturing with uncompromising quality and sustainable innovation. As a trusted Surat Textile Manufacturer, we deliver excellence in every fabric.

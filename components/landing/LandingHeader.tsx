@@ -76,9 +76,9 @@ export function LandingHeader() {
           <Image
             src="/logo-1.png"
             alt="LK Textiles Logo"
-            width={120}
-            height={50}
-            className="h-9 sm:h-11 md:h-12 w-auto object-contain"
+            width={240}
+            height={100}
+            className="h-9 sm:h-11 md:h-16 w-auto object-contain"
             priority
           />
         </Link>
