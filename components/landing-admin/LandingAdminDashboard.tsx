@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import {
   Save,
   RotateCcw,
@@ -17,6 +18,8 @@ import {
   Phone,
   FileText,
   Building,
+  CheckCircle2,
+  Globe,
   type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -149,37 +152,66 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   return (
     <div className="min-h-screen bg-[#F8F9FA] text-slate-900 pb-20">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200/80 px-6 py-3.5 shadow-xs">
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="bg-slate-900 text-white p-2 rounded-xl">
-              <Sparkles className="w-5 h-5 text-amber-400" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-extrabold text-slate-900 tracking-tight">
+          {/* Brand & Status */}
+          <div className="flex items-center gap-3.5 min-w-0">
+            <Link
+              href="/"
+              target="_blank"
+              title="View Public Site"
+              className="relative flex items-center justify-center h-12 w-12 shadow-xs hover:shadow-sm transition-all shrink-0 group"
+            >
+              <Image
+                src={formData.brand?.logoUrl || "/logo-1.png"}
+                alt={`${formData.brand?.name || "LK Textiles"} Logo`}
+                width={150}
+                height={100}
+                className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                priority
+              />
+            </Link>
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                   Landing Page Content Manager
-                </span>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-600 border border-slate-200">
+                </h1>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
                   Live Editor
                 </span>
               </div>
-              <div className="text-xs text-slate-400">
-                Logged in as: <strong className="text-slate-700">{adminEmail || "lktextiles6165@gmail.com"}</strong>
+              <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs text-slate-500">
+                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100/90 border border-slate-200/70 text-[11px] text-slate-600 font-medium">
+                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-900 text-[9px] font-bold text-amber-300 uppercase">
+                    {(adminEmail || "lktextiles6165@gmail.com").charAt(0)}
+                  </span>
+                  <span className="text-slate-400 font-normal">Logged in as:</span>
+                  <strong className="text-slate-800 font-semibold">{adminEmail || "lktextiles6165@gmail.com"}</strong>
+                </div>
+                <span className="text-slate-300 hidden sm:inline">•</span>
+                <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">
+                  LK Textiles CMS
+                </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Action Controls */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* View Live Site Link */}
             <Link
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/70 transition-all shadow-2xs"
             >
+              <Globe className="w-3.5 h-3.5 text-slate-500" />
               <span>View Public Site</span>
-              <ExternalLink className="w-3.5 h-3.5" />
+              <ExternalLink className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
             </Link>
 
             {/* Discard Button */}
@@ -189,7 +221,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                 variant="outline"
                 size="sm"
                 onClick={handleDiscard}
-                className="rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="rounded-xl text-xs font-semibold text-amber-700 bg-amber-50/80 hover:bg-amber-100/80 border-amber-200/80 shadow-2xs transition-all"
               >
                 <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
                 Discard
@@ -203,10 +235,10 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               disabled={!isDirty || isSaving}
               onClick={handleSave}
               className={cn(
-                "rounded-xl px-5 text-xs font-bold transition-all shadow-sm",
+                "rounded-xl px-4 sm:px-5 text-xs font-bold transition-all shadow-sm",
                 isDirty
-                  ? "bg-slate-900 text-white hover:bg-slate-800 shadow-md scale-102"
-                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                  ? "bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white hover:brightness-110 shadow-md shadow-slate-900/15 scale-[1.02] active:scale-[0.99]"
+                  : "bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none"
               )}
             >
               {isSaving ? (
@@ -216,8 +248,12 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                 </>
               ) : (
                 <>
-                  <Save className="w-3.5 h-3.5 mr-1.5" />
-                  {isDirty ? "Publish Changes" : "Up to Date"}
+                  {isDirty ? (
+                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                  ) : (
+                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+                  )}
+                  {isDirty ? "Publish Changes" : "All Changes Saved"}
                 </>
               )}
             </Button>
@@ -227,38 +263,41 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               type="button"
               onClick={handleLogoutClick}
               title="Sign Out"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/60"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Sign Out</span>
             </button>
           </div>
         </div>
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-6 pt-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
         {/* Section Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-none border-b border-slate-200/80">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            const isActive = activeTab === tab.key
-            return (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => setActiveTab(tab.key)}
-                className={cn(
-                  "px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold flex items-center gap-2 shrink-0 transition-all duration-200",
-                  isActive
-                    ? "bg-slate-900 text-white shadow-md shadow-slate-900/10"
-                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
-                )}
-              >
-                <Icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
+        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none border-b border-slate-200/80">
+          <div className="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shrink-0">
+            {tabs.map((tab) => {
+              const Icon = tab.icon
+              const isActive = activeTab === tab.key
+              return (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key)}
+                  className={cn(
+                    "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shrink-0 transition-all duration-200",
+                    isActive
+                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/60 font-bold"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
+                  )}
+                >
+                  <Icon className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
+                  <span>{tab.label}</span>
+                </button>
+              )
+            })}
+          </div>
         </div>
 
         {/* Tab Contents */}
