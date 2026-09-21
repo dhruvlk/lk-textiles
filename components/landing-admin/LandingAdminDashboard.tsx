@@ -176,13 +176,6 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                 <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
                   Landing Page Content Manager
                 </h1>
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-2xs">
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
-                  Live Editor
-                </span>
               </div>
               <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs text-slate-500">
                 <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100/90 border border-slate-200/70 text-[11px] text-slate-600 font-medium">
@@ -192,10 +185,6 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                   <span className="text-slate-400 font-normal">Logged in as:</span>
                   <strong className="text-slate-800 font-semibold">{adminEmail || "lktextiles6165@gmail.com"}</strong>
                 </div>
-                <span className="text-slate-300 hidden sm:inline">•</span>
-                <span className="text-[11px] text-slate-400 hidden sm:inline font-medium">
-                  LK Textiles CMS
-                </span>
               </div>
             </div>
           </div>
