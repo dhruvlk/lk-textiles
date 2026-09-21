@@ -87,10 +87,12 @@ export default function ChallansClient() {
 
   const companyId = selectedCompany?.id
   const customersLoadedRef = useRef(false)
+  const prevCompanyIdRef = useRef(companyId)
 
   const loadChallans = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
-    const silent = opts?.silent ?? challans.length > 0
+    const isCompanyChanged = prevCompanyIdRef.current !== companyId
+    const silent = !isCompanyChanged && (opts?.silent ?? challans.length > 0)
     if (!silent) setIsLoading(true)
     try {
       const resultPromise = getChallansPaginated(companyId, filters, { page, pageSize })
@@ -113,11 +115,16 @@ export default function ChallansClient() {
   }
 
   useEffect(() => {
-    customersLoadedRef.current = false
+    if (prevCompanyIdRef.current !== companyId) {
+      prevCompanyIdRef.current = companyId
+      customersLoadedRef.current = false
+      setChallans([])
+      setIsLoading(true)
+    }
   }, [companyId])
 
   useEffect(() => {
-    void loadChallans({ silent: challans.length > 0 })
+    void loadChallans({ silent: prevCompanyIdRef.current === companyId && challans.length > 0 })
   }, [
     companyId,
     search,

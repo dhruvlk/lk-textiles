@@ -1,7 +1,6 @@
 "use client"
-/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useCompany } from "@/components/company-provider"
 import { usePermissions } from "@/context/PermissionContext"
 import { PermissionGate } from "@/components/auth/PermissionGate"
@@ -35,10 +34,12 @@ export default function PartiesClient() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [partyToDelete, setPartyToDelete] = useState<Customer | null>(null)
   const companyId = selectedCompany?.id
+  const prevCompanyIdRef = useRef(companyId)
 
   const loadParties = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
-    const silent = opts?.silent ?? parties.length > 0
+    const isCompanyChanged = prevCompanyIdRef.current !== companyId
+    const silent = !isCompanyChanged && (opts?.silent ?? parties.length > 0)
     if (!silent) setIsLoading(true)
     try {
       const result = await getCustomersPaginated(companyId, search, { page, pageSize })
@@ -52,7 +53,15 @@ export default function PartiesClient() {
   }
 
   useEffect(() => {
-    void loadParties({ silent: false })
+    if (prevCompanyIdRef.current !== companyId) {
+      prevCompanyIdRef.current = companyId
+      setParties([])
+      setIsLoading(true)
+    }
+  }, [companyId])
+
+  useEffect(() => {
+    void loadParties({ silent: prevCompanyIdRef.current === companyId && parties.length > 0 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, search, page, pageSize])
 

@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Public API routes accessible without login
-  const publicApiRoutes = ['/api/contact', '/api/auth/'];
+  const publicApiRoutes = ['/api/contact', '/api/auth/', '/api/admin/landing'];
   const isPublicApi = publicApiRoutes.some((r) => request.nextUrl.pathname.startsWith(r));
 
   // Protected API routes must return JSON errors, not HTML redirects to /login
@@ -42,14 +42,15 @@ export async function updateSession(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route));
   const isPublicAuthRoute = publicAuthRoutes.some((route) => pathname.startsWith(route));
-  const isApiRoute = pathname.startsWith('/api/');
+  const isAdminRoute = pathname.startsWith('/admin');
+  const isExactAdmin = pathname === '/admin' || pathname === '/admin/';
+
+  // Only admin subroutes (excluding auth routes and exact /admin which serves landing admin) are protected
   const isProtected =
+    isAdminRoute &&
     !isAuthRoute &&
     !isPublicAuthRoute &&
-    !isApiRoute &&
-    pathname !== '/' &&
-    !pathname.startsWith('/_next') &&
-    !pathname.includes('.');
+    !isExactAdmin;
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();

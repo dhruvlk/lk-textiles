@@ -39,14 +39,34 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true)
+
+    // 1. Try Challan Supabase login first
     const result = await login(values.email, values.password)
-    if (result.error) {
-      toast.error(result.error)
+    if (!result.error) {
+      toast.success("Welcome back!")
+      router.push("/admin")
       setIsLoading(false)
       return
     }
-    toast.success("Welcome back!")
-    router.push("/admin")
+
+    // 2. If Challan login fails, check if this is the Landing Page Admin
+    try {
+      const landingRes = await fetch("/api/admin/landing/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: values.email, password: values.password }),
+      })
+      if (landingRes.ok) {
+        toast.success("Welcome back! Landing Admin authenticated.")
+        router.push("/admin")
+        setIsLoading(false)
+        return
+      }
+    } catch {
+      // Fall through
+    }
+
+    toast.error(result.error || "Invalid login credentials")
     setIsLoading(false)
   }
 
@@ -57,12 +77,20 @@ export default function LoginPage() {
       title="Welcome back"
       description="Sign in to your company workspace"
       footer={
-        <>
-          Don&apos;t have an account?{" "}
-          <Link href="/admin/register" className="font-medium text-primary hover:underline">
-            Register your company
-          </Link>
-        </>
+        <div className="space-y-3">
+          <div>
+            Don&apos;t have an account?{" "}
+            <Link href="/admin/register" className="font-medium text-primary hover:underline">
+              Register your company
+            </Link>
+          </div>
+          <div className="pt-2 text-xs text-muted-foreground border-t">
+            Managing Landing Page Content?{" "}
+            <Link href="/admin" className="font-semibold text-slate-800 hover:underline">
+              Open Landing Page Admin &rarr;
+            </Link>
+          </div>
+        </div>
       }
     >
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">

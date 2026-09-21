@@ -3,8 +3,12 @@
 import Link from "next/link"
 import Image from "next/image"
 import { MapPin, Phone, Mail } from "lucide-react"
+import { useLandingContent } from "@/context/LandingContentContext"
 
 export function LandingFooter() {
+  const content = useLandingContent()
+  const { brand, contact, footer } = content
+
   return (
     <footer className="bg-slate-950 text-slate-400 pt-20 pb-10 border-t border-white/10">
       <div className="container px-6 mx-auto">
@@ -12,30 +16,30 @@ export function LandingFooter() {
 
           <div className="md:col-span-12 lg:col-span-4 space-y-6">
             <div className="bg-white p-2 rounded-2xl w-fit">
-              <Image src="/logo-1.png" alt="LK Textiles Logo" width={340} height={120} className="h-20 w-auto object-contain " />
+              <Image src={brand.logoUrl} alt={`${brand.name} Logo`} width={340} height={120} className="h-20 w-auto object-contain" />
             </div>
             <p className="text-sm leading-relaxed max-w-sm">
-              Redefining the standards of global textile manufacturing with uncompromising quality and sustainable innovation. As a trusted Surat Textile Manufacturer, we deliver excellence in every fabric.
+              {footer.description}
             </p>
           </div>
 
           <div className="md:col-span-4 lg:col-span-2 space-y-6">
             <h4 className="text-white font-bold tracking-wide uppercase text-sm">Navigation</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="#home" className="hover:text-white transition-colors">Home</Link></li>
-              <li><Link href="#about" className="hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="#categories" className="hover:text-white transition-colors">Our Textile Fabrics</Link></li>
-              <li><Link href="#contact" className="hover:text-white transition-colors">Contact</Link></li>
+              <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
+              <li><Link href="/#about" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/#categories" className="hover:text-white transition-colors">Our Textile Fabrics</Link></li>
+              <li><Link href="/#contact" className="hover:text-white transition-colors">Contact</Link></li>
             </ul>
           </div>
 
           <div className="md:col-span-4 lg:col-span-3 space-y-6">
             <h4 className="text-white font-bold tracking-wide uppercase text-sm">Our Products</h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="#categories" className="hover:text-white transition-colors">Grey Fabric</Link></li>
-              <li><Link href="#categories" className="hover:text-white transition-colors">Art Silk Cloth</Link></li>
-              <li><Link href="#categories" className="hover:text-white transition-colors">Sustainable Textile Solutions</Link></li>
-              <li><Link href="#categories" className="hover:text-white transition-colors">Specialty Textile Yarns</Link></li>
+              <li><Link href="/#categories" className="hover:text-white transition-colors">Grey Fabric</Link></li>
+              <li><Link href="/#categories" className="hover:text-white transition-colors">Art Silk Cloth</Link></li>
+              <li><Link href="/#categories" className="hover:text-white transition-colors">Sustainable Textile Solutions</Link></li>
+              <li><Link href="/#categories" className="hover:text-white transition-colors">Specialty Textile Yarns</Link></li>
             </ul>
           </div>
 
@@ -44,25 +48,25 @@ export function LandingFooter() {
             <ul className="space-y-4 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="h-5 w-5 text-slate-500 mt-0.5 shrink-0" />
-                <span>Survey No.8, Plot No.29/1, Mahaprabhu Nagar, Limbayat, Surat, 395012</span>
+                <span>{contact.address}</span>
               </li>
               <li className="flex items-start gap-3">
                 <Phone className="h-5 w-5 text-slate-500 shrink-0" />
                 <div className="flex flex-col">
-                  <span>+91 98251 21931</span>
-                  <span>+91 70698 66165</span>
+                  <span>{contact.phone1}</span>
+                  {contact.phone2 && <span>{contact.phone2}</span>}
                 </div>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-slate-500 shrink-0" />
-                <span>lktextiles6165@gmail.com</span>
+                <span>{contact.email}</span>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>© {new Date().getFullYear()} LK Textiles. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} {footer.copyright}</p>
           <div className="flex gap-6">
             <Link href="/privacy-policy" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="/terms-of-service" className="hover:text-white transition-colors">Terms of Service</Link>

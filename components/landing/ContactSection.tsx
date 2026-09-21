@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { cn } from "@/lib/utils"
+import { useLandingContent } from "@/context/LandingContentContext"
 
 const triggerFireworks = () => {
   const duration = 3 * 1000;
@@ -44,6 +45,7 @@ const triggerFireworks = () => {
 }
 
 export function ContactSection() {
+  const { contact } = useLandingContent()
   const {
     register,
     handleSubmit,
@@ -91,8 +93,8 @@ export function ContactSection() {
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
           <div className="absolute bottom-16 left-16 max-w-md">
-            <h3 className="text-4xl font-bold text-white mb-4">Contact LK Textiles.</h3>
-            <p className="text-slate-300 text-lg">Partner with your trusted textile fabric supplier in Surat to elevate your product line with world-class textiles.</p>
+            <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>
+            <p className="text-slate-300 text-lg">{contact.subtitle}</p>
           </div>
         </div>
         {/* Right Form Pane Background */}

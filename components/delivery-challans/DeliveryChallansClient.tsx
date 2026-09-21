@@ -84,9 +84,12 @@ export default function DeliveryChallansClient() {
     sort,
   }
 
+  const prevCompanyIdRef = useRef(companyId)
+
   const load = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
-    const silent = opts?.silent ?? challans.length > 0
+    const isCompanyChanged = prevCompanyIdRef.current !== companyId
+    const silent = !isCompanyChanged && (opts?.silent ?? challans.length > 0)
     if (!silent) setIsLoading(true)
     try {
       const resultPromise = getDeliveryChallansPaginated(companyId, filters, { page, pageSize })
@@ -109,11 +112,16 @@ export default function DeliveryChallansClient() {
   }
 
   useEffect(() => {
-    customersLoadedRef.current = false
+    if (prevCompanyIdRef.current !== companyId) {
+      prevCompanyIdRef.current = companyId
+      customersLoadedRef.current = false
+      setChallans([])
+      setIsLoading(true)
+    }
   }, [companyId])
 
   useEffect(() => {
-    void load({ silent: challans.length > 0 })
+    void load({ silent: prevCompanyIdRef.current === companyId && challans.length > 0 })
   }, [companyId, search, statusFilter, customerFilter, dateFrom, dateTo, sortKey, page, pageSize])
 
   const confirmDelete = async () => {
