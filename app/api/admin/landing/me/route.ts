@@ -5,7 +5,7 @@ export async function GET() {
   const session = await isLandingAdminAuthenticated()
 
   if (!session.authenticated) {
-    return NextResponse.json({ authenticated: false }, { status: 401 })
+    return NextResponse.json({ authenticated: false })
   }
 
   return NextResponse.json({
