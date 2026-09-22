@@ -20,6 +20,9 @@ import {
   Building,
   CheckCircle2,
   Globe,
+  Menu,
+  X,
+  ChevronRight,
   type LucideIcon,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -45,15 +48,22 @@ interface LandingAdminDashboardProps {
 
 type TabKey = "brand" | "seo" | "hero" | "heritage" | "capabilities" | "advantages" | "contact" | "footer"
 
-const tabs: { key: TabKey; label: string; icon: LucideIcon }[] = [
-  { key: "brand", label: "Brand & Logo", icon: Building },
-  { key: "seo", label: "SEO & Social", icon: Search },
-  { key: "hero", label: "Hero Banner", icon: LayoutTemplate },
-  { key: "heritage", label: "Heritage / About", icon: History },
-  { key: "capabilities", label: "Fabrics & Products", icon: Layers },
-  { key: "advantages", label: "Why Choose Us", icon: ShieldCheck },
-  { key: "contact", label: "Contact Details", icon: Phone },
-  { key: "footer", label: "Footer", icon: FileText },
+interface TabConfig {
+  key: TabKey
+  label: string
+  icon: LucideIcon
+  description: string
+}
+
+const tabs: TabConfig[] = [
+  { key: "brand", label: "Brand & Logo", icon: Building, description: "Manage brand identity, logos & company details" },
+  { key: "seo", label: "SEO & Social", icon: Search, description: "Meta tags, page titles & OpenGraph social previews" },
+  { key: "hero", label: "Hero Banner", icon: LayoutTemplate, description: "Main headline, visual slides, badge & call-to-actions" },
+  { key: "heritage", label: "Heritage / About", icon: History, description: "Legacy narrative, timeline milestones & brand story" },
+  { key: "capabilities", label: "Fabrics & Products", icon: Layers, description: "Product catalog, fabric categories & specifications" },
+  { key: "advantages", label: "Why Choose Us", icon: ShieldCheck, description: "Key selling points, certifications & advantages" },
+  { key: "contact", label: "Contact Details", icon: Phone, description: "Office address, phone numbers & inquiry contacts" },
+  { key: "footer", label: "Footer", icon: FileText, description: "Copyright, social handles, links & legal credits" },
 ]
 
 export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDashboardProps) {
@@ -65,7 +75,12 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   const [uploadingField, setUploadingField] = useState<string | null>(null)
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const router = useRouter()
+
+  const currentTab = useMemo(() => {
+    return tabs.find((t) => t.key === activeTab) || tabs[0]
+  }, [activeTab])
 
   // Ensure body scroll is unlocked when admin panel is active
   useEffect(() => {
@@ -74,6 +89,17 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
       document.body.style.overflow = ""
     }
   }, [])
+
+  // Close mobile drawer on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mobileNavOpen) {
+        setMobileNavOpen(false)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [mobileNavOpen])
 
   useEffect(() => {
     let ignore = false
@@ -107,6 +133,16 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   const isDirty = useMemo(() => {
     return JSON.stringify(initialData) !== JSON.stringify(formData)
   }, [initialData, formData])
+
+  // Switch tab and smooth scroll to top of editor
+  const handleTabSwitch = (key: TabKey) => {
+    setActiveTab(key)
+    setMobileNavOpen(false)
+    const mainEl = document.getElementById("landing-admin-main")
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: "smooth" })
+    }
+  }
 
   // Save & publish changes
   const handleSave = async () => {
@@ -212,57 +248,238 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   }
 
   return (
-    <div className="flex h-screen flex-col bg-[#F8F9FA] text-slate-900 overflow-hidden">
-      {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 shrink-0 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all">
-        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
-          {/* Brand & Status */}
-          <div className="flex items-center gap-3.5 min-w-0">
-            <Link
-              href="/"
-              target="_blank"
-              title="View Public Site"
-              className="relative flex items-center justify-center h-12 w-12 shadow-xs hover:shadow-sm transition-all shrink-0 group"
-            >
+    <div className="flex h-screen bg-[#F8F9FA] text-slate-900 overflow-hidden font-sans">
+      {/* ========================================================================= */}
+      {/* DESKTOP LEFT SIDEBAR (Fixed / Sticky Left)                                */}
+      {/* ========================================================================= */}
+      <aside className="hidden md:flex flex-col w-64 lg:w-72 shrink-0 bg-white border-r border-slate-200/80 z-30 shadow-[1px_0_4px_rgba(0,0,0,0.02)] select-none">
+        {/* Brand Header */}
+        <div className="h-16 px-4 sm:px-5 flex items-center justify-between border-b border-slate-200/80 shrink-0">
+          <Link
+            href="/"
+            target="_blank"
+            title="View Live Landing Page"
+            className="flex items-center gap-3 group min-w-0"
+          >
+            <div className="relative flex items-center justify-center h-10 w-10 rounded-xl overflow-hidden bg-slate-50 border border-slate-200/80 shadow-2xs group-hover:border-slate-300 transition-all shrink-0">
               <Image
                 src={formData.brand?.logoUrl || "/logo-1.png"}
                 alt={`${formData.brand?.name || "LK Textiles"} Logo`}
-                width={150}
-                height={100}
-                className="h-full w-full object-cover group-hover:scale-105 transition-transform"
+                width={80}
+                height={80}
+                className="h-full w-full object-contain p-1 group-hover:scale-105 transition-transform"
                 priority
               />
-            </Link>
+            </div>
             <div className="min-w-0">
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <h1 className="text-base sm:text-lg font-extrabold text-slate-900 tracking-tight">
-                  Landing Page Content Manager
-                </h1>
+              <div className="text-sm font-extrabold text-slate-900 tracking-tight truncate group-hover:text-indigo-950 transition-colors">
+                {formData.brand?.name || "LK Textiles"}
               </div>
-              <div className="flex items-center gap-2 mt-0.5 flex-wrap text-xs text-slate-500">
-                <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100/90 border border-slate-200/70 text-[11px] text-slate-600 font-medium">
-                  <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-900 text-[9px] font-bold text-amber-300 uppercase">
-                    {(adminEmail || "lktextiles6165@gmail.com").charAt(0)}
-                  </span>
-                  <span className="text-slate-400 font-normal">Logged in as:</span>
-                  <strong className="text-slate-800 font-semibold">{adminEmail || "lktextiles6165@gmail.com"}</strong>
+              <div className="flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span>Landing CMS</span>
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        {/* Navigation Items List */}
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-1.5 scrollbar-thin">
+          <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+            Page Sections
+          </div>
+          {tabs.map((tab) => {
+            const Icon = tab.icon
+            const isActive = activeTab === tab.key
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => handleTabSwitch(tab.key)}
+                className={cn(
+                  "group w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 text-left cursor-pointer",
+                  isActive
+                    ? "bg-slate-900 text-white font-bold shadow-sm shadow-slate-900/15"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100/90 font-medium"
+                )}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={cn(
+                      "w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                      isActive
+                        ? "bg-white/15 text-amber-300"
+                        : "bg-slate-100 text-slate-500 group-hover:bg-slate-200/80 group-hover:text-slate-700"
+                    )}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className="truncate">{tab.label}</span>
                 </div>
+                {isActive && (
+                  <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0 ml-1" />
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* Sidebar Footer: Logged in status & Public Site Link */}
+        <div className="p-3.5 border-t border-slate-200/80 bg-slate-50/70 shrink-0 space-y-2.5">
+          <div className="flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-white border border-slate-200/70 shadow-2xs">
+            <div className="w-7 h-7 rounded-lg bg-indigo-900 text-amber-300 text-[11px] font-bold flex items-center justify-center shrink-0 uppercase shadow-xs">
+              {(adminEmail || "lktextiles6165@gmail.com").charAt(0)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-[10px] text-slate-400 font-medium">Logged in</div>
+              <div className="text-xs font-semibold text-slate-800 truncate" title={adminEmail || "lktextiles6165@gmail.com"}>
+                {adminEmail || "lktextiles6165@gmail.com"}
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      {/* ========================================================================= */}
+      {/* MOBILE DRAWER (Slide-over for screens < md)                              */}
+      {/* ========================================================================= */}
+      {mobileNavOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity"
+            onClick={() => setMobileNavOpen(false)}
+          />
+
+          {/* Drawer Menu */}
+          <div className="relative w-72 max-w-[85vw] bg-white h-full shadow-2xl flex flex-col z-50 animate-in slide-in-from-left duration-200">
+            <div className="h-16 px-4 flex items-center justify-between border-b border-slate-200/80">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="h-9 w-9 rounded-xl overflow-hidden bg-slate-50 border border-slate-200/80 flex items-center justify-center shrink-0">
+                  <Image
+                    src={formData.brand?.logoUrl || "/logo-1.png"}
+                    alt="Logo"
+                    width={40}
+                    height={40}
+                    className="h-full w-full object-contain p-1"
+                  />
+                </div>
+                <div className="text-sm font-extrabold text-slate-900 truncate">
+                  CMS Navigation
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+              <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                Sections
+              </div>
+              {tabs.map((tab) => {
+                const Icon = tab.icon
+                const isActive = activeTab === tab.key
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => handleTabSwitch(tab.key)}
+                    className={cn(
+                      "w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all text-left",
+                      isActive
+                        ? "bg-slate-900 text-white font-bold shadow-sm"
+                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+                    )}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={cn("w-4 h-4", isActive ? "text-amber-300" : "text-slate-400")} />
+                      <span>{tab.label}</span>
+                    </div>
+                    {isActive && <ChevronRight className="w-3.5 h-3.5 text-slate-400" />}
+                  </button>
+                )
+              })}
+            </div>
+
+            <div className="p-3 border-t border-slate-200/80 bg-slate-50 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileNavOpen(false)
+                  handleLogoutClick()
+                }}
+                className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 bg-rose-50/80 hover:bg-rose-100 border border-rose-200/60"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* RIGHT SIDE CONTAINER: TOP ACTION BAR + SCROLLABLE EDITOR                  */}
+      {/* ========================================================================= */}
+      <div className="flex-1 min-w-0 flex flex-col h-full overflow-hidden">
+        {/* Top Sticky Header */}
+        <header className="h-16 shrink-0 bg-white/95 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between gap-3 z-20 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          {/* Left: Mobile Toggle + Breadcrumb */}
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Mobile Hamburger Toggle */}
+            <button
+              type="button"
+              onClick={() => setMobileNavOpen(true)}
+              className="md:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/70"
+              title="Open Navigation"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+
+            {/* Breadcrumb Title */}
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="hidden sm:inline text-xs font-medium text-slate-400">
+                CMS
+              </span>
+              <ChevronRight className="hidden sm:inline w-3 h-3 text-slate-300" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-900 truncate">
+                  {currentTab.label}
+                </span>
+                {/* Save status badge */}
+                {isDirty ? (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/70 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span className="hidden sm:inline">Unsaved Changes</span>
+                    <span className="sm:hidden">Unsaved</span>
+                  </span>
+                ) : (
+                  <span className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200/60 shadow-2xs">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Saved & Live</span>
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
-          {/* Action Controls */}
+          {/* Right: Action Controls */}
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* View Live Site Link */}
             <Link
               href="/"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/70 transition-all shadow-2xs"
+              className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/70 transition-all shadow-2xs"
             >
               <Globe className="w-3.5 h-3.5 text-slate-500" />
-              <span>View Public Site</span>
-              <ExternalLink className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
+              <span>View Live Site</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </Link>
 
             {/* Discard Button */}
@@ -274,8 +491,8 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                 onClick={handleDiscard}
                 className="rounded-xl text-xs font-semibold text-amber-700 bg-amber-50/80 hover:bg-amber-100/80 border-amber-200/80 shadow-2xs transition-all"
               >
-                <RotateCcw className="w-3.5 h-3.5 mr-1.5" />
-                Discard
+                <RotateCcw className="w-3.5 h-3.5 sm:mr-1.5" />
+                <span className="hidden sm:inline">Discard</span>
               </Button>
             )}
 
@@ -286,7 +503,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               disabled={!isDirty || isSaving || Boolean(uploadingField)}
               onClick={handleSave}
               className={cn(
-                "rounded-xl px-4 sm:px-5 text-xs font-bold transition-all shadow-sm",
+                "rounded-xl px-3.5 sm:px-4 text-xs font-bold transition-all shadow-sm",
                 isDirty && !uploadingField
                   ? "bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white hover:brightness-110 shadow-md shadow-slate-900/15 scale-[1.02] active:scale-[0.99]"
                   : "bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none"
@@ -294,22 +511,22 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
             >
               {isSaving ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-                  Publishing...
+                  <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin" />
+                  <span className="hidden sm:inline">Publishing...</span>
                 </>
               ) : uploadingField ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin text-slate-400" />
-                  Uploading Image...
+                  <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin text-slate-400" />
+                  <span className="hidden sm:inline">Uploading Image...</span>
                 </>
               ) : (
                 <>
                   {isDirty ? (
-                    <Save className="w-3.5 h-3.5 mr-1.5" />
+                    <Save className="w-3.5 h-3.5 sm:mr-1.5" />
                   ) : (
-                    <CheckCircle2 className="w-3.5 h-3.5 mr-1.5 text-emerald-500" />
+                    <CheckCircle2 className="w-3.5 h-3.5 sm:mr-1.5 text-emerald-500" />
                   )}
-                  {isDirty ? "Publish Changes" : "All Changes Saved"}
+                  <span>{isDirty ? "Publish Changes" : "All Changes Saved"}</span>
                 </>
               )}
             </Button>
@@ -319,117 +536,108 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               type="button"
               onClick={handleLogoutClick}
               title="Sign Out"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/60 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/60 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Sign Out</span>
+              <span className="hidden xl:inline">Sign Out</span>
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Scrollable Content Container */}
-      <main
-        id="landing-admin-main"
-        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full"
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-24">
-          {/* Section Navigation Tabs */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none border-b border-slate-200/80">
-          <div className="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shrink-0">
-            {tabs.map((tab) => {
-              const Icon = tab.icon
-              const isActive = activeTab === tab.key
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={cn(
-                    "px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 shrink-0 transition-all duration-200",
-                    isActive
-                      ? "bg-white text-slate-900 shadow-xs border border-slate-200/60 font-bold"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-white/60"
-                  )}
-                >
-                  <Icon className={cn("w-4 h-4", isActive ? "text-indigo-600" : "text-slate-400")} />
-                  <span>{tab.label}</span>
-                </button>
-              )
-            })}
+        {/* Main Scrollable Content Container */}
+        <main
+          id="landing-admin-main"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 bg-[#F8F9FA] scroll-smooth"
+        >
+          <div className="max-w-5xl mx-auto space-y-6 pb-28">
+            {/* Active Section Header Banner */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/70">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white border border-slate-200/80 flex items-center justify-center text-indigo-900 shadow-2xs shrink-0">
+                  <currentTab.icon className="w-5 h-5 text-indigo-700" />
+                </div>
+                <div>
+                  <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">
+                    {currentTab.label}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    {currentTab.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Section Tab Editor Card */}
+            <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-xs border border-slate-200/80 space-y-8">
+              {activeTab === "brand" && (
+                <BrandTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  uploadingField={uploadingField}
+                  setUploadingField={setUploadingField}
+                />
+              )}
+
+              {activeTab === "seo" && (
+                <SeoTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  uploadingField={uploadingField}
+                  setUploadingField={setUploadingField}
+                />
+              )}
+
+              {activeTab === "hero" && (
+                <HeroTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  uploadingField={uploadingField}
+                  setUploadingField={setUploadingField}
+                />
+              )}
+
+              {activeTab === "heritage" && (
+                <HeritageTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  uploadingField={uploadingField}
+                  setUploadingField={setUploadingField}
+                />
+              )}
+
+              {activeTab === "capabilities" && (
+                <CapabilitiesTab
+                  formData={formData}
+                  setFormData={setFormData}
+                  uploadingField={uploadingField}
+                  setUploadingField={setUploadingField}
+                />
+              )}
+
+              {activeTab === "advantages" && (
+                <AdvantagesTab
+                  formData={formData}
+                  setFormData={setFormData}
+                />
+              )}
+
+              {activeTab === "contact" && (
+                <ContactTab
+                  formData={formData}
+                  setFormData={setFormData}
+                />
+              )}
+
+              {activeTab === "footer" && (
+                <FooterTab
+                  formData={formData}
+                  setFormData={setFormData}
+                />
+              )}
+            </div>
           </div>
-        </div>
-
-        {/* Tab Contents */}
-        <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200/80 space-y-8">
-          {activeTab === "brand" && (
-            <BrandTab
-              formData={formData}
-              setFormData={setFormData}
-              uploadingField={uploadingField}
-              setUploadingField={setUploadingField}
-            />
-          )}
-
-          {activeTab === "seo" && (
-            <SeoTab
-              formData={formData}
-              setFormData={setFormData}
-              uploadingField={uploadingField}
-              setUploadingField={setUploadingField}
-            />
-          )}
-
-          {activeTab === "hero" && (
-            <HeroTab
-              formData={formData}
-              setFormData={setFormData}
-              uploadingField={uploadingField}
-              setUploadingField={setUploadingField}
-            />
-          )}
-
-          {activeTab === "heritage" && (
-            <HeritageTab
-              formData={formData}
-              setFormData={setFormData}
-              uploadingField={uploadingField}
-              setUploadingField={setUploadingField}
-            />
-          )}
-
-          {activeTab === "capabilities" && (
-            <CapabilitiesTab
-              formData={formData}
-              setFormData={setFormData}
-              uploadingField={uploadingField}
-              setUploadingField={setUploadingField}
-            />
-          )}
-
-          {activeTab === "advantages" && (
-            <AdvantagesTab
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-
-          {activeTab === "contact" && (
-            <ContactTab
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-
-          {activeTab === "footer" && (
-            <FooterTab
-              formData={formData}
-              setFormData={setFormData}
-            />
-          )}
-          </div>
-        </div>
-      </main>
+        </main>
+      </div>
 
       {/* Sign Out Confirmation Modal */}
       <ConfirmationDialog
