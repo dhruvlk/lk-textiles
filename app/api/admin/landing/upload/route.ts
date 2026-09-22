@@ -22,11 +22,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No image file provided." }, { status: 400 })
     }
 
-    // Validate type
-    const validMimes = ["image/jpeg", "image/png", "image/webp", "image/svg+xml", "image/gif"]
-    if (!validMimes.includes(file.type)) {
+    // Validate type and extension
+    const validMimes = [
+      "image/jpeg",
+      "image/pjpeg",
+      "image/jfif",
+      "image/png",
+      "image/webp",
+      "image/svg+xml",
+      "image/gif",
+      "image/avif",
+    ]
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+    const validExtensions = ["jpg", "jpeg", "jfif", "pjpeg", "png", "webp", "svg", "gif", "avif"]
+
+    const isMimeValid = file.type ? validMimes.includes(file.type.toLowerCase()) : false
+    const isExtValid = validExtensions.includes(ext)
+
+    if (!isMimeValid && !isExtValid) {
       return NextResponse.json(
-        { error: "Invalid file type. Only JPEG, PNG, WebP, SVG, and GIF are permitted." },
+        { error: "Invalid file type. Only JPEG, PNG, WebP, AVIF, SVG, and GIF are permitted." },
         { status: 400 }
       )
     }
@@ -52,20 +67,36 @@ export async function POST(request: NextRequest) {
       // Ignore if check fails
     }
 
-    // Generate unique filename
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg"
+    // Generate unique filename and normalize extension
+    const normalizedExt = ext === "jfif" || ext === "pjpeg" ? "jpg" : ext
     const timestamp = Date.now()
     const randomStr = Math.random().toString(36).substring(2, 8)
-    const filePath = `images/${timestamp}-${randomStr}.${ext}`
+    const filePath = `images/${timestamp}-${randomStr}.${normalizedExt}`
 
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+
+    // Determine contentType
+    const determinedContentType =
+      file.type && validMimes.includes(file.type.toLowerCase())
+        ? (file.type.toLowerCase() === "image/jfif" || file.type.toLowerCase() === "image/pjpeg" ? "image/jpeg" : file.type)
+        : normalizedExt === "png"
+        ? "image/png"
+        : normalizedExt === "webp"
+        ? "image/webp"
+        : normalizedExt === "gif"
+        ? "image/gif"
+        : normalizedExt === "svg"
+        ? "image/svg+xml"
+        : normalizedExt === "avif"
+        ? "image/avif"
+        : "image/jpeg"
 
     // Upload new image
     const { error: uploadError } = await supabase.storage
       .from(BUCKET_NAME)
       .upload(filePath, buffer, {
-        contentType: file.type,
+        contentType: determinedContentType,
         upsert: false,
       })
 
