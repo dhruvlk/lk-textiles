@@ -1,9 +1,8 @@
 "use client"
-/* eslint-disable */
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { useCompany } from "@/components/company-provider"
@@ -33,11 +32,11 @@ const itemSchema = z.object({
   design: z.string().optional(),
   roll_number: z.string().optional(),
   lot_number: z.string().optional(),
-  total_pieces: z.coerce.number().min(1, "At least 1 piece"),
+  total_pieces: z.number().min(1, "At least 1 piece"),
   quantity_display: z.string().min(1, "Quantity is required"),
-  weight: z.coerce.number().min(0).optional(),
-  rate: z.coerce.number().min(0).optional(),
-  amount: z.coerce.number().min(0).optional(),
+  weight: z.number().min(0).optional(),
+  rate: z.number().min(0).optional(),
+  amount: z.number().min(0).optional(),
   remarks: z.string().optional(),
 })
 
@@ -48,7 +47,7 @@ const challanSchema = z.object({
   party_id: z.string().min(1, "Party is required"),
   delivered_by: z.string().optional(),
   broker: z.string().optional(),
-  payment_within_value: z.coerce.number().min(1, "Must be greater than 0"),
+  payment_within_value: z.number().min(1, "Must be greater than 0"),
   payment_within_unit: z.string().min(1, "Unit is required"),
   due_date: z.string().min(1, "Due Date is required"),
   amount_in_words: z.string().optional(),
@@ -57,17 +56,30 @@ const challanSchema = z.object({
   items: z.array(itemSchema).min(1, "At least one item is required")
 })
 
+export type ChallanFormValues = z.infer<typeof challanSchema>
+
 export function ChallanForm({ initialData }: { initialData?: Challan }) {
   const router = useRouter()
   const { selectedCompany } = useCompany()
   const { user } = useAuth()
   const [parties, setParties] = useState<Customer[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isDueDateManuallyEdited, setIsDueDateManuallyEdited] = useState(false)
-  const isEditMode = !!initialData;
+  const isEditMode = !!initialData
+  const [isDueDateManuallyEdited, setIsDueDateManuallyEdited] = useState(() => {
+    if (!initialData || !initialData.due_date) return false
+    const expectedDueDate = calculateDueDate(
+      initialData.date,
+      initialData.payment_within_value,
+      initialData.payment_within_unit
+    )
+    if (expectedDueDate) {
+      return format(expectedDueDate, "yyyy-MM-dd") !== initialData.due_date
+    }
+    return false
+  })
 
-  const form = useForm<z.infer<typeof challanSchema>>({
-    resolver: zodResolver(challanSchema) as any,
+  const form = useForm<ChallanFormValues>({
+    resolver: zodResolver(challanSchema),
     defaultValues: initialData ? {
       challan_number: initialData.challan_number,
       bill_number: initialData.bill_number || "",
@@ -122,7 +134,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
     if (selectedCompany.default_delivered_by) {
       form.setValue("delivered_by", selectedCompany.default_delivered_by)
     }
-  }, [selectedCompany?.id, isEditMode])
+  }, [selectedCompany, isEditMode, form])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -130,10 +142,11 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
   })
 
   // Watch items to calculate amount
-  const items = form.watch("items")
-  const challanDate = form.watch("date")
-  const paymentValue = form.watch("payment_within_value")
-  const paymentUnit = form.watch("payment_within_unit")
+  const items = useWatch({ control: form.control, name: "items" }) || []
+  const challanDate = useWatch({ control: form.control, name: "date" })
+  const paymentValue = useWatch({ control: form.control, name: "payment_within_value" })
+  const paymentUnit = useWatch({ control: form.control, name: "payment_within_unit" })
+  const partyId = useWatch({ control: form.control, name: "party_id" })
   
   const totals = items.reduce((acc, item) => ({
     pieces: acc.pieces + (Number(item.total_pieces) || 0),
@@ -169,17 +182,6 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
     form.setValue("amount_in_words", numberToWords(totals.amount))
   }, [totals.amount, form])
 
-  useEffect(() => {
-    if (isEditMode && initialData) {
-      const expectedDueDate = calculateDueDate(initialData.date, initialData.payment_within_value, initialData.payment_within_unit)
-      if (expectedDueDate && initialData.due_date) {
-        const expectedFormatted = format(expectedDueDate, 'yyyy-MM-dd')
-        if (expectedFormatted !== initialData.due_date) {
-          setIsDueDateManuallyEdited(true)
-        }
-      }
-    }
-  }, [isEditMode, initialData])
 
   useEffect(() => {
     if (isDueDateManuallyEdited) return
@@ -231,7 +233,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
       
       router.push("/admin/invoices")
       router.refresh()
-    } catch (error) {
+    } catch {
       toast.error("An error occurred while saving the invoice.")
     } finally {
       setIsSubmitting(false)
@@ -287,7 +289,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
               <div className="space-y-2">
                 <Label>Customer *</Label>
                 <Select
-                  value={form.watch("party_id") || undefined}
+                  value={partyId || undefined}
                   onValueChange={(val: string | null) => {
                     if (val) form.setValue("party_id", val, { shouldValidate: true })
                   }}
@@ -355,7 +357,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
               <div className="space-y-2">
                 <Label>Payment Within *</Label>
                 <div className="flex gap-2">
-                  <Input type="number" {...form.register("payment_within_value")} className="flex-1" />
+                  <Input type="number" {...form.register("payment_within_value", { valueAsNumber: true })} className="flex-1" />
                   <Select onValueChange={(val: string | null) => { if (val) form.setValue("payment_within_unit", val) }} defaultValue={form.getValues("payment_within_unit")}>
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
@@ -431,7 +433,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         <Input {...form.register(`items.${index}.color`)} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
-                        <Input type="number" step="1" min="1" {...form.register(`items.${index}.total_pieces`)} className="h-8" />
+                        <Input type="number" step="1" min="1" {...form.register(`items.${index}.total_pieces`, { valueAsNumber: true })} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
                         <Input
@@ -449,10 +451,11 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         />
                       </TableCell>
                       <TableCell className="p-2">
-                        <Input type="number" step="0.01" {...form.register(`items.${index}.weight`)} className="h-8" />
+                        <Input type="number" step="0.01" {...form.register(`items.${index}.weight`, { valueAsNumber: true })} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
                         <Input type="number" step="0.01" {...form.register(`items.${index}.rate`, {
+                          valueAsNumber: true,
                           onChange: (e) => {
                             const rate = Number(e.target.value);
                             const qtyText = form.getValues(`items.${index}.quantity_display`) || "";
@@ -464,7 +467,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         })} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
-                        <Input type="number" step="0.01" {...form.register(`items.${index}.amount`)} className="h-8" />
+                        <Input type="number" step="0.01" {...form.register(`items.${index}.amount`, { valueAsNumber: true })} className="h-8" />
                       </TableCell>
                       <TableCell className="p-2">
                         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => remove(index)}>

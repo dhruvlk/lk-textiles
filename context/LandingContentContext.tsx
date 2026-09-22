@@ -26,14 +26,16 @@ export function LandingContentProvider({
   const [content, setContent] = useState<LandingPageContent>(
     initialContent || defaultLandingContent
   )
+  const [prevInitialContent, setPrevInitialContent] = useState(initialContent)
   const [isLoading, setIsLoading] = useState(false)
 
-  // Sync state if server component passes new initialContent
-  useEffect(() => {
+  // Sync state if server component passes updated initialContent
+  if (initialContent !== prevInitialContent) {
+    setPrevInitialContent(initialContent)
     if (initialContent) {
       setContent(initialContent)
     }
-  }, [initialContent])
+  }
 
   const fetchContent = useCallback(async () => {
     try {

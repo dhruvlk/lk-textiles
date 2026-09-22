@@ -69,7 +69,7 @@ export function LandingAdminLogin({ onLoginSuccess }: LandingAdminLoginProps) {
   }
 
   return (
-    <div className="relative min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 bg-[#FAF9F5] overflow-hidden selection:bg-slate-900 selection:text-white">
+    <div className="relative min-h-screen w-full flex flex-col justify-center items-center px-4 py-12 bg-[#FAF9F5] overflow-y-auto overflow-x-hidden selection:bg-slate-900 selection:text-white">
       {/* Background Decorative Mesh & Glows */}
       <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:24px_24px] opacity-40 pointer-events-none" />
       <div className="absolute top-1/4 -left-32 w-96 h-96 bg-amber-200/30 rounded-full blur-3xl pointer-events-none" />

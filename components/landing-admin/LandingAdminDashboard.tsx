@@ -3,13 +3,13 @@
 import { useState, useEffect, useMemo } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { useRouter } from "next/navigation"
 import {
   Save,
   RotateCcw,
   ExternalLink,
   LogOut,
   Loader2,
-  Sparkles,
   LayoutTemplate,
   Search,
   Layers,
@@ -27,6 +27,7 @@ import { toast } from "sonner"
 import { LandingPageContent } from "@/types/landing-content"
 import { defaultLandingContent } from "@/constants/default-landing-content"
 import { cn } from "@/lib/utils"
+import { ConfirmationDialog } from "@/components/dialogs/ConfirmationDialog"
 
 import { BrandTab } from "./tabs/BrandTab"
 import { SeoTab } from "./tabs/SeoTab"
@@ -62,6 +63,17 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
   const [uploadingField, setUploadingField] = useState<string | null>(null)
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const router = useRouter()
+
+  // Ensure body scroll is unlocked when admin panel is active
+  useEffect(() => {
+    document.body.style.overflow = ""
+    return () => {
+      document.body.style.overflow = ""
+    }
+  }, [])
 
   useEffect(() => {
     let ignore = false
@@ -166,14 +178,27 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
     toast.info("Unsaved changes discarded.")
   }
 
-  // Logout
-  const handleLogoutClick = async () => {
+  // Open sign out confirmation modal
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true)
+  }
+
+  // Execute confirmed sign out and redirect to /admin/login
+  const handleConfirmLogout = async () => {
+    if (isLoggingOut) return
+    setIsLoggingOut(true)
     try {
-      await fetch("/api/admin/landing/logout", { method: "POST" })
-      toast.success("Logged out successfully.")
-      onLogout()
+      const res = await fetch("/api/admin/landing/logout", { method: "POST" })
+      if (res.ok) {
+        toast.success("Logged out successfully.")
+      }
     } catch {
+      toast.error("Logout request failed.")
+    } finally {
+      setIsLoggingOut(false)
+      setLogoutDialogOpen(false)
       onLogout()
+      router.push("/admin/login")
     }
   }
 
@@ -187,9 +212,9 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   }
 
   return (
-    <div className="min-h-screen bg-[#F8F9FA] text-slate-900 pb-20">
+    <div className="flex h-screen flex-col bg-[#F8F9FA] text-slate-900 overflow-hidden">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all">
+      <header className="sticky top-0 z-40 shrink-0 bg-white/90 backdrop-blur-xl border-b border-slate-200/80 px-4 sm:px-6 py-3.5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] transition-all">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Brand & Status */}
           <div className="flex items-center gap-3.5 min-w-0">
@@ -294,7 +319,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               type="button"
               onClick={handleLogoutClick}
               title="Sign Out"
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/60"
+              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition-colors border border-transparent hover:border-rose-200/60 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
               <span className="hidden md:inline">Sign Out</span>
@@ -303,10 +328,14 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
         </div>
       </header>
 
-      {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 pt-8">
-        {/* Section Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none border-b border-slate-200/80">
+      {/* Main Scrollable Content Container */}
+      <main
+        id="landing-admin-main"
+        className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden w-full"
+      >
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-8 pb-24">
+          {/* Section Navigation Tabs */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none border-b border-slate-200/80">
           <div className="inline-flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100/90 border border-slate-200/80 shrink-0">
             {tabs.map((tab) => {
               const Icon = tab.icon
@@ -398,8 +427,23 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               setFormData={setFormData}
             />
           )}
+          </div>
         </div>
       </main>
+
+      {/* Sign Out Confirmation Modal */}
+      <ConfirmationDialog
+        open={logoutDialogOpen}
+        onOpenChange={setLogoutDialogOpen}
+        title="Sign Out"
+        description="Are you sure you want to sign out?"
+        confirmText="Sign Out"
+        cancelText="Cancel"
+        variant="destructive"
+        icon={<LogOut className="w-5 h-5 text-rose-600" />}
+        isLoading={isLoggingOut}
+        onConfirm={handleConfirmLogout}
+      />
     </div>
   )
 }
