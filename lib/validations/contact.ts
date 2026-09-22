@@ -8,13 +8,13 @@ export const contactFormSchema = z.object({
   company: z.string().optional(),
   subject: z.string().optional(),
   message: z.string()
-    .min(10, "Product requirements must be at least 10 characters.")
+    .min(10, "Details must be at least 10 characters.")
     .superRefine((val, ctx) => {
       const wordCount = val.trim().split(/\s+/).filter(Boolean).length;
       if (wordCount > 100) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Product Requirements cannot exceed 100 words.",
+          message: "Details cannot exceed 100 words.",
         });
       }
     })
