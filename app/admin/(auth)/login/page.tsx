@@ -40,30 +40,21 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true)
 
-    // 1. Try Challan Supabase login first
+    // Strictly block Landing Page Admin credentials from Challan System login
+    const normalizedEmail = values.email.trim().toLowerCase()
+    if (normalizedEmail === "lktextiles6165@gmail.com") {
+      setIsLoading(false)
+      toast.error("This account cannot log in through the Challan System. Please use 'Open Landing Page Admin' below.")
+      return
+    }
+
+    // Challan Supabase login only
     const result = await login(values.email, values.password)
     if (!result.error) {
       toast.success("Welcome back!")
       router.push("/admin")
       setIsLoading(false)
       return
-    }
-
-    // 2. If Challan login fails, check if this is the Landing Page Admin
-    try {
-      const landingRes = await fetch("/api/admin/landing/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: values.email, password: values.password }),
-      })
-      if (landingRes.ok) {
-        toast.success("Welcome back! Landing Admin authenticated.")
-        router.push("/admin")
-        setIsLoading(false)
-        return
-      }
-    } catch {
-      // Fall through
     }
 
     toast.error(result.error || "Invalid login credentials")

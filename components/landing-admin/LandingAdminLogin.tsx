@@ -138,7 +138,7 @@ export function LandingAdminLogin({ onLoginSuccess }: LandingAdminLoginProps) {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="lktextiles6165@gmail.com"
+                  placeholder="yourname@gmail.com"
                   className="pl-10 h-12 text-sm rounded-xl bg-slate-50/70 border-slate-200 hover:bg-slate-50 focus:bg-white focus:ring-4 focus:ring-slate-900/5 focus:border-slate-900 transition-all font-medium text-slate-900 [&:-webkit-autofill]:shadow-[inset_0_0_0px_1000px_#f8fafc]"
                   required
                 />
