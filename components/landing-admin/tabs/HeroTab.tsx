@@ -118,6 +118,9 @@ export function HeroTab({ formData, setFormData, uploadingField, setUploadingFie
           onUploadSuccess={(url) =>
             setFormData({ ...formData, hero: { ...formData.hero, imageUrl: url } })
           }
+          onRemove={() =>
+            setFormData({ ...formData, hero: { ...formData.hero, imageUrl: "" } })
+          }
           onUploadStateChange={setUploadingField}
         />
 

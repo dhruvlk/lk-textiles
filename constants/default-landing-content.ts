@@ -30,7 +30,7 @@ export const defaultLandingContent: LandingPageContent = {
     primaryCtaLink: "#categories",
     trustedCount: "500+ Brands",
     imageUrl:
-      "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80",
+      "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055618070-k8jkgi.webp",
     exportBadgeTitle: "Global Export",
     exportBadgeValue: "30+ Countries",
   },
@@ -40,9 +40,9 @@ export const defaultLandingContent: LandingPageContent = {
     description:
       "Since our inception, LK Textiles has championed the fusion of traditional textile craftsmanship with cutting-edge manufacturing. As a leading Textile Manufacturer in Surat, we don't just produce fabrics; we supply high-quality Grey Fabric and Art Silk Cloth to the world's most prestigious brands.",
     image1Url:
-      "https://images.unsplash.com/photo-1596484552834-6a58f850e0a1?auto=format&fit=crop&q=80",
+      "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055042186-yw4k1b.jpg",
     image2Url:
-      "https://images.unsplash.com/photo-1605289355680-75fb41239154?auto=format&fit=crop&q=80",
+      "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055164779-k86y8f.webp",
     stat1Value: "30+",
     stat1Label: "Years of Excellence",
     stat2Value: "10M+",
@@ -60,7 +60,7 @@ export const defaultLandingContent: LandingPageContent = {
         description:
           "High-density grey cloth engineering for suiting, shirting, and premium textile applications.",
         imageUrl:
-          "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?auto=format&fit=crop&q=80",
+          "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055194431-hczl68.avif",
         linkText: "Explore Grey Fabric",
         linkUrl: "#contact",
       },
@@ -70,7 +70,7 @@ export const defaultLandingContent: LandingPageContent = {
         description:
           "Premium quality art silk cloth for luxury garments and commercial manufacturing.",
         imageUrl:
-          "https://images.unsplash.com/photo-1584916201218-f4242ceb4809?auto=format&fit=crop&q=80",
+          "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055228930-ztlw2b.jpg",
         linkText: "View Art Silk Products",
         linkUrl: "#contact",
         isDark: true,
@@ -91,7 +91,7 @@ export const defaultLandingContent: LandingPageContent = {
         description:
           "Durable, color-fast textile products and specialty yarns for commercial manufacturing.",
         imageUrl:
-          "https://images.unsplash.com/photo-1620799139834-6b8f844fbe61?auto=format&fit=crop&q=80",
+          "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055235079-1la51h.jpg",
         linkText: "Explore Textile Products",
         linkUrl: "#contact",
       },

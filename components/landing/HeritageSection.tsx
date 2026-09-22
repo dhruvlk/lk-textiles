@@ -18,11 +18,31 @@ export function HeritageSection() {
 
           {/* Images Grid */}
           <div className="relative h-[500px] md:h-[600px] w-full hidden md:block">
-            <div className="absolute top-0 left-0 w-[60%] h-[70%] rounded-2xl overflow-hidden shadow-2xl z-10 border border-white/10">
-              <Image src={heritage.image1Url} alt="LK Textiles Grey Fabric Manufacturing Loom" fill className="object-cover" />
+            <div className="absolute top-0 left-0 w-[60%] h-[70%] rounded-2xl overflow-hidden shadow-2xl z-10 border border-white/10 bg-slate-900 flex items-center justify-center">
+              {heritage.image1Url ? (
+                <Image
+                  src={heritage.image1Url}
+                  alt="LK Textiles Grey Fabric Manufacturing Loom"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="text-xs text-slate-500 font-semibold uppercase tracking-wider">Manufacturing Looms</div>
+              )}
             </div>
-            <div className="absolute bottom-0 right-0 w-[55%] h-[60%] rounded-2xl overflow-hidden shadow-2xl z-20 border border-white/10 translate-y-8 -translate-x-4">
-              <Image src={heritage.image2Url} alt="Art Silk Textile Yarns" fill className="object-cover" />
+            <div className="absolute bottom-0 right-0 w-[55%] h-[60%] rounded-2xl overflow-hidden shadow-2xl z-20 border border-white/10 translate-y-8 -translate-x-4 bg-slate-800 flex items-center justify-center">
+              {heritage.image2Url ? (
+                <Image
+                  src={heritage.image2Url}
+                  alt="Art Silk Textile Yarns"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                  className="object-cover"
+                />
+              ) : (
+                <div className="text-xs text-slate-400 font-semibold uppercase tracking-wider">Textile Yarns</div>
+              )}
             </div>
           </div>
 

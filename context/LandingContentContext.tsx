@@ -28,6 +28,13 @@ export function LandingContentProvider({
   )
   const [isLoading, setIsLoading] = useState(false)
 
+  // Sync state if server component passes new initialContent
+  useEffect(() => {
+    if (initialContent) {
+      setContent(initialContent)
+    }
+  }, [initialContent])
+
   const fetchContent = useCallback(async () => {
     try {
       const res = await fetch("/api/admin/landing/content", { cache: "no-store" })
@@ -41,35 +48,49 @@ export function LandingContentProvider({
         }
       }
     } catch (err) {
-      console.warn("Could not fetch landing content, using default fallback:", err)
+      console.warn("Could not fetch landing content, using fallback:", err)
     } finally {
       setIsLoading(false)
     }
   }, [])
 
+  // Listen for focus, visibility change, and cross-tab publish events
   useEffect(() => {
-    let ignore = false
-    fetch("/api/admin/landing/content", { cache: "no-store" })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (!ignore && data && typeof data === "object") {
-          setContent((prev) => ({
-            ...prev,
-            ...data,
-          }))
+    const handleRefresh = () => {
+      if (document.visibilityState === "visible") {
+        fetchContent()
+      }
+    }
+
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === "lk_landing_published_at") {
+        fetchContent()
+      }
+    }
+
+    let channel: BroadcastChannel | null = null
+    if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+      try {
+        channel = new BroadcastChannel("lk_landing_channel")
+        channel.onmessage = (event) => {
+          if (event.data?.type === "CONTENT_PUBLISHED") {
+            fetchContent()
+          }
         }
-      })
-      .catch((err) => {
-        console.warn("Could not fetch landing content, using default fallback:", err)
-      })
-      .finally(() => {
-        if (!ignore) setIsLoading(false)
-      })
+      } catch {}
+    }
+
+    window.addEventListener("visibilitychange", handleRefresh)
+    window.addEventListener("focus", handleRefresh)
+    window.addEventListener("storage", handleStorage)
 
     return () => {
-      ignore = true
+      window.removeEventListener("visibilitychange", handleRefresh)
+      window.removeEventListener("focus", handleRefresh)
+      window.removeEventListener("storage", handleStorage)
+      channel?.close()
     }
-  }, [])
+  }, [fetchContent])
 
   return (
     <LandingContentContext.Provider
@@ -86,5 +107,12 @@ export function LandingContentProvider({
 
 export function useLandingContent() {
   const context = useContext(LandingContentContext)
+  if (!context) {
+    throw new Error("useLandingContent must be used within a LandingContentProvider")
+  }
   return context.content
+}
+
+export function useLandingContentContext() {
+  return useContext(LandingContentContext)
 }

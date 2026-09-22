@@ -26,7 +26,13 @@ export function CapabilitiesSection() {
           {/* Large Feature 1 */}
           <div className="bento-item md:col-span-2 md:row-span-1 group relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 bg-white">
             {p1.imageUrl && (
-              <Image src={p1.imageUrl} alt={p1.title} fill className="object-cover opacity-60 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700" />
+              <Image
+                src={p1.imageUrl}
+                alt={p1.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 66vw"
+                className="object-cover opacity-60 group-hover:scale-105 group-hover:opacity-80 transition-all duration-700"
+              />
             )}
             <div className="absolute inset-0 bg-gradient-to-r from-white via-white/80 to-transparent p-8 md:p-12 flex flex-col justify-center max-w-[70%]">
               <h3 className="text-3xl font-bold text-slate-900 mb-4">{p1.title}</h3>
@@ -41,7 +47,13 @@ export function CapabilitiesSection() {
           <div className="bento-item md:col-span-1 md:row-span-1 group relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-900 text-white">
             {p2.imageUrl && (
               <div className="absolute inset-0 opacity-40 mix-blend-overlay group-hover:scale-110 transition-transform duration-700">
-                <Image src={p2.imageUrl} alt={p2.title} fill className="object-cover" />
+                <Image
+                  src={p2.imageUrl}
+                  alt={p2.title}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="object-cover"
+                />
               </div>
             )}
             <div className="relative h-full p-8 flex flex-col justify-end bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent">
@@ -68,7 +80,13 @@ export function CapabilitiesSection() {
           {/* Large Feature 2 */}
           <div className="bento-item md:col-span-2 md:row-span-1 group relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 bg-slate-100">
             {p4.imageUrl && (
-              <Image src={p4.imageUrl} alt={p4.title} fill className="object-cover opacity-50 group-hover:scale-105 group-hover:opacity-70 transition-all duration-700" />
+              <Image
+                src={p4.imageUrl}
+                alt={p4.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 66vw"
+                className="object-cover opacity-50 group-hover:scale-105 group-hover:opacity-70 transition-all duration-700"
+              />
             )}
             <div className="absolute inset-0 bg-gradient-to-l from-white via-white/80 to-transparent p-8 md:p-12 flex flex-col justify-center items-end text-right ml-auto max-w-[70%]">
               <h3 className="text-3xl font-bold text-slate-900 mb-4">{p4.title}</h3>

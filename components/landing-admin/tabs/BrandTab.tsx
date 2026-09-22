@@ -54,6 +54,9 @@ export function BrandTab({ formData, setFormData, uploadingField, setUploadingFi
           onUploadSuccess={(url) =>
             setFormData({ ...formData, brand: { ...formData.brand, logoUrl: url } })
           }
+          onRemove={() =>
+            setFormData({ ...formData, brand: { ...formData.brand, logoUrl: "/logo-1.png" } })
+          }
           onUploadStateChange={setUploadingField}
         />
       </div>

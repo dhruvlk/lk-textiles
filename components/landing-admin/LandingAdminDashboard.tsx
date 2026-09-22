@@ -96,9 +96,32 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
     return JSON.stringify(initialData) !== JSON.stringify(formData)
   }, [initialData, formData])
 
-  // Save changes
+  // Save & publish changes
   const handleSave = async () => {
     if (!isDirty || isSaving) return
+
+    // 1. Prevent publishing while an image upload is in flight
+    if (uploadingField) {
+      toast.error("Please wait for the current image upload to finish before publishing.")
+      return
+    }
+
+    // 2. Client-side field validation
+    if (!formData.brand?.name?.trim()) {
+      toast.error("Company / Brand Name cannot be empty.")
+      return
+    }
+    if (!formData.hero?.titlePrefix?.trim() && !formData.hero?.titleGradient?.trim()) {
+      toast.error("Hero headline cannot be empty.")
+      return
+    }
+    if (formData.contact?.email?.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(formData.contact.email.trim())) {
+        toast.error("Please enter a valid contact email address.")
+        return
+      }
+    }
 
     setIsSaving(true)
     try {
@@ -111,11 +134,25 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
       const result = await res.json()
 
       if (!res.ok) {
-        throw new Error(result.error || "Failed to save content.")
+        throw new Error(result.error || "Failed to publish changes.")
       }
 
-      setInitialData(result.content || formData)
-      toast.success("Landing page content published successfully!")
+      const published = result.content || formData
+      setInitialData(published)
+
+      // Broadcast to any open public landing page tabs for real-time live sync
+      try {
+        localStorage.setItem("lk_landing_published_at", Date.now().toString())
+        if (typeof window !== "undefined" && "BroadcastChannel" in window) {
+          const channel = new BroadcastChannel("lk_landing_channel")
+          channel.postMessage({ type: "CONTENT_PUBLISHED", timestamp: Date.now() })
+          channel.close()
+        }
+      } catch {
+        // Fallback gracefully
+      }
+
+      toast.success("Changes published successfully.")
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "An error occurred while saving.")
     } finally {
@@ -217,15 +254,15 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               </Button>
             )}
 
-            {/* Save Button */}
+            {/* Save / Publish Button */}
             <Button
               type="button"
               size="sm"
-              disabled={!isDirty || isSaving}
+              disabled={!isDirty || isSaving || Boolean(uploadingField)}
               onClick={handleSave}
               className={cn(
                 "rounded-xl px-4 sm:px-5 text-xs font-bold transition-all shadow-sm",
-                isDirty
+                isDirty && !uploadingField
                   ? "bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white hover:brightness-110 shadow-md shadow-slate-900/15 scale-[1.02] active:scale-[0.99]"
                   : "bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none"
               )}
@@ -234,6 +271,11 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                 <>
                   <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
                   Publishing...
+                </>
+              ) : uploadingField ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin text-slate-400" />
+                  Uploading Image...
                 </>
               ) : (
                 <>

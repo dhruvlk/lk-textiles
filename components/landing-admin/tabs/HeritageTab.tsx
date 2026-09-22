@@ -114,6 +114,9 @@ export function HeritageTab({ formData, setFormData, uploadingField, setUploadin
           onUploadSuccess={(url) =>
             setFormData({ ...formData, heritage: { ...formData.heritage, image1Url: url } })
           }
+          onRemove={() =>
+            setFormData({ ...formData, heritage: { ...formData.heritage, image1Url: "" } })
+          }
           onUploadStateChange={setUploadingField}
         />
 
@@ -126,6 +129,9 @@ export function HeritageTab({ formData, setFormData, uploadingField, setUploadin
           aspectRatio="video"
           onUploadSuccess={(url) =>
             setFormData({ ...formData, heritage: { ...formData.heritage, image2Url: url } })
+          }
+          onRemove={() =>
+            setFormData({ ...formData, heritage: { ...formData.heritage, image2Url: "" } })
           }
           onUploadStateChange={setUploadingField}
         />

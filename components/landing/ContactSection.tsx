@@ -45,7 +45,8 @@ const triggerFireworks = () => {
 }
 
 export function ContactSection() {
-  const { contact } = useLandingContent()
+  const { contact, heritage } = useLandingContent()
+  const facilityImage = heritage?.image1Url || "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055042186-yw4k1b.jpg"
   const {
     register,
     handleSubmit,
@@ -85,12 +86,17 @@ export function ContactSection() {
       <div className="absolute inset-0 grid lg:grid-cols-2">
         {/* Left Image Pane */}
         <div className="hidden lg:block relative h-full w-full">
-          <Image
-            src="https://images.unsplash.com/photo-1542272201-b1ca555f8505?auto=format&fit=crop&q=80"
-            alt="Textile manufacturing facility by LK Textiles"
-            fill
-            className="object-cover opacity-60"
-          />
+          {facilityImage ? (
+            <Image
+              src={facilityImage}
+              alt="Textile manufacturing facility by LK Textiles"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover opacity-50"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 to-slate-900" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
           <div className="absolute bottom-16 left-16 max-w-md">
             <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>

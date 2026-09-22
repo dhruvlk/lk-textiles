@@ -70,10 +70,20 @@ export function HeroSection() {
                 <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <div className="flex items-center gap-4 pl-4">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden relative shadow-sm">
-                      <Image src={`https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=100&h=100&sat=-100&seed=${i}`} fill alt="Client" className="object-cover" />
+                <div className="flex -space-x-2.5">
+                  {[
+                    { initials: "LK", bg: "bg-slate-900 text-white" },
+                    { initials: "SR", bg: "bg-slate-800 text-slate-100" },
+                    { initials: "TX", bg: "bg-slate-700 text-slate-200" },
+                  ].map((badge, idx) => (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "h-10 w-10 rounded-full border-2 border-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider",
+                        badge.bg
+                      )}
+                    >
+                      {badge.initials}
                     </div>
                   ))}
                 </div>
@@ -88,16 +98,24 @@ export function HeroSection() {
           <div className="lg:col-span-6 relative h-[600px] hidden lg:block">
             <motion.div
               style={{ y: yHero }}
-              className="absolute right-0 top-10 w-[80%] h-[90%] rounded-[2rem] overflow-hidden shadow-2xl"
+              className="absolute right-0 top-10 w-[80%] h-[90%] rounded-[2rem] overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 flex items-center justify-center"
             >
-              <Image
-                src={hero.imageUrl}
-                alt="Premium Grey Fabric and Art Silk Fabric manufactured by LK Textiles"
-                fill
-                className="object-cover scale-110"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              {hero.imageUrl ? (
+                <Image
+                  src={hero.imageUrl}
+                  alt="Premium Grey Fabric and Art Silk Fabric manufactured by LK Textiles"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover scale-110"
+                  priority
+                />
+              ) : (
+                <div className="text-center p-8 text-slate-400">
+                  <div className="text-xs uppercase tracking-widest font-semibold text-slate-400">LK Textiles</div>
+                  <div className="text-base font-bold text-white mt-1">Direct Mill Manufacturer</div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
             </motion.div>
 
             {/* Floating detail card */}

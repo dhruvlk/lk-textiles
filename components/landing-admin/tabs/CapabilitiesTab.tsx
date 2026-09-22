@@ -122,6 +122,14 @@ export function CapabilitiesTab({ formData, setFormData, uploadingField, setUplo
                     capabilities: { ...formData.capabilities, products: updated },
                   })
                 }}
+                onRemove={() => {
+                  const updated = [...formData.capabilities.products]
+                  updated[idx] = { ...updated[idx], imageUrl: "" }
+                  setFormData({
+                    ...formData,
+                    capabilities: { ...formData.capabilities, products: updated },
+                  })
+                }}
                 onUploadStateChange={setUploadingField}
               />
             )}

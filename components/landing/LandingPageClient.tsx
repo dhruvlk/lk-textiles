@@ -13,12 +13,17 @@ import { AdvantageSection } from "@/components/landing/AdvantageSection"
 import { ContactSection } from "@/components/landing/ContactSection"
 import { LandingFooter } from "@/components/landing/LandingFooter"
 import { LandingContentProvider } from "@/context/LandingContentContext"
+import { LandingPageContent } from "@/types/landing-content"
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, useGSAP)
 }
 
-export function LandingPageClient() {
+interface LandingPageClientProps {
+  initialContent?: LandingPageContent
+}
+
+export function LandingPageClient({ initialContent }: LandingPageClientProps) {
   const containerRef = useRef<HTMLDivElement>(null)
 
   useGSAP(
@@ -60,7 +65,7 @@ export function LandingPageClient() {
   )
 
   return (
-    <LandingContentProvider>
+    <LandingContentProvider initialContent={initialContent}>
       <div
         className="min-h-screen bg-[#FDFCF8] text-slate-900 font-sans selection:bg-primary/20 overflow-x-hidden"
         ref={containerRef}

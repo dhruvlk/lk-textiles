@@ -62,6 +62,9 @@ export function SeoTab({ formData, setFormData, uploadingField, setUploadingFiel
           onUploadSuccess={(url) =>
             setFormData({ ...formData, seo: { ...formData.seo, ogImage: url } })
           }
+          onRemove={() =>
+            setFormData({ ...formData, seo: { ...formData.seo, ogImage: "/og-image.png" } })
+          }
           onUploadStateChange={setUploadingField}
         />
       </div>
