@@ -181,21 +181,27 @@ export function ContactSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-slate-950 to-slate-900" />
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
+          <div className="absolute bottom-16 left-16 max-w-md">
+            <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>
+            <p className="text-slate-300 text-lg">{contact.subtitle}</p>
+          </div>
         </div>
+        {/* Right Form Pane Background */}
+        <div className="bg-slate-900 h-full w-full" />
+      </div>
 
-        {/* Right Form Pane */}
-        <div className="relative flex items-center justify-center p-8 sm:p-12 lg:p-16 w-full">
-          <div className="w-full max-w-xl bg-white/95 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-2xl border border-white/20">
-            <div className="mb-8">
-              <span className="text-primary font-semibold text-xs tracking-widest uppercase mb-2 block">
-                {contact?.title || "Let's Talk"}
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-                {contact?.subtitle || "Start a Conversation"}
-              </h2>
-            </div>
+      <div className="container relative px-6 mx-auto z-10 py-24">
+        <div className="grid lg:grid-cols-2 gap-16">
+          <div className="hidden lg:block"></div> {/* Spacer for left side */}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Form Container */}
+          <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-[100px] -z-10" />
+
+            <h3 className="text-3xl font-bold mb-2 text-slate-900">Request a Quote</h3>
+            <p className="text-slate-500 mb-8 text-sm">Tell us about your fabric requirements, quantities, and timelines.</p>
+
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div className="space-y-1.5">
                 <Label htmlFor="fullName" className="text-xs font-semibold text-slate-600 uppercase tracking-wider">Full Name *</Label>
                 <Input
