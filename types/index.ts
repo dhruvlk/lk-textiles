@@ -400,3 +400,61 @@ export interface InquiryFilters {
   status?: InquiryStatus | 'all' | '';
   sort?: TableSort;
 }
+
+export type SalarySlipPaymentStatus = 'Pending' | 'Paid' | 'Partially Paid';
+
+export interface SalarySlip {
+  id: string;
+  company_id: string;
+  employee_id: string | null;
+  employee_name: string;
+  employee_code?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
+  salary_slip_number: string;
+  salary_month: string;
+  salary_year: number;
+  pay_date: string;
+  basic_salary: number;
+  hra: number;
+  conveyance: number;
+  medical_allowance: number;
+  special_allowance: number;
+  bonus: number;
+  overtime: number;
+  other_earnings: number;
+  gross_earnings: number;
+  pf: number;
+  professional_tax: number;
+  tds: number;
+  esic: number;
+  loan_deduction: number;
+  advance_deduction: number;
+  other_deduction: number;
+  total_deductions: number;
+  net_salary: number;
+  amount_in_words?: string | null;
+  notes?: string | null;
+  payment_status: SalarySlipPaymentStatus;
+  payment_mode?: string | null;
+  payment_date?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SalarySlipFilters {
+  search?: string;
+  employeeId?: string;
+  salaryMonth?: string;
+  salaryYear?: number | string;
+  paymentStatus?: SalarySlipPaymentStatus | '';
+  sort?: TableSort;
+}

@@ -10,6 +10,7 @@ export const PERMISSION_MODULES = [
   'settings',
   'products',
   'letter_pads',
+  'salary_slips',
 ] as const;
 
 export type PermissionModule = (typeof PERMISSION_MODULES)[number];
@@ -120,6 +121,12 @@ export const MODULE_CONFIG: ModuleConfig[] = [
     description: 'Create and manage dynamic letters',
     actions: CRUD,
   },
+  {
+    module: 'salary_slips',
+    label: 'Salary Slips',
+    description: 'Create and manage employee salary slips',
+    actions: CRUD,
+  },
 ];
 
 /** Route prefix → permission module */
@@ -132,6 +139,7 @@ export const ROUTE_MODULE_MAP: { prefix: string; module: PermissionModule }[] = 
   { prefix: '/admin/delivery-challans', module: 'delivery_challans' },
   { prefix: '/admin/invoices', module: 'invoices' },
   { prefix: '/admin/letter-pads', module: 'letter_pads' },
+  { prefix: '/admin/salary-slips', module: 'salary_slips' },
   { prefix: '/admin/reports', module: 'reports' },
   { prefix: '/admin/settings', module: 'settings' },
   { prefix: '/admin/inquiries', module: 'dashboard' },

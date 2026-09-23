@@ -12,6 +12,7 @@ import {
   PackageOpen,
   PieChart as PieChartIcon,
   Receipt,
+  ReceiptText,
   TriangleAlert,
   Truck,
   Users,
@@ -43,6 +44,7 @@ import { downloadBlobFile, downloadCsv, downloadExcel } from "@/lib/reports/expo
 import { getReportsBundle } from "@/services/reports.service"
 import type {
   CustomerReportRow,
+  EmployeeSalaryReportRow,
   QualityReportRow,
   ReportFilters,
   ReportsBundle,
@@ -134,6 +136,22 @@ export default function ReportsClient() {
               {
                 label: "Collection %",
                 value: `${bundle.payments.collectionPercent.toFixed(1)}%`,
+              },
+              {
+                label: "Net Salary Paid/Pending",
+                value: formatCompact(bundle.salary?.totalNet ?? 0),
+              },
+              {
+                label: "Gross Salary",
+                value: formatCompact(bundle.salary?.totalGross ?? 0),
+              },
+              {
+                label: "Salary Deductions",
+                value: formatCompact(bundle.salary?.totalDeductions ?? 0),
+              },
+              {
+                label: "Total Salary Slips",
+                value: String(bundle.salary?.totalSlips ?? 0),
               },
             ]}
           />
@@ -271,6 +289,45 @@ export default function ReportsClient() {
         header: "Sales (est.)",
         cell: (row: QualityReportRow) => (
           <span className="tabular-nums">{formatCompact(row.totalSales)}</span>
+        ),
+      },
+    ],
+    []
+  )
+
+  const salaryColumns = useMemo(
+    () => [
+      {
+        header: "Employee",
+        accessorKey: "employeeName" as keyof EmployeeSalaryReportRow,
+        className: "font-medium",
+      },
+      {
+        header: "Designation",
+        cell: (row: EmployeeSalaryReportRow) => row.designation || "—",
+      },
+      {
+        header: "Slips",
+        cell: (row: EmployeeSalaryReportRow) => (
+          <span className="tabular-nums">{row.slipCount}</span>
+        ),
+      },
+      {
+        header: "Gross Salary",
+        cell: (row: EmployeeSalaryReportRow) => (
+          <span className="tabular-nums">{formatCompact(row.totalGross)}</span>
+        ),
+      },
+      {
+        header: "Deductions",
+        cell: (row: EmployeeSalaryReportRow) => (
+          <span className="tabular-nums text-destructive">{formatCompact(row.totalDeductions)}</span>
+        ),
+      },
+      {
+        header: "Net Salary",
+        cell: (row: EmployeeSalaryReportRow) => (
+          <span className="font-semibold tabular-nums text-foreground">{formatCompact(row.totalNet)}</span>
         ),
       },
     ],
@@ -561,6 +618,52 @@ export default function ReportsClient() {
           />
         </CardContent>
       </Card>
+
+      {/* SALARY & PAYROLL REPORTS */}
+      <div className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Total Net Salary"
+            value={formatCompact(bundle?.salary?.totalNet ?? 0)}
+            icon={ReceiptText}
+            isLoading={showLoading}
+          />
+          <StatCard
+            title="Total Gross Salary"
+            value={formatCompact(bundle?.salary?.totalGross ?? 0)}
+            icon={IndianRupee}
+            isLoading={showLoading}
+          />
+          <StatCard
+            title="Total Deductions"
+            value={formatCompact(bundle?.salary?.totalDeductions ?? 0)}
+            icon={Wallet}
+            iconClassName="bg-rose-50 ring-rose-200"
+            isLoading={showLoading}
+          />
+          <StatCard
+            title="Salary Slips Generated"
+            value={bundle?.salary?.totalSlips ?? 0}
+            icon={Users}
+            isLoading={showLoading}
+          />
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Employee Salary Reports</CardTitle>
+            <CardDescription>Employee-wise breakdown of gross earnings, deductions, and net salary for the period.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <DataTable
+              data={bundle?.salary?.employeeBreakdown ?? []}
+              columns={salaryColumns}
+              isLoading={showLoading}
+              hideSearch
+            />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

@@ -14,7 +14,69 @@ export type CompanyMemberRow = {
   is_active: boolean;
   designation: string | null;
   invited_by: string | null;
+  employee_code?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
   created_at: string;
+  updated_at: string;
+};
+
+export type SalarySlipRow = {
+  id: string;
+  company_id: string;
+  employee_id?: string | null;
+  employee_name: string;
+  employee_code?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
+  salary_slip_number: string;
+  salary_month: string;
+  salary_year: number;
+  pay_date: string;
+  basic_salary: number;
+  hra: number;
+  conveyance: number;
+  medical_allowance: number;
+  special_allowance: number;
+  bonus: number;
+  overtime: number;
+  other_earnings: number;
+  gross_earnings: number;
+  pf: number;
+  professional_tax: number;
+  tds: number;
+  esic: number;
+  loan_deduction: number;
+  advance_deduction: number;
+  other_deduction: number;
+  total_deductions: number;
+  net_salary: number;
+  amount_in_words?: string | null;
+  notes?: string | null;
+  payment_status: 'Pending' | 'Paid' | 'Partially Paid';
+  payment_mode?: string | null;
+  payment_date?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type SalarySlipSequenceRow = {
+  company_id: string;
+  last_number: number;
   updated_at: string;
 };
 
@@ -577,6 +639,22 @@ export interface Database {
         Update: Partial<InquiryRow>;
         Relationships: [];
       };
+      salary_slips: {
+        Row: SalarySlipRow;
+        Insert: Omit<SalarySlipRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<SalarySlipRow>;
+        Relationships: [];
+      };
+      salary_slip_sequences: {
+        Row: SalarySlipSequenceRow;
+        Insert: SalarySlipSequenceRow;
+        Update: Partial<SalarySlipSequenceRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -633,6 +711,14 @@ export interface Database {
         };
         Returns: boolean;
       };
+      generate_salary_slip_number: {
+        Args: {
+          p_company_id: string;
+          p_month?: string | null;
+          p_year?: number | null;
+        };
+        Returns: string;
+      };
       list_company_employees: {
         Args: { p_company_id: string };
         Returns: {
@@ -649,6 +735,15 @@ export interface Database {
           email: string;
           mobile: string | null;
           avatar_url: string | null;
+          employee_code?: string | null;
+          department?: string | null;
+          joining_date?: string | null;
+          bank_name?: string | null;
+          bank_account_number?: string | null;
+          bank_ifsc?: string | null;
+          pan_number?: string | null;
+          uan_number?: string | null;
+          pf_number?: string | null;
         }[];
       };
     };
