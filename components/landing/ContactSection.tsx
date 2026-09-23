@@ -181,18 +181,18 @@ export function ContactSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-slate-950 to-slate-900" />
           )}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
-          <div className="absolute bottom-16 left-16 max-w-md">
-            <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>
-            <p className="text-slate-300 text-lg">{contact.subtitle}</p>
-          </div>
         </div>
         {/* Right Form Pane Background */}
         <div className="bg-slate-900 h-full w-full" />
       </div>
 
       <div className="container relative px-6 mx-auto z-10 py-24">
-        <div className="grid lg:grid-cols-2 gap-16">
-          <div className="hidden lg:block"></div> {/* Spacer for left side */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left Content */}
+          <div className="max-w-lg">
+            <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>
+            <p className="text-slate-300 text-lg leading-relaxed">{contact.subtitle}</p>
+          </div>
 
           {/* Form Container */}
           <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
