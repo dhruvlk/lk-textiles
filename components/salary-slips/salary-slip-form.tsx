@@ -20,7 +20,6 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import {
   Select,
   SelectContent,
@@ -37,7 +36,7 @@ import {
   updateSalarySlip,
   generateSalarySlipNumber,
 } from "@/services/salary-slips.service"
-import type { SalarySlip, SalarySlipPaymentStatus } from "@/types"
+import type { SalarySlip } from "@/types"
 import type { Employee } from "@/types/permissions"
 
 const MONTHS = [
@@ -48,16 +47,8 @@ const MONTHS = [
 const salarySlipSchema = z.object({
   employee_id: z.string().optional(),
   employee_name: z.string().min(1, "Employee name is required"),
-  employee_code: z.string().optional(),
-  designation: z.string().optional(),
-  department: z.string().optional(),
   joining_date: z.string().optional(),
-  bank_name: z.string().optional(),
-  bank_account_number: z.string().optional(),
-  bank_ifsc: z.string().optional(),
   pan_number: z.string().optional(),
-  uan_number: z.string().optional(),
-  pf_number: z.string().optional(),
   salary_slip_number: z.string().min(1, "Salary slip number is required"),
   salary_month: z.string().min(1, "Salary month is required"),
   salary_year: z.coerce.number().min(2000, "Enter a valid year"),
@@ -79,11 +70,6 @@ const salarySlipSchema = z.object({
   loan_deduction: z.coerce.number().min(0, "Cannot be negative").default(0),
   advance_deduction: z.coerce.number().min(0, "Cannot be negative").default(0),
   other_deduction: z.coerce.number().min(0, "Cannot be negative").default(0),
-  // Additional
-  payment_status: z.enum(["Pending", "Paid", "Partially Paid"]),
-  payment_mode: z.string().optional(),
-  payment_date: z.string().optional(),
-  notes: z.string().optional(),
 })
 
 type FormData = z.infer<typeof salarySlipSchema>
@@ -111,16 +97,8 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
       ? {
           employee_id: initialData.employee_id || "",
           employee_name: initialData.employee_name,
-          employee_code: initialData.employee_code || "",
-          designation: initialData.designation || "",
-          department: initialData.department || "",
           joining_date: initialData.joining_date || "",
-          bank_name: initialData.bank_name || "",
-          bank_account_number: initialData.bank_account_number || "",
-          bank_ifsc: initialData.bank_ifsc || "",
           pan_number: initialData.pan_number || "",
-          uan_number: initialData.uan_number || "",
-          pf_number: initialData.pf_number || "",
           salary_slip_number: initialData.salary_slip_number,
           salary_month: initialData.salary_month,
           salary_year: initialData.salary_year,
@@ -140,24 +118,12 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
           loan_deduction: initialData.loan_deduction,
           advance_deduction: initialData.advance_deduction,
           other_deduction: initialData.other_deduction,
-          payment_status: initialData.payment_status,
-          payment_mode: initialData.payment_mode || "Bank Transfer",
-          payment_date: initialData.payment_date || "",
-          notes: initialData.notes || "",
         }
       : {
           employee_id: "",
           employee_name: "",
-          employee_code: "",
-          designation: "",
-          department: "",
           joining_date: "",
-          bank_name: "",
-          bank_account_number: "",
-          bank_ifsc: "",
           pan_number: "",
-          uan_number: "",
-          pf_number: "",
           salary_slip_number: "",
           salary_month: currentMonth,
           salary_year: currentYear,
@@ -177,10 +143,6 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
           loan_deduction: 0,
           advance_deduction: 0,
           other_deduction: 0,
-          payment_status: "Pending",
-          payment_mode: "Bank Transfer",
-          payment_date: "",
-          notes: "",
         },
   })
 
@@ -272,16 +234,8 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
     if (emp) {
       form.setValue("employee_id", emp.user_id)
       form.setValue("employee_name", emp.full_name, { shouldValidate: true })
-      form.setValue("employee_code", emp.employee_code || "")
-      form.setValue("designation", emp.designation || "")
-      form.setValue("department", emp.department || "")
       form.setValue("joining_date", emp.joining_date || "")
-      form.setValue("bank_name", emp.bank_name || "")
-      form.setValue("bank_account_number", emp.bank_account_number || "")
-      form.setValue("bank_ifsc", emp.bank_ifsc || "")
       form.setValue("pan_number", emp.pan_number || "")
-      form.setValue("uan_number", emp.uan_number || "")
-      form.setValue("pf_number", emp.pf_number || "")
       toast.info(`Populated details for ${emp.full_name}`)
     }
   }
@@ -295,16 +249,16 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
         company_id: selectedCompany.id,
         employee_id: values.employee_id || null,
         employee_name: values.employee_name,
-        employee_code: values.employee_code || null,
-        designation: values.designation || null,
-        department: values.department || null,
+        employee_code: initialData?.employee_code || null,
+        designation: initialData?.designation || null,
+        department: initialData?.department || null,
         joining_date: values.joining_date || null,
-        bank_name: values.bank_name || null,
-        bank_account_number: values.bank_account_number || null,
-        bank_ifsc: values.bank_ifsc || null,
+        bank_name: initialData?.bank_name || null,
+        bank_account_number: initialData?.bank_account_number || null,
+        bank_ifsc: initialData?.bank_ifsc || null,
         pan_number: values.pan_number || null,
-        uan_number: values.uan_number || null,
-        pf_number: values.pf_number || null,
+        uan_number: initialData?.uan_number || null,
+        pf_number: initialData?.pf_number || null,
         salary_slip_number: values.salary_slip_number,
         salary_month: values.salary_month,
         salary_year: Number(values.salary_year),
@@ -328,10 +282,10 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
         total_deductions: totalDeductions,
         net_salary: netSalary,
         amount_in_words: netSalaryInWords,
-        notes: values.notes || null,
-        payment_status: values.payment_status,
-        payment_mode: values.payment_mode || null,
-        payment_date: values.payment_date || null,
+        notes: initialData?.notes || null,
+        payment_status: initialData?.payment_status || ("Paid" as const),
+        payment_mode: initialData?.payment_mode || null,
+        payment_date: initialData?.payment_date || null,
       }
 
       if (initialData) {
@@ -426,6 +380,8 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                   id="employee_name"
                   {...form.register("employee_name")}
                   placeholder="Employee Name"
+                  readOnly={!!form.watch("employee_id")}
+                  className={form.watch("employee_id") ? "bg-muted cursor-not-allowed" : ""}
                 />
                 {form.formState.errors.employee_name && (
                   <p className="text-xs text-destructive">
@@ -434,36 +390,6 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="employee_code">Employee ID</Label>
-                <Input
-                  id="employee_code"
-                  {...form.register("employee_code")}
-                  placeholder="e.g. EMP-001"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="designation">Designation</Label>
-                <Input
-                  id="designation"
-                  {...form.register("designation")}
-                  placeholder="e.g. Master Weaver"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  {...form.register("department")}
-                  placeholder="e.g. Production"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
                 <Label htmlFor="joining_date">Joining Date</Label>
                 <Input
                   id="joining_date"
@@ -471,6 +397,9 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                   {...form.register("joining_date")}
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pan_number">PAN Number</Label>
                 <Input
@@ -480,53 +409,15 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                 />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bank_name">Bank Name</Label>
-                <Input
-                  id="bank_name"
-                  {...form.register("bank_name")}
-                  placeholder="e.g. HDFC Bank"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="bank_account_number">Account Number</Label>
-                <Input
-                  id="bank_account_number"
-                  {...form.register("bank_account_number")}
-                  placeholder="Account Number"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="bank_ifsc">IFSC Code</Label>
-                <Input
-                  id="bank_ifsc"
-                  {...form.register("bank_ifsc")}
-                  placeholder="e.g. HDFC0001234"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="uan_number">UAN / PF Number</Label>
-                <Input
-                  id="uan_number"
-                  {...form.register("uan_number")}
-                  placeholder="UAN or PF Number"
-                />
-              </div>
-            </div>
           </CardContent>
         </Card>
 
-        {/* SALARY PERIOD & PAYMENT INFO */}
+        {/* SALARY PERIOD */}
         <Card className="shadow-sm">
           <CardHeader>
             <CardTitle className="text-base font-semibold">Salary Period & Details</CardTitle>
             <CardDescription>
-              Define the salary period, slip number, and payment status
+              Specify the salary period, pay date, and reference number
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -569,21 +460,6 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="salary_slip_number">Salary Slip Number *</Label>
-                <Input
-                  id="salary_slip_number"
-                  {...form.register("salary_slip_number")}
-                  readOnly={isEditMode}
-                  className={isEditMode ? "bg-muted" : ""}
-                />
-                {form.formState.errors.salary_slip_number && (
-                  <p className="text-xs text-destructive">
-                    {form.formState.errors.salary_slip_number.message}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
                 <Label htmlFor="pay_date">Pay Date *</Label>
                 <Input
                   id="pay_date"
@@ -591,55 +467,24 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                   {...form.register("pay_date")}
                 />
               </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Payment Status</Label>
-                <Select
-                  value={form.watch("payment_status")}
-                  onValueChange={(val) => {
-                    if (val) form.setValue("payment_status", val as SalarySlipPaymentStatus)
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Partially Paid">Partially Paid</SelectItem>
-                    <SelectItem value="Paid">Paid</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
               <div className="space-y-2">
-                <Label htmlFor="payment_mode">Payment Mode</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="salary_slip_number">Salary Slip Number</Label>
+                  <span className="text-[11px] font-medium text-muted-foreground">Auto-generated</span>
+                </div>
                 <Input
-                  id="payment_mode"
-                  {...form.register("payment_mode")}
-                  placeholder="e.g. Bank Transfer / NEFT / Cheque"
+                  id="salary_slip_number"
+                  {...form.register("salary_slip_number")}
+                  readOnly
+                  className="bg-muted font-mono text-xs font-medium cursor-not-allowed"
                 />
+                {form.formState.errors.salary_slip_number && (
+                  <p className="text-xs text-destructive">
+                    {form.formState.errors.salary_slip_number.message}
+                  </p>
+                )}
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="payment_date">Payment Date (if paid)</Label>
-              <Input
-                id="payment_date"
-                type="date"
-                {...form.register("payment_date")}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes / Remarks</Label>
-              <Textarea
-                id="notes"
-                {...form.register("notes")}
-                placeholder="Optional notes or remarks for this salary slip..."
-                rows={3}
-              />
             </div>
           </CardContent>
         </Card>

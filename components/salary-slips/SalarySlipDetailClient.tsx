@@ -18,7 +18,6 @@ import { useCompany } from "@/components/company-provider"
 import { PageHeader } from "@/components/common/PageHeader"
 import { PageTransition } from "@/components/common/motion"
 import { EmptyState } from "@/components/common/EmptyState"
-import { SalarySlipStatusBadge } from "@/components/salary-slips/SalarySlipStatusBadge"
 import { DownloadSalarySlipButton } from "@/components/salary-slips/download-button"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -201,9 +200,6 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
             </CardHeader>
             <CardContent className="space-y-2">
               <DetailRow label="Employee Name" value={salarySlip.employee_name} highlight />
-              <DetailRow label="Employee ID" value={salarySlip.employee_code || "—"} />
-              <DetailRow label="Designation" value={salarySlip.designation || "—"} />
-              <DetailRow label="Department" value={salarySlip.department || "—"} />
               <DetailRow
                 label="Joining Date"
                 value={
@@ -212,18 +208,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                     : "—"
                 }
               />
-              <Separator />
-              <DetailRow label="Bank Name" value={salarySlip.bank_name || "—"} />
-              <DetailRow
-                label="Bank Account No."
-                value={salarySlip.bank_account_number || "—"}
-              />
-              <DetailRow label="Bank IFSC" value={salarySlip.bank_ifsc || "—"} />
               <DetailRow label="PAN Number" value={salarySlip.pan_number || "—"} />
-              <DetailRow
-                label="UAN / PF Number"
-                value={salarySlip.uan_number || salarySlip.pf_number || "—"}
-              />
             </CardContent>
           </Card>
         </motion.div>
@@ -234,15 +219,10 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-base font-semibold">
                 <Receipt className="h-5 w-5 text-primary" />
-                Salary Period & Payment
+                Salary Period & Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <div className="flex items-center justify-between py-1">
-                <span className="text-sm text-muted-foreground">Payment Status</span>
-                <SalarySlipStatusBadge status={salarySlip.payment_status} />
-              </div>
-              <Separator />
               <DetailRow label="Salary Slip Number" value={salarySlip.salary_slip_number} highlight />
               <DetailRow
                 label="Salary Period"
@@ -256,13 +236,6 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                     : "—"
                 }
               />
-              <DetailRow label="Payment Mode" value={salarySlip.payment_mode || "—"} />
-              {salarySlip.payment_date && (
-                <DetailRow
-                  label="Payment Date"
-                  value={format(new Date(salarySlip.payment_date), "dd MMM yyyy")}
-                />
-              )}
               <Separator />
               <DetailRow
                 label="Gross Earnings"

@@ -2,25 +2,33 @@ import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon,
 import { Company, SalarySlip } from '@/types';
 import { numberToWords } from '@/lib/number-to-words';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
-import { formatCurrency } from '@/lib/payment-status';
 
-// Register Gujarati font
+// Register Gujarati font for traditional header
+const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && Boolean(process.cwd);
+const gujaratiRegular = isNode
+  ? `${process.cwd().replace(/\\/g, '/')}/public/fonts/NotoSansGujarati-Regular.ttf`
+  : '/fonts/NotoSansGujarati-Regular.ttf';
+const gujaratiBold = isNode
+  ? `${process.cwd().replace(/\\/g, '/')}/public/fonts/NotoSansGujarati-Bold.ttf`
+  : '/fonts/NotoSansGujarati-Bold.ttf';
+
 Font.register({
   family: 'Gujarati',
   fonts: [
-    { src: '/fonts/NotoSansGujarati-Regular.ttf' },
-    { src: '/fonts/NotoSansGujarati-Bold.ttf', fontWeight: 'bold' }
-  ]
+    { src: gujaratiRegular },
+    { src: gujaratiBold, fontWeight: 'bold' },
+  ],
 });
 
-const PRIMARY_COLOR = '#0C1E40'; // Dark Blue
-const SECONDARY_COLOR = '#E6D5B8'; // Beige
-const ACCENT_RED = '#D3362E'; // Red
+
+const PRIMARY_COLOR = '#0C1E40'; // Navy Dark Blue matching ChallanPDF
+const SECONDARY_COLOR = '#E6D5B8'; // Beige accent border matching ChallanPDF
+const ACCENT_RED = '#D3362E'; // Red accent matching ChallanPDF
 const TEXT_COLOR = '#000000';
 
 const PinIcon = () => (
-  <Svg viewBox="0 0 24 24" width="9" height="9">
-    <Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={TEXT_COLOR} />
+  <Svg viewBox="0 0 24 24" width="10" height="10">
+    <Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={TEXT_COLOR} />
   </Svg>
 );
 
@@ -31,12 +39,12 @@ const PhoneIcon = () => (
 );
 
 const FancyDivider = () => (
-  <Svg viewBox="0 0 300 10" width="300" height="8">
-    <Line x1="0" y1="4" x2="134" y2="4" stroke={SECONDARY_COLOR} strokeWidth="1" />
-    <Polygon points="138,4 142,1 146,4 142,7" fill={SECONDARY_COLOR} />
-    <Circle cx="150" cy="4" r="2" fill={SECONDARY_COLOR} />
-    <Polygon points="154,4 158,1 162,4 158,7" fill={SECONDARY_COLOR} />
-    <Line x1="166" y1="4" x2="300" y2="4" stroke={SECONDARY_COLOR} strokeWidth="1" />
+  <Svg viewBox="0 0 300 10" width="300" height="9">
+    <Line x1="0" y1="4.5" x2="134" y2="4.5" stroke={SECONDARY_COLOR} strokeWidth="1" />
+    <Polygon points="138,4.5 142,1.5 146,4.5 142,7.5" fill={SECONDARY_COLOR} />
+    <Circle cx="150" cy="4.5" r="2.2" fill={SECONDARY_COLOR} />
+    <Polygon points="154,4.5 158,1.5 162,4.5 158,7.5" fill={SECONDARY_COLOR} />
+    <Line x1="166" y1="4.5" x2="300" y2="4.5" stroke={SECONDARY_COLOR} strokeWidth="1" />
   </Svg>
 );
 
@@ -56,20 +64,22 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'column',
   },
-  // HEADER
+  // HEADER (~25-30mm presence)
   header: {
-    paddingHorizontal: 14,
-    paddingTop: 8,
+    paddingHorizontal: 16,
+    paddingTop: 11,
+    paddingBottom: 3,
   },
   headerTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    minHeight: 14,
   },
   gstin: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#000',
+    color: '#000000',
     width: '33%',
   },
   religiousTextWrapper: {
@@ -78,10 +88,9 @@ const styles = StyleSheet.create({
   },
   religiousText: {
     color: ACCENT_RED,
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: 'Gujarati',
     fontWeight: 'bold',
-    marginBottom: 2,
   },
   phoneWrapper: {
     width: '33%',
@@ -95,36 +104,37 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   companyName: {
-    fontSize: 32,
+    fontSize: 37,
     fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'center',
+    marginTop: 3,
+    letterSpacing: 0.5,
+  },
+  companyTagline: {
+    fontSize: 12.5,
+    fontFamily: 'Helvetica',
     color: PRIMARY_COLOR,
     textAlign: 'center',
     marginTop: 2,
   },
-  companyTagline: {
-    fontSize: 12,
-    fontFamily: 'Helvetica',
-    color: PRIMARY_COLOR,
-    textAlign: 'center',
-    marginTop: 1,
-  },
   headerDividerWrapper: {
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 4,
+    marginTop: 5,
+    marginBottom: 5,
   },
   addressBar: {
     backgroundColor: SECONDARY_COLOR,
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: 5.5,
+    paddingHorizontal: 12,
   },
   addressText: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    color: '#333',
+    color: '#333333',
     marginLeft: 6,
   },
 
@@ -133,119 +143,166 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    marginTop: 8,
+    paddingHorizontal: 16,
+    marginTop: 10,
+    marginBottom: 6,
   },
   titleBadge: {
     backgroundColor: PRIMARY_COLOR,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingVertical: 5,
+    paddingHorizontal: 18,
     borderRadius: 3,
   },
   titleBadgeText: {
     color: '#FFFFFF',
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: 'Helvetica-Bold',
-    letterSpacing: 1,
+    letterSpacing: 1.8,
   },
-  payPeriodText: {
+  payPeriodWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  payPeriodLabel: {
     fontSize: 10,
     fontFamily: 'Helvetica-Bold',
+    color: '#555555',
+  },
+  payPeriodValue: {
+    fontSize: 11.5,
+    fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
+    marginLeft: 4,
   },
 
-  // INFO SECTION (Two columns: Document Info & Employee Info)
+  // EMPLOYEE INFORMATION
   infoSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingHorizontal: 14,
-    marginTop: 8,
+    paddingHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 6,
   },
-  infoCol: {
-    width: '48%',
+  infoCard: {
+    width: '100%',
     borderWidth: 1,
-    borderColor: '#D0D0D0',
-    borderRadius: 4,
-    padding: 8,
+    borderColor: '#C8C8C8',
+    borderRadius: 3,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    backgroundColor: '#FFFFFF',
   },
   infoColTitle: {
-    fontSize: 9,
+    fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
     borderBottomWidth: 1,
     borderBottomColor: SECONDARY_COLOR,
-    paddingBottom: 3,
-    marginBottom: 5,
+    paddingBottom: 4,
+    marginBottom: 7,
+    letterSpacing: 0.8,
+  },
+  infoGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  infoGridCol: {
+    width: '49%',
   },
   infoRow: {
     flexDirection: 'row',
-    marginBottom: 3,
-    alignItems: 'flex-start',
+    marginBottom: 5,
+    alignItems: 'center',
   },
   infoLabel: {
-    width: 80,
-    fontSize: 8.5,
+    width: 100,
+    fontSize: 9.5,
     color: '#555555',
+    fontFamily: 'Helvetica',
   },
   infoValue: {
     flex: 1,
-    fontSize: 8.5,
+    fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#000000',
+    color: '#111111',
   },
 
-  // EARNINGS & DEDUCTIONS TABLES
+  // SECTION DIVIDER BARS (SALARY BREAKDOWN & SALARY AUTHORIZATION)
+  sectionHeaderBar: {
+    marginHorizontal: 16,
+    marginTop: 6,
+    marginBottom: 6,
+    borderTopWidth: 1,
+    borderTopColor: '#D8DCE3',
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8DCE3',
+    backgroundColor: '#F7F8FA',
+    paddingVertical: 4,
+    alignItems: 'center',
+  },
+  sectionHeaderText: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    letterSpacing: 1.5,
+  },
+
+  // TWO-COLUMN TABLES: EARNINGS & DEDUCTIONS
   tablesContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 14,
-    marginTop: 10,
+    paddingHorizontal: 16,
+    justifyContent: 'space-between',
     gap: 8,
   },
   tableCol: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#A0A0A0',
+    borderColor: '#9E9E9E',
     borderRadius: 3,
     display: 'flex',
     flexDirection: 'column',
+    backgroundColor: '#FFFFFF',
   },
   tableHeader: {
     flexDirection: 'row',
     backgroundColor: PRIMARY_COLOR,
-    paddingVertical: 5,
-    paddingHorizontal: 6,
+    paddingVertical: 5.5,
+    paddingHorizontal: 8,
+    minHeight: 23,
+    alignItems: 'center',
   },
   tableHeaderLabel: {
     flex: 1,
     color: '#FFFFFF',
-    fontSize: 8.5,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
+    letterSpacing: 0.5,
   },
   tableHeaderAmount: {
-    width: 75,
+    width: 85,
     color: '#FFFFFF',
-    fontSize: 8.5,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
     textAlign: 'right',
   },
   tableRow: {
     flexDirection: 'row',
-    paddingVertical: 3.5,
-    paddingHorizontal: 6,
+    paddingVertical: 4.5,
+    paddingHorizontal: 8,
+    minHeight: 21,
+    alignItems: 'center',
     borderBottomWidth: 1,
-    borderBottomColor: '#EEEEEE',
+    borderBottomColor: '#F0F0F0',
   },
   tableRowEven: {
     backgroundColor: '#FAFAFA',
   },
   tableRowLabel: {
     flex: 1,
-    fontSize: 8.5,
-    color: '#333333',
+    fontSize: 9,
+    color: '#222222',
   },
   tableRowAmount: {
-    width: 75,
-    fontSize: 8.5,
+    width: 85,
+    fontSize: 9,
     textAlign: 'right',
     fontFamily: 'Helvetica-Bold',
     color: '#111111',
@@ -253,10 +310,12 @@ const styles = StyleSheet.create({
   totalRow: {
     flexDirection: 'row',
     backgroundColor: SECONDARY_COLOR,
-    paddingVertical: 5,
-    paddingHorizontal: 6,
+    paddingVertical: 5.5,
+    paddingHorizontal: 8,
+    minHeight: 23,
+    alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#A0A0A0',
+    borderTopColor: '#9E9E9E',
   },
   totalRowLabel: {
     flex: 1,
@@ -265,36 +324,37 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   totalRowAmount: {
-    width: 75,
-    fontSize: 9.5,
+    width: 85,
+    fontSize: 9,
     fontFamily: 'Helvetica-Bold',
     textAlign: 'right',
     color: '#000000',
   },
 
-  // NET SALARY BANNER
+  // NET SALARY SUMMARY BOX
   netSalaryBox: {
-    marginHorizontal: 14,
-    marginTop: 10,
+    marginHorizontal: 16,
+    marginTop: 8,
     borderWidth: 1.5,
     borderColor: PRIMARY_COLOR,
     borderRadius: 4,
-    padding: 8,
-    backgroundColor: '#F7F9FC',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    backgroundColor: '#F8F9FC',
   },
   netSalaryTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
   },
   netSalaryLabel: {
-    fontSize: 11,
+    fontSize: 11.5,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
+    letterSpacing: 0.5,
   },
   netSalaryValue: {
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
   },
@@ -302,14 +362,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderTopWidth: 1,
-    borderTopColor: '#E0E0E0',
-    paddingTop: 4,
+    borderTopColor: '#DEE3EB',
+    marginTop: 5,
+    paddingTop: 5,
   },
   wordsLabel: {
     fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#444444',
-    marginRight: 4,
+    color: '#555555',
+    marginRight: 5,
   },
   wordsValue: {
     fontSize: 8.5,
@@ -318,45 +379,41 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // NOTES ROW
-  notesSection: {
-    marginHorizontal: 14,
-    marginTop: 6,
-    padding: 6,
-    borderWidth: 1,
-    borderColor: '#E0E0E0',
-    borderRadius: 3,
-    backgroundColor: '#FCFCFC',
-  },
-  notesLabel: {
-    fontSize: 8,
-    fontFamily: 'Helvetica-Bold',
-    color: '#555555',
-    marginBottom: 2,
-  },
-  notesText: {
-    fontSize: 8,
-    color: '#333333',
-  },
-
-  // FOOTER (Signatures)
-  footerSection: {
+  // SALARY AUTHORIZATION COMPACT FOOTER SECTION (~45-60mm total height)
+  authFooterSection: {
+    display: 'flex',
+    flexDirection: 'column',
     marginTop: 'auto',
-    marginBottom: 10,
-    paddingHorizontal: 20,
+  },
+  authRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    paddingHorizontal: 28,
+    marginTop: 8,
   },
-  signBlock: {
-    width: 170,
+  authCol: {
+    width: 200,
+    display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
   },
+  signHeader: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'center',
+  },
+  signSpace: {
+    height: 62, // ~22mm clean space for physical signature
+  },
+  stampSpace: {
+    height: 62, // ~22mm (20-25mm required) clean blank space for company stamp
+  },
   signLine: {
-    width: '100%',
+    width: 175,
     borderTopWidth: 1,
     borderTopColor: '#000000',
-    marginBottom: 3,
+    marginBottom: 4,
   },
   signTitle: {
     fontSize: 8.5,
@@ -368,14 +425,58 @@ const styles = StyleSheet.create({
     fontSize: 7.5,
     color: '#666666',
     textAlign: 'center',
+    marginTop: 1,
   },
   confidentialNotice: {
     textAlign: 'center',
     fontSize: 7.5,
     color: '#777777',
-    paddingBottom: 6,
+    marginTop: 10,
+    paddingBottom: 10,
   },
 });
+
+function formatAmount(val: number | string | null | undefined): string {
+  return Number(val || 0).toLocaleString('en-IN', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+}
+
+function formatCompanyPhone(phone?: string | null): string {
+  if (!phone) return '';
+  const trimmed = phone.trim();
+  if (trimmed.startsWith('+91')) {
+    const rest = trimmed.slice(3).trim();
+    return `+91 ${rest}`;
+  }
+  if (trimmed.startsWith('91') && trimmed.length > 10) {
+    const rest = trimmed.slice(2).trim();
+    return `+91 ${rest}`;
+  }
+  return trimmed;
+}
+
+function formatDate(dateStr?: string | null): string {
+  if (!dateStr) return '—';
+  try {
+    const parts = dateStr.split('T')[0].split('-');
+    if (parts.length === 3 && parts[0].length === 4) {
+      const [year, month, day] = parts;
+      return `${day}/${month}/${year}`;
+    }
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
+  } catch {
+    // fallback
+  }
+  return dateStr;
+}
 
 interface SalarySlipPDFProps {
   salarySlip: SalarySlip;
@@ -419,20 +520,17 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
     <Document title={`Salary-Slip-${salarySlip.salary_slip_number}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.pageBorder}>
-          {/* HEADER */}
+          {/* 1. HEADER (~25-30mm) */}
           <View style={styles.header}>
             <View style={styles.headerTop}>
               <Text style={styles.gstin}>
-                {company.gst_number ? `GSTIN: ${company.gst_number}` : ''}
               </Text>
-              <View style={styles.religiousTextWrapper}>
-                <Text style={styles.religiousText}>॥ શ્રી ગણેશાય નમઃ ॥</Text>
-              </View>
+             
               <View style={styles.phoneWrapper}>
                 {company.phone ? (
                   <>
                     <PhoneIcon />
-                    <Text style={styles.phoneText}>{company.phone}</Text>
+                    <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
                   </>
                 ) : null}
               </View>
@@ -456,100 +554,56 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
             </View>
           ) : null}
 
-          {/* TITLE & PERIOD */}
+          {/* 2. TITLE & PERIOD */}
           <View style={styles.titleBar}>
             <View style={styles.titleBadge}>
               <Text style={styles.titleBadgeText}>SALARY SLIP</Text>
             </View>
-            <Text style={styles.payPeriodText}>
-              Salary Month: {salarySlip.salary_month} {salarySlip.salary_year}
-            </Text>
+            <View style={styles.payPeriodWrapper}>
+              <Text style={styles.payPeriodLabel}>Salary Month:</Text>
+              <Text style={styles.payPeriodValue}>
+                {salarySlip.salary_month} {salarySlip.salary_year}
+              </Text>
+            </View>
           </View>
 
-          {/* METADATA INFO */}
+          {/* 3. EMPLOYEE INFORMATION */}
           <View style={styles.infoSection}>
-            {/* Document Details */}
-            <View style={styles.infoCol}>
-              <Text style={styles.infoColTitle}>DOCUMENT & PAYMENT INFO</Text>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Slip Number:</Text>
-                <Text style={styles.infoValue}>{salarySlip.salary_slip_number}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Pay Date:</Text>
-                <Text style={styles.infoValue}>{salarySlip.pay_date}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Salary Period:</Text>
-                <Text style={styles.infoValue}>
-                  {salarySlip.salary_month} {salarySlip.salary_year}
-                </Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Payment Status:</Text>
-                <Text style={styles.infoValue}>{salarySlip.payment_status}</Text>
-              </View>
-              {salarySlip.payment_mode ? (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Payment Mode:</Text>
-                  <Text style={styles.infoValue}>{salarySlip.payment_mode}</Text>
-                </View>
-              ) : null}
-            </View>
-
-            {/* Employee Details */}
-            <View style={styles.infoCol}>
+            <View style={styles.infoCard}>
               <Text style={styles.infoColTitle}>EMPLOYEE INFORMATION</Text>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Employee Name:</Text>
-                <Text style={styles.infoValue}>{salarySlip.employee_name}</Text>
+              <View style={styles.infoGrid}>
+                <View style={styles.infoGridCol}>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Employee Name:</Text>
+                    <Text style={styles.infoValue}>{salarySlip.employee_name}</Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>Joining Date:</Text>
+                    <Text style={styles.infoValue}>{formatDate(salarySlip.joining_date)}</Text>
+                  </View>
+                <View style={styles.infoGridCol}>
+                  <View style={styles.infoRow}>
+                    <Text style={styles.infoLabel}>PAN Number:</Text>
+                    <Text style={styles.infoValue}>
+                      {[
+                        salarySlip.pan_number ? `${salarySlip.pan_number}` : '',
+                        salarySlip.uan_number || salarySlip.pf_number
+                          ? `UAN: ${salarySlip.uan_number || salarySlip.pf_number}`
+                          : '',
+                      ]
+                        .filter(Boolean)
+                        .join(' | ') || '—'}
+                    </Text>
+                  </View>
+                </View>
+                </View>
               </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Employee ID:</Text>
-                <Text style={styles.infoValue}>{salarySlip.employee_code || '—'}</Text>
-              </View>
-              <View style={styles.infoRow}>
-                <Text style={styles.infoLabel}>Designation:</Text>
-                <Text style={styles.infoValue}>{salarySlip.designation || '—'}</Text>
-              </View>
-              {salarySlip.department ? (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Department:</Text>
-                  <Text style={styles.infoValue}>{salarySlip.department}</Text>
-                </View>
-              ) : null}
-              {salarySlip.joining_date ? (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Joining Date:</Text>
-                  <Text style={styles.infoValue}>{salarySlip.joining_date}</Text>
-                </View>
-              ) : null}
-              {salarySlip.bank_name || salarySlip.bank_account_number ? (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>Bank & A/C:</Text>
-                  <Text style={styles.infoValue}>
-                    {[salarySlip.bank_name, salarySlip.bank_account_number]
-                      .filter(Boolean)
-                      .join(' - ')}
-                  </Text>
-                </View>
-              ) : null}
-              {salarySlip.pan_number || salarySlip.uan_number || salarySlip.pf_number ? (
-                <View style={styles.infoRow}>
-                  <Text style={styles.infoLabel}>PAN / UAN:</Text>
-                  <Text style={styles.infoValue}>
-                    {[
-                      salarySlip.pan_number ? `PAN: ${salarySlip.pan_number}` : '',
-                      salarySlip.uan_number || salarySlip.pf_number
-                        ? `UAN: ${salarySlip.uan_number || salarySlip.pf_number}`
-                        : '',
-                    ]
-                      .filter(Boolean)
-                      .join(' | ')}
-                  </Text>
-                </View>
-              ) : null}
             </View>
+          </View>
+
+          {/* 4. SALARY BREAKDOWN SECTION */}
+          <View style={styles.sectionHeaderBar}>
+            <Text style={styles.sectionHeaderText}>SALARY BREAKDOWN</Text>
           </View>
 
           {/* TWO-COLUMN TABLES: EARNINGS & DEDUCTIONS */}
@@ -558,7 +612,7 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
             <View style={styles.tableCol}>
               <View style={styles.tableHeader}>
                 <Text style={styles.tableHeaderLabel}>EARNINGS</Text>
-                <Text style={styles.tableHeaderAmount}>AMOUNT (₹)</Text>
+                <Text style={styles.tableHeaderAmount}>AMOUNT (Rs.)</Text>
               </View>
               {earningsList.map((item, idx) => (
                 <View
@@ -567,7 +621,7 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
                 >
                   <Text style={styles.tableRowLabel}>{item.label}</Text>
                   <Text style={styles.tableRowAmount}>
-                    {formatCurrency(Number(item.amount)).replace('₹', '')}
+                    {formatAmount(item.amount)}
                   </Text>
                 </View>
               ))}
@@ -575,7 +629,7 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
               <View style={styles.totalRow}>
                 <Text style={styles.totalRowLabel}>Gross Earnings</Text>
                 <Text style={styles.totalRowAmount}>
-                  {formatCurrency(salarySlip.gross_earnings)}
+                  Rs. {formatAmount(salarySlip.gross_earnings)}
                 </Text>
               </View>
             </View>
@@ -584,7 +638,7 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
             <View style={styles.tableCol}>
               <View style={styles.tableHeader}>
                 <Text style={styles.tableHeaderLabel}>DEDUCTIONS</Text>
-                <Text style={styles.tableHeaderAmount}>AMOUNT (₹)</Text>
+                <Text style={styles.tableHeaderAmount}>AMOUNT (Rs.)</Text>
               </View>
               {deductionsList.map((item, idx) => (
                 <View
@@ -593,7 +647,7 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
                 >
                   <Text style={styles.tableRowLabel}>{item.label}</Text>
                   <Text style={styles.tableRowAmount}>
-                    {formatCurrency(Number(item.amount)).replace('₹', '')}
+                    {formatAmount(item.amount)}
                   </Text>
                 </View>
               ))}
@@ -601,18 +655,18 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
               <View style={styles.totalRow}>
                 <Text style={styles.totalRowLabel}>Total Deductions</Text>
                 <Text style={styles.totalRowAmount}>
-                  {formatCurrency(salarySlip.total_deductions)}
+                  Rs. {formatAmount(salarySlip.total_deductions)}
                 </Text>
               </View>
             </View>
           </View>
 
-          {/* NET SALARY CALLOUT BANNER */}
+          {/* 5. NET SALARY SUMMARY BOX */}
           <View style={styles.netSalaryBox}>
             <View style={styles.netSalaryTop}>
               <Text style={styles.netSalaryLabel}>NET TAKE-HOME SALARY:</Text>
               <Text style={styles.netSalaryValue}>
-                {formatCurrency(salarySlip.net_salary)}
+                Rs. {formatAmount(salarySlip.net_salary)}
               </Text>
             </View>
             <View style={styles.wordsRow}>
@@ -621,33 +675,40 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
             </View>
           </View>
 
-          {/* OPTIONAL NOTES */}
-          {salarySlip.notes ? (
-            <View style={styles.notesSection}>
-              <Text style={styles.notesLabel}>Notes / Remarks:</Text>
-              <Text style={styles.notesText}>{salarySlip.notes}</Text>
-            </View>
-          ) : null}
+          {/* FLEXIBLE SPACER TO PUSH AUTHORIZATION FOOTER TO THE BOTTOM */}
+          <View style={{ flex: 1, minHeight: 15 }} />
 
-          {/* SIGNATURE SECTION */}
-          <View style={styles.footerSection}>
-            <View style={styles.signBlock}>
-              <View style={styles.signLine} />
-              <Text style={styles.signTitle}>Employee Signature</Text>
-              <Text style={styles.signSubtitle}>Date: _______________</Text>
+          {/* 6. SALARY AUTHORIZATION COMPACT FOOTER SECTION */}
+          <View style={styles.authFooterSection}>
+           
+
+            <View style={styles.authRow}>
+              {/* Employee Signature Column */}
+              <View style={styles.authCol}>
+                {/* <Text style={styles.signHeader}>Employee Signature</Text>
+                <View style={styles.signSpace} />
+                <View style={styles.signLine} />
+                <Text style={styles.signTitle}>Employee Signature</Text>
+                <Text style={styles.signSubtitle}>(Signature & Date)</Text> */}
+              </View>
+
+              {/* Company Authorization Column */}
+              <View style={styles.authCol}>
+                <Text style={styles.signHeader}>For {company.name}</Text>
+                <View style={styles.stampSpace} />
+                <View style={styles.signLine} />
+                <Text style={styles.signTitle}>Authorized Signatory</Text>
+                <Text style={styles.signSubtitle}>(Director / Accounts)</Text>
+              </View>
             </View>
-            <View style={styles.signBlock}>
-              <View style={styles.signLine} />
-              <Text style={styles.signTitle}>For {company.name}</Text>
-              <Text style={styles.signSubtitle}>Authorized Signatory</Text>
-            </View>
+
+            {/* 7. CONFIDENTIAL FOOTER NOTE DIRECTLY BELOW SIGNATURES */}
+            <Text style={styles.confidentialNotice}>
+            </Text>
           </View>
-
-          <Text style={styles.confidentialNotice}>
-            * This is a computer-generated salary slip and confidential.
-          </Text>
         </View>
       </Page>
     </Document>
   );
 }
+
