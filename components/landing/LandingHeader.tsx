@@ -3,30 +3,34 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { motion, AnimatePresence } from "framer-motion"
 import { Menu, X, Home, History, Layers, Send, ArrowUpRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { useLandingContent } from "@/context/LandingContentContext"
 
 const navItems = [
-  { label: "Home", href: "#home", icon: Home, description: "Overview & Highlights" },
-  { label: "About Us", href: "#about", icon: History, description: "Our 30-Year Legacy" },
-  { label: "Our Textile Fabrics", href: "#categories", icon: Layers, description: "Grey Fabric & Art Silk" },
-  { label: "Contact", href: "#contact", icon: Send, description: "Get in touch with us" },
+  { label: "Home", href: "/", icon: Home, description: "Overview & Highlights" },
+  { label: "About Us", href: "/#about", icon: History, description: "Our 30-Year Legacy" },
+  { label: "Our Textile Fabrics", href: "/#categories", icon: Layers, description: "Grey Fabric & Art Silk" },
+  { label: "Contact", href: "/#contact", icon: Send, description: "Get in touch with us" },
 ]
 
 export function LandingHeader() {
+  const content = useLandingContent()
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
 
   // Prevent background scrolling when mobile menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
     } else {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = ""
     }
     return () => {
-      document.body.style.overflow = "unset"
+      document.body.style.overflow = ""
     }
   }, [isOpen])
 
@@ -54,13 +58,19 @@ export function LandingHeader() {
 
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
     setIsOpen(false)
-    if (href.startsWith("#")) {
-      e.preventDefault()
-      const target = document.querySelector(href)
-      if (target) {
-        target.scrollIntoView({ behavior: "smooth" })
-        window.history.pushState(null, "", href)
+    if (href.startsWith("/#") || href.startsWith("#")) {
+      const hash = href.startsWith("/#") ? href.replace("/", "") : href
+      if (pathname === "/") {
+        e.preventDefault()
+        const target = document.querySelector(hash)
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth" })
+          window.history.pushState(null, "", hash)
+        }
       }
+    } else if (href === "/" && pathname === "/") {
+      e.preventDefault()
+      window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
 
@@ -74,8 +84,8 @@ export function LandingHeader() {
       >
         <Link href="/" className="flex items-center gap-2 z-10 shrink-0">
           <Image
-            src="/logo-1.png"
-            alt="LK Textiles Logo"
+            src={content?.brand?.logoUrl || "/logo-1.png"}
+            alt={`${content?.brand?.name || "LK Textiles"} Logo`}
             width={240}
             height={100}
             className="h-9 sm:h-11 md:h-16 w-auto object-contain"
@@ -85,21 +95,29 @@ export function LandingHeader() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 font-medium text-sm text-slate-700">
-          {navItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="hover:text-primary transition-all hover:-translate-y-0.5"
-            >
-              {item.label}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const isActive = item.href === "/" ? pathname === "/" : false
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={(e) => handleLinkClick(e, item.href)}
+                className={cn(
+                  "hover:text-primary transition-all hover:-translate-y-0.5",
+                  isActive && "text-primary font-bold"
+                )}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
         </nav>
 
         {/* Action Buttons & Mobile Hamburger */}
         <div className="flex items-center gap-2 sm:gap-4 z-10">
           <Link
-            href="#contact"
+            href="/#contact"
+            onClick={(e) => handleLinkClick(e, "/#contact")}
             className={cn(
               buttonVariants(),
               "hidden sm:inline-flex rounded-full px-5 sm:px-6 bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5 text-sm"
@@ -206,8 +224,8 @@ export function LandingHeader() {
 
                 {/* Inquire Button */}
                 <Link
-                  href="#contact"
-                  onClick={(e) => handleLinkClick(e, "#contact")}
+                  href="/#contact"
+                  onClick={(e) => handleLinkClick(e, "/#contact")}
                   className={cn(
                     buttonVariants(),
                     "w-full rounded-2xl py-3.5 bg-slate-900 text-white hover:bg-slate-800 shadow-md font-medium text-center justify-center transition-all duration-200 active:scale-[0.98]"

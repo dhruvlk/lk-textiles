@@ -1,12 +1,13 @@
 "use client"
-/* eslint-disable */
+/* eslint-disable react-hooks/set-state-in-effect */
 
 import { useEffect, useMemo, useRef, useState } from "react"
 import { useCompany } from "@/components/company-provider"
 import { useAuth } from "@/hooks/useAuth"
 import { usePermissions } from "@/context/PermissionContext"
 import { PermissionGate } from "@/components/auth/PermissionGate"
-import { Badge } from "@/components/ui/badge"
+import { StatusBadge } from "@/components/common/StatusBadge"
+import { SearchInput } from "@/components/common/SearchInput"
 import { Card, CardContent } from "@/components/ui/card"
 import { EmptyState } from "@/components/common/EmptyState"
 import { PlusCircle, Eye, Printer, Edit, Copy, Trash2, Building2 } from "lucide-react"
@@ -74,24 +75,32 @@ export default function ChallansClient() {
     [sortKey]
   )
 
-  const filters: ChallanFilters = {
-    search,
-    status: statusFilter,
-    paymentStatus: paymentStatusFilter,
-    customerId: customerFilter,
-    broker: brokerFilter,
-    dateFrom: dateFrom || undefined,
-    dateTo: dateTo || undefined,
-    sort,
-  }
+  const filters: ChallanFilters = useMemo(
+    () => ({
+      search,
+      status: statusFilter,
+      paymentStatus: paymentStatusFilter,
+      customerId: customerFilter,
+      broker: brokerFilter,
+      dateFrom: dateFrom || undefined,
+      dateTo: dateTo || undefined,
+      sort,
+    }),
+    [search, statusFilter, paymentStatusFilter, customerFilter, brokerFilter, dateFrom, dateTo, sort]
+  )
 
   const companyId = selectedCompany?.id
   const customersLoadedRef = useRef(false)
+  const prevCompanyIdRef = useRef(companyId)
+  const isInitialLoadRef = useRef(true)
 
   const loadChallans = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
-    const silent = opts?.silent ?? challans.length > 0
-    if (!silent) setIsLoading(true)
+    const isCompanyChanged = prevCompanyIdRef.current !== companyId
+    const silent = !isCompanyChanged && (opts?.silent ?? !isInitialLoadRef.current)
+    if (!silent) {
+      queueMicrotask(() => setIsLoading(true))
+    }
     try {
       const resultPromise = getChallansPaginated(companyId, filters, { page, pageSize })
       const customersPromise = customersLoadedRef.current
@@ -101,6 +110,7 @@ export default function ChallansClient() {
       const [result, customerList] = await Promise.all([resultPromise, customersPromise])
       setChallans(result.data)
       setTotal(result.total)
+      isInitialLoadRef.current = false
       if (customerList) {
         setCustomers(customerList.map((c) => ({ id: c.id, name: c.name })))
         customersLoadedRef.current = true
@@ -113,24 +123,19 @@ export default function ChallansClient() {
   }
 
   useEffect(() => {
-    customersLoadedRef.current = false
+    if (prevCompanyIdRef.current !== companyId) {
+      prevCompanyIdRef.current = companyId
+      customersLoadedRef.current = false
+      isInitialLoadRef.current = true
+      setChallans([])
+      setIsLoading(true)
+    }
   }, [companyId])
 
   useEffect(() => {
-    void loadChallans({ silent: challans.length > 0 })
-  }, [
-    companyId,
-    search,
-    statusFilter,
-    paymentStatusFilter,
-    customerFilter,
-    brokerFilter,
-    dateFrom,
-    dateTo,
-    sortKey,
-    page,
-    pageSize,
-  ])
+    void loadChallans()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [companyId, filters, page, pageSize])
 
   const confirmDelete = async () => {
     if (!challanToDelete) return
@@ -156,16 +161,6 @@ export default function ChallansClient() {
     }
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Draft": return "bg-muted text-muted-foreground"
-      case "Pending": return "bg-amber-500/10 text-amber-700"
-      case "Delivered": return "bg-emerald-500/10 text-emerald-700"
-      case "Returned": return "bg-primary/10 text-primary"
-      case "Cancelled": return "bg-destructive/10 text-destructive"
-      default: return "bg-muted text-muted-foreground"
-    }
-  }
 
   if (!selectedCompany) {
     return (
@@ -218,9 +213,7 @@ export default function ChallansClient() {
     },
     {
       header: "Status",
-      cell: (c: Challan) => (
-        <Badge variant="secondary" className={getStatusColor(c.status)}>{c.status}</Badge>
-      ),
+      cell: (c: Challan) => <StatusBadge status={c.status} />,
     },
     {
       header: "Actions",
@@ -276,12 +269,12 @@ export default function ChallansClient() {
             <Label htmlFor="challan-filter-search" className="text-xs font-medium text-muted-foreground">
               Search Invoice No.
             </Label>
-            <Input
+            <SearchInput
               id="challan-filter-search"
               placeholder="Search invoice, customer, quality..."
               value={search}
-              onChange={(e) => {
-                setSearch(e.target.value)
+              onChange={(val) => {
+                setSearch(val)
                 resetPage()
               }}
             />

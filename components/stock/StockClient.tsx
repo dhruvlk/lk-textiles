@@ -1,7 +1,6 @@
 "use client"
-/* eslint-disable react-hooks/set-state-in-effect */
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useRef } from "react"
 import { motion } from "framer-motion"
 import { Boxes, PackageMinus, PackageOpen, Pencil, Trash2, TriangleAlert, Warehouse } from "lucide-react"
 import { useCompany } from "@/components/company-provider"
@@ -73,9 +72,12 @@ export default function StockClient() {
     [sortKey]
   )
 
+  const prevCompanyIdRef = useRef(companyId)
+
   const load = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
-    const silent = opts?.silent ?? stocks.length > 0
+    const isCompanyChanged = prevCompanyIdRef.current !== companyId
+    const silent = !isCompanyChanged && (opts?.silent ?? stocks.length > 0)
     if (!silent) setIsLoading(true)
     try {
       const [result, stats] = await Promise.all([
@@ -101,7 +103,16 @@ export default function StockClient() {
   }
 
   useEffect(() => {
-    void load({ silent: false })
+    if (prevCompanyIdRef.current !== companyId) {
+      prevCompanyIdRef.current = companyId
+      setStocks([])
+      setSummary(null)
+      setIsLoading(true)
+    }
+  }, [companyId])
+
+  useEffect(() => {
+    void load({ silent: prevCompanyIdRef.current === companyId && stocks.length > 0 })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [companyId, search, status, sortKey, page, pageSize])
 

@@ -83,34 +83,36 @@ export default function CompaniesClient() {
                       </CardDescription>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <PermissionGate module="companies" action="edit">
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          router.push(`/admin/companies/${company.id}/edit`)
-                        }}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </PermissionGate>
-                    {company.user_id === user?.id && (
-                      <Button
-                        variant="ghost"
-                        size="icon-sm"
-                        className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setCompanyToDelete(company)
-                          setDeleteDialogOpen(true)
-                        }}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
+                  {selectedCompany?.id === company.id && (
+                    <div className="flex items-center gap-1">
+                      <PermissionGate module="companies" action="edit">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/admin/companies/${company.id}/edit`)
+                          }}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </PermissionGate>
+                      {company.user_id === user?.id && (
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setCompanyToDelete(company)
+                            setDeleteDialogOpen(true)
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm text-muted-foreground">
                   <p className="line-clamp-1">{company.email || "No email"}</p>

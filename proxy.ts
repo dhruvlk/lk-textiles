@@ -1,6 +1,7 @@
 import { type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/session';
 
+// Proxy handler for Next.js
 export async function proxy(request: NextRequest) {
   return updateSession(request);
 }

@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { Controller, useForm, useWatch } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { toast } from "sonner"
@@ -14,6 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { cn } from "@/lib/utils"
+import { useLandingContent } from "@/context/LandingContentContext"
 
 const triggerFireworks = () => {
   const duration = 3 * 1000;
@@ -44,11 +46,14 @@ const triggerFireworks = () => {
 }
 
 export function ContactSection() {
+  const { contact, heritage } = useLandingContent()
+  const facilityImage = heritage?.image1Url || "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055042186-yw4k1b.jpg"
   const {
     register,
     handleSubmit,
     control,
     reset,
+    setValue,
     formState: { errors, isSubmitting, isValid }
   } = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -60,6 +65,87 @@ export function ContactSection() {
 
   const messageValue = useWatch({ name: "message", control }) || ""
   const wordCount = messageValue.trim() ? messageValue.trim().split(/\s+/).filter(Boolean).length : 0
+
+  const truncateTo100Words = (raw: string): string => {
+    let count = 0;
+    let cutIndex = raw.length;
+    const regex = /\S+/g;
+    while (regex.exec(raw) !== null) {
+      count++;
+      if (count === 100) {
+        cutIndex = regex.lastIndex;
+        break;
+      }
+    }
+    return raw.slice(0, cutIndex);
+  };
+
+  const handleMessageChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const raw = e.target.value;
+    const words = raw.trim().split(/\s+/).filter(Boolean);
+
+    if (words.length > 100) {
+      const truncated = truncateTo100Words(raw);
+      e.target.value = truncated;
+      setValue("message", truncated, { shouldValidate: true, shouldDirty: true });
+      return;
+    }
+
+    setValue("message", raw, { shouldValidate: true, shouldDirty: true });
+  };
+
+  const handleMessageKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+    const allowedKeys = [
+      "Backspace", "Delete", "Tab", "Escape",
+      "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+      "Home", "End", "PageUp", "PageDown"
+    ];
+    if (allowedKeys.includes(e.key)) return;
+
+    const target = e.currentTarget;
+    const hasSelection = (target.selectionEnd ?? 0) > (target.selectionStart ?? 0);
+    if (hasSelection) return;
+
+    // Prevent starting a 101st word
+    const text = target.value;
+    const words = text.trim().split(/\s+/).filter(Boolean);
+    if (words.length >= 100 && (e.key === " " || e.key === "Enter")) {
+      const cursorAtEnd = (target.selectionStart ?? 0) >= text.trimEnd().length;
+      if (cursorAtEnd) {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const handleMessagePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData("text");
+    if (!pastedText) return;
+
+    const target = e.currentTarget;
+    const start = target.selectionStart ?? 0;
+    const end = target.selectionEnd ?? 0;
+    const before = target.value.slice(0, start);
+    const after = target.value.slice(end);
+    const combined = before + pastedText + after;
+    const words = combined.trim().split(/\s+/).filter(Boolean);
+
+    if (words.length > 100) {
+      e.preventDefault();
+      const truncated = truncateTo100Words(combined);
+      target.value = truncated;
+      setValue("message", truncated, { shouldValidate: true, shouldDirty: true });
+    }
+  };
+
+  // Auto-truncate existing or pre-filled value if it ever exceeds 100 words
+  useEffect(() => {
+    if (wordCount > 100) {
+      const truncated = truncateTo100Words(messageValue);
+      setValue("message", truncated, { shouldValidate: true });
+    }
+  }, [messageValue, wordCount, setValue]);
 
   const onSubmit = async (data: ContactFormValues) => {
     try {
@@ -83,25 +169,30 @@ export function ContactSection() {
       <div className="absolute inset-0 grid lg:grid-cols-2">
         {/* Left Image Pane */}
         <div className="hidden lg:block relative h-full w-full">
-          <Image
-            src="https://images.unsplash.com/photo-1542272201-b1ca555f8505?auto=format&fit=crop&q=80"
-            alt="Textile manufacturing facility by LK Textiles"
-            fill
-            className="object-cover opacity-60"
-          />
+          {facilityImage ? (
+            <Image
+              src={facilityImage}
+              alt="Textile manufacturing facility by LK Textiles"
+              fill
+              sizes="(max-width: 1024px) 100vw, 50vw"
+              className="object-cover opacity-50"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-gradient-to-br from-slate-950 to-slate-900" />
+          )}
           <div className="absolute inset-0 bg-gradient-to-r from-slate-900/40 to-slate-900" />
-          <div className="absolute bottom-16 left-16 max-w-md">
-            <h3 className="text-4xl font-bold text-white mb-4">Contact LK Textiles.</h3>
-            <p className="text-slate-300 text-lg">Partner with your trusted textile fabric supplier in Surat to elevate your product line with world-class textiles.</p>
-          </div>
         </div>
         {/* Right Form Pane Background */}
         <div className="bg-slate-900 h-full w-full" />
       </div>
 
       <div className="container relative px-6 mx-auto z-10 py-24">
-        <div className="grid lg:grid-cols-2 gap-16">
-          <div className="hidden lg:block"></div> {/* Spacer for left side */}
+        <div className="grid lg:grid-cols-2 gap-16 items-center">
+          {/* Left Content */}
+          <div className="max-w-lg">
+            <h3 className="text-4xl font-bold text-white mb-4">{contact.title}</h3>
+            <p className="text-slate-300 text-lg leading-relaxed">{contact.subtitle}</p>
+          </div>
 
           {/* Form Container */}
           <div className="bg-white rounded-3xl shadow-2xl p-8 md:p-12 relative overflow-hidden">
@@ -141,20 +232,29 @@ export function ContactSection() {
                   <Controller
                     control={control}
                     name="phone"
-                    render={({ field, fieldState }) => (
-                      <PhoneInput
-                        id="phone"
-                        variant="underline"
-                        value={field.value}
-                        onChange={field.onChange}
-                        onBlur={field.onBlur}
-                        error={fieldState.error?.message}
-                        showError={false}
-                        disabled={isSubmitting}
-                      />
-                    )}
+                    render={({ field, fieldState, formState }) => {
+                      const showPhoneError = Boolean(
+                        (fieldState.isTouched || formState.isSubmitted) && fieldState.error?.message
+                      )
+                      return (
+                        <>
+                          <PhoneInput
+                            id="phone"
+                            variant="underline"
+                            value={field.value}
+                            onChange={field.onChange}
+                            onBlur={field.onBlur}
+                            error={showPhoneError ? fieldState.error?.message : undefined}
+                            showError={false}
+                            disabled={isSubmitting}
+                          />
+                          {showPhoneError && (
+                            <p className="text-red-500 text-xs mt-1">{fieldState.error?.message}</p>
+                          )}
+                        </>
+                      )
+                    }}
                   />
-                  {errors.phone && <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>}
                 </div>
               </div>
 
@@ -188,12 +288,15 @@ export function ContactSection() {
                   placeholder="Tell us about your fabric needs..."
                   className="border-2 border-slate-200 rounded-xl p-4 focus-visible:ring-0 focus-visible:border-primary bg-slate-50 text-base text-slate-900 placeholder:text-slate-300 resize-none min-h-[120px] transition-colors"
                   {...register("message")}
+                  onChange={handleMessageChange}
+                  onKeyDown={handleMessageKeyDown}
+                  onPaste={handleMessagePaste}
                   disabled={isSubmitting}
                 />
                 <div className="flex justify-between items-center mt-2">
                   <div>{errors.message && <p className="text-red-500 text-xs">{errors.message.message}</p>}</div>
-                  <span className={cn("text-xs font-medium", wordCount >= 100 ? "text-red-500" : "text-slate-500")}>
-                    {wordCount} / 100 words
+                  <span className={cn("text-xs font-medium", wordCount >= 100 ? "text-amber-600 font-semibold" : "text-slate-500")}>
+                    {wordCount} / 100 words {wordCount >= 100 && "(Max reached)"}
                   </span>
                 </div>
               </div>

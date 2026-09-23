@@ -39,14 +39,25 @@ export default function LoginPage() {
 
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true)
+
+    // Strictly block Landing Page Admin credentials from Challan System login
+    const normalizedEmail = values.email.trim().toLowerCase()
+    if (normalizedEmail === "lktextiles6165@gmail.com") {
+      setIsLoading(false)
+      toast.error("This account cannot log in through the Challan System. Please use 'Open Landing Page Admin' below.")
+      return
+    }
+
+    // Challan Supabase login only
     const result = await login(values.email, values.password)
-    if (result.error) {
-      toast.error(result.error)
+    if (!result.error) {
+      toast.success("Welcome back!")
+      router.push("/admin")
       setIsLoading(false)
       return
     }
-    toast.success("Welcome back!")
-    router.push("/admin")
+
+    toast.error(result.error || "Invalid login credentials")
     setIsLoading(false)
   }
 
@@ -57,12 +68,20 @@ export default function LoginPage() {
       title="Welcome back"
       description="Sign in to your company workspace"
       footer={
-        <>
-          Don&apos;t have an account?{" "}
-          <Link href="/admin/register" className="font-medium text-primary hover:underline">
-            Register your company
-          </Link>
-        </>
+        <div className="space-y-3">
+          <div>
+            Don&apos;t have an account?{" "}
+            <Link href="/admin/register" className="font-medium text-primary hover:underline">
+              Register your company
+            </Link>
+          </div>
+          <div className="pt-2 text-xs text-muted-foreground border-t">
+            Managing Landing Page Content?{" "}
+            <Link href="/admin" className="font-semibold text-slate-800 hover:underline">
+              Open Landing Page Admin &rarr;
+            </Link>
+          </div>
+        </div>
       }
     >
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
