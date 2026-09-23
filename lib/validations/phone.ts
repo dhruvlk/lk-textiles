@@ -6,9 +6,26 @@ import { z } from "zod";
  */
 export function cleanPhoneDigits(val?: string | null): string {
   if (!val) return "";
-  let digits = String(val).replace(/\D/g, "");
+  const str = String(val).trim();
 
-  // If number starts with 91 and is longer than 10 digits (e.g. 919876543210 -> 9876543210)
+  // If string explicitly starts with '+91' or '+ 91'
+  if (str.startsWith("+91") || str.startsWith("+ 91")) {
+    const afterCode = str.replace(/^\+\s*91\s*/, "");
+    return afterCode.replace(/\D/g, "").slice(0, 10);
+  }
+
+  // If string starts with other '+'
+  if (str.startsWith("+")) {
+    const digitsOnly = str.replace(/\D/g, "");
+    if (digitsOnly.startsWith("91") && digitsOnly.length > 10) {
+      return digitsOnly.slice(2, 12);
+    }
+    return digitsOnly.slice(0, 10);
+  }
+
+  let digits = str.replace(/\D/g, "");
+
+  // If number starts with 91 and has more than 10 digits (e.g. 919876543210 -> 9876543210)
   if (digits.startsWith("91") && digits.length > 10) {
     digits = digits.slice(2);
   } else if (digits.startsWith("0") && digits.length === 11) {

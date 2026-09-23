@@ -6,8 +6,11 @@ import { motion, useScroll, useTransform } from "framer-motion"
 import { ChevronRight, Globe2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { useLandingContent } from "@/context/LandingContentContext"
 
 export function HeroSection() {
+  const content = useLandingContent()
+  const { hero } = content
   const { scrollYProgress } = useScroll()
   const yHero = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
 
@@ -32,7 +35,7 @@ export function HeroSection() {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              Setting Global Standards Since 1995
+              {hero.badge}
             </motion.div>
 
             <motion.h1
@@ -41,8 +44,10 @@ export function HeroSection() {
               transition={{ duration: 1, delay: 0.4, ease: [0.16, 1, 0.3, 1] }}
               className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight text-slate-900 leading-[1.1]"
             >
-              Surat&apos;s Premier <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">Grey Fabric & Art Silk Fabric Manufacturer.</span>
+              {hero.titlePrefix} <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">
+                {hero.titleGradient}
+              </span>
             </motion.h1>
 
             <motion.p
@@ -51,7 +56,7 @@ export function HeroSection() {
               transition={{ duration: 1, delay: 0.6 }}
               className="text-lg md:text-xl text-slate-600 max-w-lg leading-relaxed"
             >
-              LK Textiles is a trusted textile manufacturer and supplier of quality grey cloth and art silk fabrics, marrying age-old craftsmanship with state-of-the-art innovation for global brands.
+              {hero.description}
             </motion.p>
 
             <motion.div
@@ -60,20 +65,30 @@ export function HeroSection() {
               transition={{ duration: 0.8, delay: 0.8 }}
               className="flex flex-col sm:flex-row gap-4 pt-4"
             >
-              <Link href="#categories" className={cn(buttonVariants({ size: "lg" }), "rounded-full h-14 px-8 text-base shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all group")}>
-                Explore Capabilities
+              <Link href={hero.primaryCtaLink} className={cn(buttonVariants({ size: "lg" }), "rounded-full h-14 px-8 text-base shadow-xl hover:shadow-primary/20 hover:-translate-y-1 transition-all group")}>
+                {hero.primaryCtaText}
                 <ChevronRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Link>
               <div className="flex items-center gap-4 pl-4">
-                <div className="flex -space-x-3">
-                  {[1, 2, 3].map(i => (
-                    <div key={i} className="h-10 w-10 rounded-full border-2 border-white bg-slate-200 overflow-hidden relative shadow-sm">
-                      <Image src={`https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=100&h=100&sat=-100&seed=${i}`} fill alt="Client" className="object-cover" />
+                <div className="flex -space-x-2.5">
+                  {[
+                    { initials: "LK", bg: "bg-slate-900 text-white" },
+                    { initials: "SR", bg: "bg-slate-800 text-slate-100" },
+                    { initials: "TX", bg: "bg-slate-700 text-slate-200" },
+                  ].map((badge, idx) => (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "h-10 w-10 rounded-full border-2 border-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider",
+                        badge.bg
+                      )}
+                    >
+                      {badge.initials}
                     </div>
                   ))}
                 </div>
                 <div className="text-sm font-medium text-slate-600 leading-tight">
-                  Trusted by <br /><span className="text-slate-900 font-bold">500+ Brands</span>
+                  Trusted by <br /><span className="text-slate-900 font-bold">{hero.trustedCount}</span>
                 </div>
               </div>
             </motion.div>
@@ -83,16 +98,24 @@ export function HeroSection() {
           <div className="lg:col-span-6 relative h-[600px] hidden lg:block">
             <motion.div
               style={{ y: yHero }}
-              className="absolute right-0 top-10 w-[80%] h-[90%] rounded-[2rem] overflow-hidden shadow-2xl"
+              className="absolute right-0 top-10 w-[80%] h-[90%] rounded-[2rem] overflow-hidden shadow-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 flex items-center justify-center"
             >
-              <Image
-                src="https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&q=80"
-                alt="Premium Grey Fabric and Art Silk Fabric manufactured by LK Textiles"
-                fill
-                className="object-cover scale-110"
-                priority
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+              {hero.imageUrl ? (
+                <Image
+                  src={hero.imageUrl}
+                  alt="Premium Grey Fabric and Art Silk Fabric manufactured by LK Textiles"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover scale-110"
+                  priority
+                />
+              ) : (
+                <div className="text-center p-8 text-slate-400">
+                  <div className="text-xs uppercase tracking-widest font-semibold text-slate-400">LK Textiles</div>
+                  <div className="text-base font-bold text-white mt-1">Direct Mill Manufacturer</div>
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none" />
             </motion.div>
 
             {/* Floating detail card */}
@@ -107,8 +130,8 @@ export function HeroSection() {
                   <Globe2 className="h-6 w-6" />
                 </div>
                 <div>
-                  <div className="text-xs text-slate-500 uppercase font-semibold tracking-wider">Global Export</div>
-                  <div className="text-lg font-bold text-slate-900">30+ Countries</div>
+                  <div className="text-xs text-slate-500 uppercase font-semibold tracking-wider">{hero.exportBadgeTitle}</div>
+                  <div className="text-lg font-bold text-slate-900">{hero.exportBadgeValue}</div>
                 </div>
               </div>
               <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">

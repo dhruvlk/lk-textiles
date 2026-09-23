@@ -1,8 +1,7 @@
 "use client"
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
+import { SearchInput } from "@/components/common/SearchInput"
 import { TableSkeleton } from "@/components/ui/skeleton"
 import { cn } from "@/lib/utils"
 
@@ -52,15 +51,13 @@ export function DataTable<T>({
   return (
     <div className="space-y-4">
       {onSearchChange && !hideSearch && (
-        <div className="relative w-full max-w-md">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder={searchPlaceholder}
-            className="min-h-11 pl-9"
-            value={searchValue || ""}
-            onChange={(e) => onSearchChange(e.target.value)}
-          />
-        </div>
+        <SearchInput
+          placeholder={searchPlaceholder}
+          className="min-h-11"
+          containerClassName="w-full max-w-md"
+          value={searchValue || ""}
+          onChange={onSearchChange}
+        />
       )}
 
       {mobileCards && (

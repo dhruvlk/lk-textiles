@@ -1,11 +1,11 @@
-import DashboardClient from "@/components/dashboard/DashboardClient"
+import { AdminRootView } from "@/components/landing-admin/AdminRootView"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Dashboard | Textile Challan Management",
-  description: "Dashboard overview",
+  title: "Admin Portal | LK Textiles",
+  description: "Administrative access and management portal",
 }
 
 export default function DashboardPage() {
-  return <DashboardClient />
+  return <AdminRootView />
 }
