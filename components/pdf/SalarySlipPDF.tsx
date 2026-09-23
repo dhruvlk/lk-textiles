@@ -1,7 +1,9 @@
-import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon, Circle } from '@react-pdf/renderer';
+import React from 'react';
+import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Polygon } from '@react-pdf/renderer';
 import { Company, SalarySlip } from '@/types';
 import { numberToWords } from '@/lib/number-to-words';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
+import { generateSalaryRevisionNotes } from '@/lib/salary-revision-notes';
 
 // Register Gujarati font for traditional header
 const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && Boolean(process.cwd);
@@ -20,31 +22,81 @@ Font.register({
   ],
 });
 
-
-const PRIMARY_COLOR = '#0C1E40'; // Navy Dark Blue matching ChallanPDF
-const SECONDARY_COLOR = '#E6D5B8'; // Beige accent border matching ChallanPDF
-const ACCENT_RED = '#D3362E'; // Red accent matching ChallanPDF
-const TEXT_COLOR = '#000000';
-
-const PinIcon = () => (
-  <Svg viewBox="0 0 24 24" width="10" height="10">
-    <Path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill={TEXT_COLOR} />
-  </Svg>
-);
+export const PRIMARY_COLOR = '#0C1E40'; // Deep Navy Blue
+export const SECONDARY_COLOR = '#C89B53'; // Warm Gold
+export const BEIGE_BG = '#EDE4D3'; // Table Header Beige
+export const CREAM_BG = '#FAF7F2'; // Net Salary Cream
+export const LIGHT_BLUE_GRAY = '#EDF1F7'; // Section Header Bar
+export const BORDER_COLOR = '#DCE2EA'; // Subtle Gray-Blue Border
+export const TEXT_DARK = '#111827';
+export const TEXT_MUTED = '#4B5563';
 
 const PhoneIcon = () => (
   <Svg viewBox="0 0 24 24" width="10" height="10">
-    <Path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" fill={TEXT_COLOR} />
+    <Path
+      d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+      fill={PRIMARY_COLOR}
+    />
   </Svg>
 );
 
-const FancyDivider = () => (
-  <Svg viewBox="0 0 300 10" width="300" height="9">
-    <Line x1="0" y1="4.5" x2="134" y2="4.5" stroke={SECONDARY_COLOR} strokeWidth="1" />
-    <Polygon points="138,4.5 142,1.5 146,4.5 142,7.5" fill={SECONDARY_COLOR} />
-    <Circle cx="150" cy="4.5" r="2.2" fill={SECONDARY_COLOR} />
-    <Polygon points="154,4.5 158,1.5 162,4.5 158,7.5" fill={SECONDARY_COLOR} />
-    <Line x1="166" y1="4.5" x2="300" y2="4.5" stroke={SECONDARY_COLOR} strokeWidth="1" />
+const PinIcon = () => (
+  <Svg viewBox="0 0 24 24" width="9" height="9">
+    <Path
+      d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5-2.5 2.5-2.5 2.5-2.5 2.5 1.12 2.5 2.5 2.5-1.12 2.5-2.5 2.5z"
+      fill={PRIMARY_COLOR}
+    />
+  </Svg>
+);
+
+const FlankedDiamonds = () => (
+  <View style={styles.diamondsRow}>
+    <View style={styles.diamondLine} />
+    <Svg viewBox="0 0 40 8" width="34" height="7" style={styles.diamondSvg}>
+      <Polygon points="8,4 12,1 16,4 12,7" fill="#C89B53" />
+      <Polygon points="18,4 22,1 26,4 22,7" fill="#C89B53" />
+      <Polygon points="28,4 32,1 36,4 32,7" fill="#C89B53" />
+    </Svg>
+    <View style={styles.diamondLine} />
+  </View>
+);
+
+const NoteIcon = () => (
+  <Svg viewBox="0 0 24 24" width="13" height="13">
+    <Path
+      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+      fill="none"
+      stroke={PRIMARY_COLOR}
+      strokeWidth="1.5"
+    />
+    <Path
+      d="M14 2v6h6M16 13H8M16 17H8M10 9H8"
+      stroke={PRIMARY_COLOR}
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+  </Svg>
+);
+
+const TopAccentBar = () => (
+  <View style={styles.topAccent}>
+    <View style={styles.topAccentNavy} />
+    <View style={styles.topAccentGold} />
+  </View>
+);
+
+const BottomWave = () => (
+  <Svg viewBox="0 0 595 55" width="595" height="55" style={styles.bottomWaveSvg}>
+    <Path
+      d="M0,55 L595,55 L595,22 C485,48 380,16 280,36 C180,52 90,22 0,38 Z"
+      fill="#F5EDE1"
+      opacity="0.65"
+    />
+    <Path
+      d="M0,55 L595,55 L595,32 C500,50 400,26 300,42 C200,54 100,30 0,44 Z"
+      fill="#EFE4D4"
+      opacity="0.85"
+    />
   </Svg>
 );
 
@@ -54,385 +106,595 @@ const styles = StyleSheet.create({
     fontSize: 9,
     backgroundColor: '#FFFFFF',
     padding: 0,
-    color: TEXT_COLOR,
+    color: TEXT_DARK,
+    position: 'relative',
   },
   pageBorder: {
     flex: 1,
     borderWidth: 1,
-    borderColor: SECONDARY_COLOR,
+    borderColor: '#E2E6ED',
     margin: 10,
     display: 'flex',
     flexDirection: 'column',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  // HEADER (~25-30mm presence)
-  header: {
-    paddingHorizontal: 16,
-    paddingTop: 11,
-    paddingBottom: 3,
-  },
-  headerTop: {
+  topAccent: {
+    position: 'absolute',
+    top: 0,
+    left: 14,
+    width: 22,
+    height: 72,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    zIndex: 10,
+  },
+  topAccentNavy: {
+    width: 15,
+    height: 72,
+    backgroundColor: PRIMARY_COLOR,
+  },
+  topAccentGold: {
+    width: 4,
+    height: 72,
+    backgroundColor: SECONDARY_COLOR,
+    marginLeft: 2.5,
+  },
+
+  // COMPANY HEADER
+  header: {
+    paddingTop: 10,
+    paddingHorizontal: 20,
     alignItems: 'center',
-    minHeight: 14,
+    position: 'relative',
   },
-  gstin: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    color: '#000000',
-    width: '33%',
-  },
-  religiousTextWrapper: {
-    width: '33%',
-    alignItems: 'center',
-  },
-  religiousText: {
-    color: ACCENT_RED,
-    fontSize: 11.5,
-    fontFamily: 'Gujarati',
-    fontWeight: 'bold',
-  },
-  phoneWrapper: {
-    width: '33%',
+  phoneRow: {
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'flex-end',
     alignItems: 'center',
+    marginBottom: 3,
   },
   phoneText: {
     fontSize: 9,
     fontFamily: 'Helvetica-Bold',
-    marginLeft: 4,
+    color: PRIMARY_COLOR,
+    marginLeft: 4.5,
   },
   companyName: {
-    fontSize: 37,
+    fontSize: 31,
     fontFamily: 'Times-Bold',
     color: PRIMARY_COLOR,
     textAlign: 'center',
-    marginTop: 3,
     letterSpacing: 0.5,
   },
   companyTagline: {
-    fontSize: 12.5,
+    fontSize: 10.5,
     fontFamily: 'Helvetica',
     color: PRIMARY_COLOR,
     textAlign: 'center',
     marginTop: 2,
   },
-  headerDividerWrapper: {
-    alignItems: 'center',
-    marginTop: 5,
-    marginBottom: 5,
-  },
-  addressBar: {
-    backgroundColor: SECONDARY_COLOR,
+  diamondsRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 5.5,
-    paddingHorizontal: 12,
+    justifyContent: 'center',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  diamondLine: {
+    width: 55,
+    height: 0.75,
+    backgroundColor: '#D6C19D',
+  },
+  diamondSvg: {
+    marginHorizontal: 4,
+  },
+  addressRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 1,
+    marginBottom: 4,
   },
   addressText: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
-    color: '#333333',
-    marginLeft: 6,
-  },
-
-  // TITLE BAR
-  titleBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    marginTop: 10,
-    marginBottom: 6,
-  },
-  titleBadge: {
-    backgroundColor: PRIMARY_COLOR,
-    paddingVertical: 5,
-    paddingHorizontal: 18,
-    borderRadius: 3,
-  },
-  titleBadgeText: {
-    color: '#FFFFFF',
-    fontSize: 11.5,
-    fontFamily: 'Helvetica-Bold',
-    letterSpacing: 1.8,
-  },
-  payPeriodWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  payPeriodLabel: {
     fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
-    color: '#555555',
-  },
-  payPeriodValue: {
-    fontSize: 11.5,
-    fontFamily: 'Helvetica-Bold',
-    color: PRIMARY_COLOR,
+    fontFamily: 'Helvetica',
+    color: '#374151',
     marginLeft: 4,
   },
 
-  // EMPLOYEE INFORMATION
-  infoSection: {
-    paddingHorizontal: 16,
-    marginTop: 4,
-    marginBottom: 6,
+  // DOCUMENT TITLE BAR
+  docHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingHorizontal: 20,
+    marginTop: 8,
+    marginBottom: 8,
   },
-  infoCard: {
-    width: '100%',
+  docTitle: {
+    fontSize: 24,
+    fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+  },
+  docPeriodCol: {
+    alignItems: 'flex-end',
+  },
+  docPeriodMonth: {
+    fontSize: 18,
+    fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+  },
+  docPeriodLabel: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    color: '#6B7280',
+    letterSpacing: 1.8,
+    marginTop: 1,
+  },
+
+  // EMPLOYEE DETAILS
+  empSection: {
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  empCard: {
     borderWidth: 1,
-    borderColor: '#C8C8C8',
-    borderRadius: 3,
-    paddingVertical: 9,
-    paddingHorizontal: 14,
+    borderColor: BORDER_COLOR,
+    borderRadius: 3.5,
+    overflow: 'hidden',
     backgroundColor: '#FFFFFF',
   },
-  infoColTitle: {
+  empCardHeader: {
+    backgroundColor: LIGHT_BLUE_GRAY,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_COLOR,
+  },
+  empCardHeaderText: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
-    borderBottomWidth: 1,
-    borderBottomColor: SECONDARY_COLOR,
-    paddingBottom: 4,
-    marginBottom: 7,
     letterSpacing: 0.8,
   },
-  infoGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  empCardBody: {
+    paddingVertical: 7,
+    paddingHorizontal: 14,
   },
-  infoGridCol: {
-    width: '49%',
-  },
-  infoRow: {
+  empRow: {
     flexDirection: 'row',
-    marginBottom: 5,
     alignItems: 'center',
+    marginBottom: 5.5,
   },
-  infoLabel: {
-    width: 100,
+  empLabel: {
+    width: 95,
     fontSize: 9.5,
-    color: '#555555',
     fontFamily: 'Helvetica',
+    color: TEXT_MUTED,
   },
-  infoValue: {
-    flex: 1,
+  empColon: {
+    width: 14,
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#111111',
+    color: TEXT_MUTED,
+  },
+  empValue: {
+    flex: 1,
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+    color: TEXT_DARK,
   },
 
-  // SECTION DIVIDER BARS (SALARY BREAKDOWN & SALARY AUTHORIZATION)
-  sectionHeaderBar: {
-    marginHorizontal: 16,
-    marginTop: 6,
-    marginBottom: 6,
-    borderTopWidth: 1,
-    borderTopColor: '#D8DCE3',
-    borderBottomWidth: 1,
-    borderBottomColor: '#D8DCE3',
-    backgroundColor: '#F7F8FA',
-    paddingVertical: 4,
-    alignItems: 'center',
+  // --------------------------------------------------------------------------
+  // REFERENCE IMAGE 1: SINGLE-MONTH FULL-WIDTH STACKED TABLES
+  // --------------------------------------------------------------------------
+  singleTableWrapper: {
+    paddingHorizontal: 20,
+    marginBottom: 10,
   },
-  sectionHeaderText: {
+  singleTableCard: {
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    borderRadius: 3.5,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 9,
+  },
+  singleTableHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: BEIGE_BG,
+    paddingVertical: 5.5,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8CEBE',
+  },
+  singleTableHeaderLeft: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
-    letterSpacing: 1.5,
+    letterSpacing: 0.6,
+  },
+  singleTableHeaderRight: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'right',
+  },
+  singleTableItemRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F2F5',
+  },
+  singleTableItemRowAlt: {
+    backgroundColor: '#FAFBFC',
+  },
+  singleTableItemLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica',
+    color: '#374151',
+    flex: 1,
+  },
+  singleTableItemAmount: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica',
+    color: TEXT_DARK,
+    width: 100,
+    textAlign: 'right',
+  },
+  singleTableTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB',
+    borderTopWidth: 1,
+    borderTopColor: BORDER_COLOR,
+  },
+  singleTableTotalLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+  },
+  singleTableTotalAmount: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    width: 100,
+    textAlign: 'right',
   },
 
-  // TWO-COLUMN TABLES: EARNINGS & DEDUCTIONS
-  tablesContainer: {
+  // --------------------------------------------------------------------------
+  // REFERENCE IMAGE 2: MULTI-MONTH SIDE-BY-SIDE TABLES
+  // --------------------------------------------------------------------------
+  sideBySideContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 12,
+    marginBottom: 8,
   },
-  tableCol: {
+  sideCol: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#9E9E9E',
-    borderRadius: 3,
+    borderColor: BORDER_COLOR,
+    borderRadius: 3.5,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
     display: 'flex',
     flexDirection: 'column',
-    backgroundColor: '#FFFFFF',
   },
-  tableHeader: {
+  sideHeaderRow: {
     flexDirection: 'row',
-    backgroundColor: PRIMARY_COLOR,
-    paddingVertical: 5.5,
-    paddingHorizontal: 8,
-    minHeight: 23,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    backgroundColor: BEIGE_BG,
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8CEBE',
   },
-  tableHeaderLabel: {
-    flex: 1,
-    color: '#FFFFFF',
-    fontSize: 9,
+  sideHeaderLeft: {
+    fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
     letterSpacing: 0.5,
   },
-  tableHeaderAmount: {
-    width: 85,
-    color: '#FFFFFF',
-    fontSize: 9,
+  sideHeaderRight: {
+    fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
     textAlign: 'right',
   },
-  tableRow: {
+  sideItemRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     paddingVertical: 4.5,
-    paddingHorizontal: 8,
-    minHeight: 21,
-    alignItems: 'center',
+    paddingHorizontal: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: '#F0F2F5',
   },
-  tableRowEven: {
-    backgroundColor: '#FAFAFA',
+  sideItemRowAlt: {
+    backgroundColor: '#FAFBFC',
   },
-  tableRowLabel: {
+  sideItemLabel: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica',
+    color: '#374151',
     flex: 1,
-    fontSize: 9,
-    color: '#222222',
   },
-  tableRowAmount: {
+  sideItemAmount: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica',
+    color: TEXT_DARK,
     width: 85,
-    fontSize: 9,
     textAlign: 'right',
-    fontFamily: 'Helvetica-Bold',
-    color: '#111111',
   },
-  totalRow: {
+  sideTotalRow: {
     flexDirection: 'row',
-    backgroundColor: SECONDARY_COLOR,
-    paddingVertical: 5.5,
-    paddingHorizontal: 8,
-    minHeight: 23,
+    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    backgroundColor: '#F9FAFB',
     borderTopWidth: 1,
-    borderTopColor: '#9E9E9E',
+    borderTopColor: BORDER_COLOR,
   },
-  totalRowLabel: {
-    flex: 1,
-    fontSize: 9,
+  sideTotalLabel: {
+    fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
-    color: '#000000',
+    color: PRIMARY_COLOR,
   },
-  totalRowAmount: {
+  sideTotalAmount: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
     width: 85,
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
     textAlign: 'right',
-    color: '#000000',
   },
 
-  // NET SALARY SUMMARY BOX
+  // --------------------------------------------------------------------------
+  // NET SALARY SUMMARY BOX (COMMON)
+  // --------------------------------------------------------------------------
   netSalaryBox: {
-    marginHorizontal: 16,
-    marginTop: 8,
-    borderWidth: 1.5,
-    borderColor: PRIMARY_COLOR,
-    borderRadius: 4,
-    paddingVertical: 9,
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: '#E6D5B8',
+    borderRadius: 3.5,
+    backgroundColor: CREAM_BG,
+    paddingVertical: 7,
     paddingHorizontal: 14,
-    backgroundColor: '#F8F9FC',
+    marginBottom: 8,
   },
   netSalaryTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  netSalaryLabel: {
-    fontSize: 11.5,
-    fontFamily: 'Helvetica-Bold',
-    color: PRIMARY_COLOR,
-    letterSpacing: 0.5,
-  },
-  netSalaryValue: {
-    fontSize: 15,
-    fontFamily: 'Helvetica-Bold',
+  netSalaryTitle: {
+    fontSize: 19,
+    fontFamily: 'Times-Bold',
     color: PRIMARY_COLOR,
   },
-  wordsRow: {
+  netSalaryAmount: {
+    fontSize: 19,
+    fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+  },
+  netSalaryDivider: {
+    borderTopWidth: 1,
+    borderTopColor: '#E8DEC9',
+    marginTop: 4,
+    marginBottom: 4,
+  },
+  netSalaryWordsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderTopWidth: 1,
-    borderTopColor: '#DEE3EB',
-    marginTop: 5,
-    paddingTop: 5,
   },
   wordsLabel: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: '#555555',
-    marginRight: 5,
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    marginRight: 4,
   },
   wordsValue: {
     fontSize: 8.5,
     fontFamily: 'Helvetica-Bold',
-    color: ACCENT_RED,
+    color: PRIMARY_COLOR,
     flex: 1,
   },
 
-  // SALARY AUTHORIZATION COMPACT FOOTER SECTION (~45-60mm total height)
-  authFooterSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    marginTop: 'auto',
+  // --------------------------------------------------------------------------
+  // SALARY HISTORY TABLE (REFERENCE IMAGE 2)
+  // --------------------------------------------------------------------------
+  historySection: {
+    marginHorizontal: 20,
+    borderWidth: 1,
+    borderColor: BORDER_COLOR,
+    borderRadius: 3.5,
+    overflow: 'hidden',
+    backgroundColor: '#FFFFFF',
+    marginBottom: 8,
   },
-  authRow: {
+  historyHeader: {
+    backgroundColor: LIGHT_BLUE_GRAY,
+    paddingVertical: 4.5,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: BORDER_COLOR,
+  },
+  historyHeaderText: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    letterSpacing: 0.8,
+  },
+  historyTableHead: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: BEIGE_BG,
+    paddingVertical: 4.5,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#D8CEBE',
+  },
+  historyHeadMonth: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+  },
+  historyHeadBasic: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'right',
+  },
+  historyHeadDeduct: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'right',
+  },
+  historyHeadNet: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'right',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    paddingVertical: 3.6,
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  historyRowAlt: {
+    backgroundColor: '#FAFBFC',
+  },
+  historyCellMonth: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: '#374151',
+  },
+  historyCellBasic: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: TEXT_DARK,
+    textAlign: 'right',
+  },
+  historyCellDeduct: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+    color: TEXT_DARK,
+    textAlign: 'right',
+  },
+  historyCellNet: {
+    width: '25%',
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'right',
+  },
+
+  // --------------------------------------------------------------------------
+  // DYNAMIC NOTE CALLOUT BOX (REFERENCE IMAGE 2)
+  // --------------------------------------------------------------------------
+  noteBox: {
+    marginHorizontal: 20,
+    backgroundColor: '#F0F4FA',
+    borderWidth: 1,
+    borderColor: '#D0DCEE',
+    borderRadius: 3.5,
+    padding: 7,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 8,
+  },
+  noteIconCol: {
+    marginRight: 6,
+    marginTop: 1,
+  },
+  noteContent: {
+    flex: 1,
+  },
+  noteTitle: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    marginBottom: 2.5,
+  },
+  noteLine: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica',
+    color: '#374151',
+    lineHeight: 1.35,
+    marginBottom: 1,
+  },
+
+  // --------------------------------------------------------------------------
+  // AUTHORIZATION FOOTER
+  // --------------------------------------------------------------------------
+  authFooter: {
+    marginTop: 'auto',
     paddingHorizontal: 28,
-    marginTop: 8,
+    paddingBottom: 30,
+    alignItems: 'flex-end',
   },
-  authCol: {
-    width: 200,
-    display: 'flex',
-    flexDirection: 'column',
+  authBlock: {
     alignItems: 'center',
+    width: 175,
   },
-  signHeader: {
+  authCompanyHeader: {
+    fontSize: 14,
+    fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'center',
+  },
+  authStampSpaceSingle: {
+    height: 65, // ~25-28mm generous stamp area for Single Month
+  },
+  authStampSpaceMulti: {
+    height: 40, // ~16-18mm compact stamp area for Multi-Month
+  },
+  authLine: {
+    width: 165,
+    borderTopWidth: 1,
+    borderTopColor: PRIMARY_COLOR,
+    marginBottom: 3,
+  },
+  authSignatoryTitle: {
     fontSize: 9.5,
     fontFamily: 'Helvetica-Bold',
     color: PRIMARY_COLOR,
     textAlign: 'center',
   },
-  signSpace: {
-    height: 62, // ~22mm clean space for physical signature
-  },
-  stampSpace: {
-    height: 62, // ~22mm (20-25mm required) clean blank space for company stamp
-  },
-  signLine: {
-    width: 175,
-    borderTopWidth: 1,
-    borderTopColor: '#000000',
-    marginBottom: 4,
-  },
-  signTitle: {
+  authSignatorySubtitle: {
     fontSize: 8.5,
-    fontFamily: 'Helvetica-Bold',
-    color: '#000000',
-    textAlign: 'center',
-  },
-  signSubtitle: {
-    fontSize: 7.5,
-    color: '#666666',
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
     textAlign: 'center',
     marginTop: 1,
   },
-  confidentialNotice: {
-    textAlign: 'center',
-    fontSize: 7.5,
-    color: '#777777',
-    marginTop: 10,
-    paddingBottom: 10,
+
+  bottomWaveSvg: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    zIndex: -1,
   },
 });
 
@@ -444,7 +706,7 @@ function formatAmount(val: number | string | null | undefined): string {
 }
 
 function formatCompanyPhone(phone?: string | null): string {
-  if (!phone) return '';
+  if (!phone) return '+91 9825121931';
   const trimmed = phone.trim();
   if (trimmed.startsWith('+91')) {
     const rest = trimmed.slice(3).trim();
@@ -454,7 +716,7 @@ function formatCompanyPhone(phone?: string | null): string {
     const rest = trimmed.slice(2).trim();
     return `+91 ${rest}`;
   }
-  return trimmed;
+  return `+91 ${trimmed}`;
 }
 
 function formatDate(dateStr?: string | null): string {
@@ -478,12 +740,26 @@ function formatDate(dateStr?: string | null): string {
   return dateStr;
 }
 
-interface SalarySlipPDFProps {
+export interface SalarySlipPDFProps {
   salarySlip: SalarySlip;
   company: Company;
+  historySlips?: SalarySlip[];
+  showHistory?: boolean;
+  variant?: 'single' | 'multi';
 }
 
-export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
+export function SalarySlipPDF({
+  salarySlip,
+  company,
+  historySlips = [],
+  showHistory = true,
+  variant,
+}: SalarySlipPDFProps) {
+  // Determine mode: if variant is explicitly provided, use it; otherwise, if history exists and showHistory is true, use 'multi'
+  const isMulti =
+    variant === 'multi' ||
+    (variant === undefined && showHistory && historySlips && historySlips.length > 0);
+
   const words =
     salarySlip.amount_in_words ||
     numberToWords(Math.round(salarySlip.net_salary));
@@ -500,8 +776,8 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
   ].filter((item) => Number(item.amount) > 0 || item.label === 'Basic Salary');
 
   const deductionsList = [
-    { label: 'Provident Fund (PF)', amount: salarySlip.pf },
     { label: 'Professional Tax (PT)', amount: salarySlip.professional_tax },
+    { label: 'Provident Fund (PF)', amount: salarySlip.pf },
     { label: 'Tax Deducted at Source (TDS)', amount: salarySlip.tds },
     { label: 'ESIC', amount: salarySlip.esic },
     { label: 'Loan Deduction', amount: salarySlip.loan_deduction },
@@ -509,206 +785,272 @@ export function SalarySlipPDF({ salarySlip, company }: SalarySlipPDFProps) {
     { label: 'Other Deduction', amount: salarySlip.other_deduction },
   ].filter((item) => Number(item.amount) > 0);
 
-  // If deductions list is empty, display a placeholder row for neat symmetry
   if (deductionsList.length === 0) {
     deductionsList.push({ label: 'Nil Deductions', amount: 0 });
   }
 
-  const companyAddress = formatCompanyAddress(company);
+  const companyAddress =
+    formatCompanyAddress(company);
+
+  // Generate dynamic notes for multi-month mode
+  const dynamicNotes = isMulti
+    ? generateSalaryRevisionNotes(historySlips, salarySlip.notes)
+    : [];
 
   return (
     <Document title={`Salary-Slip-${salarySlip.salary_slip_number}`}>
       <Page size="A4" style={styles.page}>
         <View style={styles.pageBorder}>
-          {/* 1. HEADER (~25-30mm) */}
+          {/* Top Left Decorative Accent Stripe */}
+          <TopAccentBar />
+
+          {/* 1. COMPANY HEADER */}
           <View style={styles.header}>
-            <View style={styles.headerTop}>
-              <Text style={styles.gstin}>
-              </Text>
-             
-              <View style={styles.phoneWrapper}>
-                {company.phone ? (
-                  <>
-                    <PhoneIcon />
-                    <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
-                  </>
-                ) : null}
-              </View>
+            <View style={styles.phoneRow}>
+              <PhoneIcon />
+              <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
             </View>
 
             <Text style={styles.companyName}>{company.name}</Text>
-            {company.tagline ? (
-              <Text style={styles.companyTagline}>{company.tagline}</Text>
-            ) : null}
+            <Text style={styles.companyTagline}>
+              {company.tagline || 'Manufacturers : Art Silk Cloth'}
+            </Text>
 
-            <View style={styles.headerDividerWrapper}>
-              <FancyDivider />
-            </View>
-          </View>
+            <FlankedDiamonds />
 
-          {/* ADDRESS BAR */}
-          {companyAddress ? (
-            <View style={styles.addressBar}>
+            <View style={styles.addressRow}>
               <PinIcon />
               <Text style={styles.addressText}>{companyAddress}</Text>
             </View>
-          ) : null}
+          </View>
 
-          {/* 2. TITLE & PERIOD */}
-          <View style={styles.titleBar}>
-            <View style={styles.titleBadge}>
-              <Text style={styles.titleBadgeText}>SALARY SLIP</Text>
-            </View>
-            <View style={styles.payPeriodWrapper}>
-              <Text style={styles.payPeriodLabel}>Salary Month:</Text>
-              <Text style={styles.payPeriodValue}>
+          {/* 2. DOCUMENT HEADER */}
+          <View style={styles.docHeader}>
+            <Text style={styles.docTitle}>Salary Slip</Text>
+            <View style={styles.docPeriodCol}>
+              <Text style={styles.docPeriodMonth}>
                 {salarySlip.salary_month} {salarySlip.salary_year}
               </Text>
+              <Text style={styles.docPeriodLabel}>S A L A R Y   M O N T H</Text>
             </View>
           </View>
 
-          {/* 3. EMPLOYEE INFORMATION */}
-          <View style={styles.infoSection}>
-            <View style={styles.infoCard}>
-              <Text style={styles.infoColTitle}>EMPLOYEE INFORMATION</Text>
-              <View style={styles.infoGrid}>
-                <View style={styles.infoGridCol}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Employee Name:</Text>
-                    <Text style={styles.infoValue}>{salarySlip.employee_name}</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>Joining Date:</Text>
-                    <Text style={styles.infoValue}>{formatDate(salarySlip.joining_date)}</Text>
-                  </View>
-                <View style={styles.infoGridCol}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>PAN Number:</Text>
-                    <Text style={styles.infoValue}>
-                      {[
-                        salarySlip.pan_number ? `${salarySlip.pan_number}` : '',
-                        salarySlip.uan_number || salarySlip.pf_number
-                          ? `UAN: ${salarySlip.uan_number || salarySlip.pf_number}`
-                          : '',
-                      ]
-                        .filter(Boolean)
-                        .join(' | ') || '—'}
-                    </Text>
-                  </View>
+          {/* 3. EMPLOYEE DETAILS */}
+          <View style={styles.empSection}>
+            <View style={styles.empCard}>
+              <View style={styles.empCardHeader}>
+                <Text style={styles.empCardHeaderText}>EMPLOYEE DETAILS</Text>
+              </View>
+              <View style={styles.empCardBody}>
+                <View style={styles.empRow}>
+                  <Text style={styles.empLabel}>Employee Name</Text>
+                  <Text style={styles.empColon}>:</Text>
+                  <Text style={styles.empValue}>{salarySlip.employee_name}</Text>
                 </View>
+                <View style={styles.empRow}>
+                  <Text style={styles.empLabel}>Joining Date</Text>
+                  <Text style={styles.empColon}>:</Text>
+                  <Text style={styles.empValue}>{formatDate(salarySlip.joining_date)}</Text>
+                </View>
+                <View style={styles.empRow}>
+                  <Text style={styles.empLabel}>PAN Number</Text>
+                  <Text style={styles.empColon}>:</Text>
+                  <Text style={styles.empValue}>{salarySlip.pan_number || '—'}</Text>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* 4. SALARY BREAKDOWN SECTION */}
-          <View style={styles.sectionHeaderBar}>
-            <Text style={styles.sectionHeaderText}>SALARY BREAKDOWN</Text>
-          </View>
-
-          {/* TWO-COLUMN TABLES: EARNINGS & DEDUCTIONS */}
-          <View style={styles.tablesContainer}>
-            {/* Earnings */}
-            <View style={styles.tableCol}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderLabel}>EARNINGS</Text>
-                <Text style={styles.tableHeaderAmount}>AMOUNT (Rs.)</Text>
-              </View>
-              {earningsList.map((item, idx) => (
-                <View
-                  key={item.label}
-                  style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowEven : {}]}
-                >
-                  <Text style={styles.tableRowLabel}>{item.label}</Text>
-                  <Text style={styles.tableRowAmount}>
-                    {formatAmount(item.amount)}
+          {/* 4. EARNINGS & DEDUCTIONS TABLES */}
+          {!isMulti ? (
+            /* ========================================================== */
+            /* REFERENCE IMAGE 1: STACKED FULL-WIDTH TABLES               */
+            /* ========================================================== */
+            <View style={styles.singleTableWrapper}>
+              {/* EARNINGS TABLE */}
+              <View style={styles.singleTableCard}>
+                <View style={styles.singleTableHeaderRow}>
+                  <Text style={styles.singleTableHeaderLeft}>PARTICULARS</Text>
+                  <Text style={styles.singleTableHeaderRight}>AMOUNT (Rs.)</Text>
+                </View>
+                {earningsList.map((item, idx) => (
+                  <View
+                    key={item.label}
+                    style={[styles.singleTableItemRow, idx % 2 === 1 ? styles.singleTableItemRowAlt : {}]}
+                  >
+                    <Text style={styles.singleTableItemLabel}>{item.label}</Text>
+                    <Text style={styles.singleTableItemAmount}>{formatAmount(item.amount)}</Text>
+                  </View>
+                ))}
+                <View style={styles.singleTableTotalRow}>
+                  <Text style={styles.singleTableTotalLabel}>Gross Earnings</Text>
+                  <Text style={styles.singleTableTotalAmount}>
+                    {formatAmount(salarySlip.gross_earnings)}
                   </Text>
                 </View>
-              ))}
-              <View style={{ flex: 1 }} />
-              <View style={styles.totalRow}>
-                <Text style={styles.totalRowLabel}>Gross Earnings</Text>
-                <Text style={styles.totalRowAmount}>
-                  Rs. {formatAmount(salarySlip.gross_earnings)}
-                </Text>
               </View>
-            </View>
 
-            {/* Deductions */}
-            <View style={styles.tableCol}>
-              <View style={styles.tableHeader}>
-                <Text style={styles.tableHeaderLabel}>DEDUCTIONS</Text>
-                <Text style={styles.tableHeaderAmount}>AMOUNT (Rs.)</Text>
-              </View>
-              {deductionsList.map((item, idx) => (
-                <View
-                  key={item.label}
-                  style={[styles.tableRow, idx % 2 === 1 ? styles.tableRowEven : {}]}
-                >
-                  <Text style={styles.tableRowLabel}>{item.label}</Text>
-                  <Text style={styles.tableRowAmount}>
-                    {formatAmount(item.amount)}
+              {/* DEDUCTIONS TABLE */}
+              <View style={styles.singleTableCard}>
+                <View style={styles.singleTableHeaderRow}>
+                  <Text style={styles.singleTableHeaderLeft}>DEDUCTIONS</Text>
+                  <Text style={styles.singleTableHeaderRight}>AMOUNT (Rs.)</Text>
+                </View>
+                {deductionsList.map((item, idx) => (
+                  <View
+                    key={item.label}
+                    style={[styles.singleTableItemRow, idx % 2 === 1 ? styles.singleTableItemRowAlt : {}]}
+                  >
+                    <Text style={styles.singleTableItemLabel}>{item.label}</Text>
+                    <Text style={styles.singleTableItemAmount}>{formatAmount(item.amount)}</Text>
+                  </View>
+                ))}
+                <View style={styles.singleTableTotalRow}>
+                  <Text style={styles.singleTableTotalLabel}>Total Deductions</Text>
+                  <Text style={styles.singleTableTotalAmount}>
+                    {formatAmount(salarySlip.total_deductions)}
                   </Text>
                 </View>
-              ))}
-              <View style={{ flex: 1 }} />
-              <View style={styles.totalRow}>
-                <Text style={styles.totalRowLabel}>Total Deductions</Text>
-                <Text style={styles.totalRowAmount}>
-                  Rs. {formatAmount(salarySlip.total_deductions)}
-                </Text>
               </View>
             </View>
-          </View>
+          ) : (
+            /* ========================================================== */
+            /* REFERENCE IMAGE 2: SIDE-BY-SIDE TABLES                     */
+            /* ========================================================== */
+            <View style={styles.sideBySideContainer}>
+              {/* EARNINGS */}
+              <View style={styles.sideCol}>
+                <View style={styles.sideHeaderRow}>
+                  <Text style={styles.sideHeaderLeft}>EARNINGS</Text>
+                  <Text style={styles.sideHeaderRight}>AMOUNT (Rs.)</Text>
+                </View>
+                {earningsList.map((item, idx) => (
+                  <View
+                    key={item.label}
+                    style={[styles.sideItemRow, idx % 2 === 1 ? styles.sideItemRowAlt : {}]}
+                  >
+                    <Text style={styles.sideItemLabel}>{item.label}</Text>
+                    <Text style={styles.sideItemAmount}>{formatAmount(item.amount)}</Text>
+                  </View>
+                ))}
+                <View style={{ flex: 1 }} />
+                <View style={styles.sideTotalRow}>
+                  <Text style={styles.sideTotalLabel}>Gross Earnings</Text>
+                  <Text style={styles.sideTotalAmount}>
+                    {formatAmount(salarySlip.gross_earnings)}
+                  </Text>
+                </View>
+              </View>
+
+              {/* DEDUCTIONS */}
+              <View style={styles.sideCol}>
+                <View style={styles.sideHeaderRow}>
+                  <Text style={styles.sideHeaderLeft}>DEDUCTIONS</Text>
+                  <Text style={styles.sideHeaderRight}>AMOUNT (Rs.)</Text>
+                </View>
+                {deductionsList.map((item, idx) => (
+                  <View
+                    key={item.label}
+                    style={[styles.sideItemRow, idx % 2 === 1 ? styles.sideItemRowAlt : {}]}
+                  >
+                    <Text style={styles.sideItemLabel}>{item.label}</Text>
+                    <Text style={styles.sideItemAmount}>{formatAmount(item.amount)}</Text>
+                  </View>
+                ))}
+                <View style={{ flex: 1 }} />
+                <View style={styles.sideTotalRow}>
+                  <Text style={styles.sideTotalLabel}>Total Deductions</Text>
+                  <Text style={styles.sideTotalAmount}>
+                    {formatAmount(salarySlip.total_deductions)}
+                  </Text>
+                </View>
+              </View>
+            </View>
+          )}
 
           {/* 5. NET SALARY SUMMARY BOX */}
           <View style={styles.netSalaryBox}>
             <View style={styles.netSalaryTop}>
-              <Text style={styles.netSalaryLabel}>NET TAKE-HOME SALARY:</Text>
-              <Text style={styles.netSalaryValue}>
+              <Text style={styles.netSalaryTitle}>Net Salary</Text>
+              <Text style={styles.netSalaryAmount}>
                 Rs. {formatAmount(salarySlip.net_salary)}
               </Text>
             </View>
-            <View style={styles.wordsRow}>
+            <View style={styles.netSalaryDivider} />
+            <View style={styles.netSalaryWordsRow}>
               <Text style={styles.wordsLabel}>Amount in Words:</Text>
               <Text style={styles.wordsValue}>{words}</Text>
             </View>
           </View>
 
-          {/* FLEXIBLE SPACER TO PUSH AUTHORIZATION FOOTER TO THE BOTTOM */}
-          <View style={{ flex: 1, minHeight: 15 }} />
-
-          {/* 6. SALARY AUTHORIZATION COMPACT FOOTER SECTION */}
-          <View style={styles.authFooterSection}>
-           
-
-            <View style={styles.authRow}>
-              {/* Employee Signature Column */}
-              <View style={styles.authCol}>
-                {/* <Text style={styles.signHeader}>Employee Signature</Text>
-                <View style={styles.signSpace} />
-                <View style={styles.signLine} />
-                <Text style={styles.signTitle}>Employee Signature</Text>
-                <Text style={styles.signSubtitle}>(Signature & Date)</Text> */}
+          {/* 6. SALARY HISTORY TABLE (REFERENCE IMAGE 2 ONLY) */}
+          {isMulti && historySlips.length > 0 ? (
+            <View style={styles.historySection}>
+              <View style={styles.historyHeader}>
+                <Text style={styles.historyHeaderText}>
+                  SALARY HISTORY ({historySlips.length <= 6 ? `LAST ${historySlips.length} MONTHS` : 'LAST 6 MONTHS'})
+                </Text>
               </View>
+              <View style={styles.historyTableHead}>
+                <Text style={styles.historyHeadMonth}>Month</Text>
+                <Text style={styles.historyHeadBasic}>Basic Salary (Rs.)</Text>
+                <Text style={styles.historyHeadDeduct}>Deductions (Rs.)</Text>
+                <Text style={styles.historyHeadNet}>Net Salary (Rs.)</Text>
+              </View>
+              {historySlips.slice(-6).map((h, i) => (
+                <View
+                  key={`${h.salary_month}-${h.salary_year}`}
+                  style={[styles.historyRow, i % 2 === 1 ? styles.historyRowAlt : {}]}
+                >
+                  <Text style={styles.historyCellMonth}>
+                    {h.salary_month.slice(0, 3)} {h.salary_year}
+                  </Text>
+                  <Text style={styles.historyCellBasic}>
+                    {formatAmount(h.basic_salary)}
+                  </Text>
+                  <Text style={styles.historyCellDeduct}>
+                    {formatAmount(h.total_deductions)}
+                  </Text>
+                  <Text style={styles.historyCellNet}>
+                    {formatAmount(h.net_salary)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : null}
 
-              {/* Company Authorization Column */}
-              <View style={styles.authCol}>
-                <Text style={styles.signHeader}>For {company.name}</Text>
-                <View style={styles.stampSpace} />
-                <View style={styles.signLine} />
-                <Text style={styles.signTitle}>Authorized Signatory</Text>
-                <Text style={styles.signSubtitle}>(Director / Accounts)</Text>
+          {/* 7. NOTE CALLOUT BOX (REFERENCE IMAGE 2 ONLY) */}
+          {isMulti && dynamicNotes.length > 0 ? (
+            <View style={styles.noteBox}>
+              <View style={styles.noteIconCol}>
+                <NoteIcon />
+              </View>
+              <View style={styles.noteContent}>
+                <Text style={styles.noteTitle}>Note:</Text>
+                {dynamicNotes.map((noteText, idx) => (
+                  <Text key={idx} style={styles.noteLine}>
+                    {noteText}
+                  </Text>
+                ))}
               </View>
             </View>
+          ) : null}
 
-            {/* 7. CONFIDENTIAL FOOTER NOTE DIRECTLY BELOW SIGNATURES */}
-            <Text style={styles.confidentialNotice}>
-            </Text>
+          {/* 8. AUTHORIZATION FOOTER */}
+          <View style={styles.authFooter}>
+            <View style={styles.authBlock}>
+              <Text style={styles.authCompanyHeader}>For {company.name}</Text>
+              <View style={!isMulti ? styles.authStampSpaceSingle : styles.authStampSpaceMulti} />
+              <View style={styles.authLine} />
+              <Text style={styles.authSignatoryTitle}>Authorized Signatory</Text>
+              <Text style={styles.authSignatorySubtitle}>(Director / Accounts)</Text>
+            </View>
           </View>
+
+          {/* Subtle Bottom Wave Decoration */}
+          <BottomWave />
         </View>
       </Page>
     </Document>
   );
 }
-

@@ -268,3 +268,112 @@ export async function deleteSalarySlip(id: string): Promise<void> {
   const { error } = await supabase().from('salary_slips').delete().eq('id', id);
   if (error) throw error;
 }
+
+const MONTH_INDEX: Record<string, number> = {
+  january: 1,
+  february: 2,
+  march: 3,
+  april: 4,
+  may: 5,
+  june: 6,
+  july: 7,
+  august: 8,
+  september: 9,
+  october: 10,
+  november: 11,
+  december: 12,
+};
+
+export async function getSalarySlipsByEmployee(
+  companyId: string,
+  employeeId: string,
+  limit?: number
+): Promise<SalarySlip[]> {
+  let query = supabase()
+    .from('salary_slips')
+    .select(SALARY_SLIP_SELECT)
+    .eq('company_id', companyId)
+    .eq('employee_id', employeeId)
+    .order('salary_year', { ascending: false })
+    .order('pay_date', { ascending: false });
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  const { data, error } = await query;
+  if (error) throw error;
+
+  const slips = (data ?? []).map(mapSalarySlip);
+
+  // Sort chronologically (ascending) for history display
+  return slips.sort((a, b) => {
+    if (a.salary_year !== b.salary_year) {
+      return a.salary_year - b.salary_year;
+    }
+    const mA = MONTH_INDEX[a.salary_month.toLowerCase()] || 0;
+    const mB = MONTH_INDEX[b.salary_month.toLowerCase()] || 0;
+    return mA - mB;
+  });
+}
+
+export async function getSalarySlipsForMonths(
+  companyId: string,
+  employeeId: string,
+  months: { month: string; year: number }[]
+): Promise<SalarySlip[]> {
+  if (months.length === 0) return [];
+
+  const { data, error } = await supabase()
+    .from('salary_slips')
+    .select(SALARY_SLIP_SELECT)
+    .eq('company_id', companyId)
+    .eq('employee_id', employeeId);
+
+  if (error) throw error;
+
+  const allSlips = (data ?? []).map(mapSalarySlip);
+
+  // Filter to matching months
+  const matched = allSlips.filter((slip) =>
+    months.some(
+      (m) =>
+        m.month.toLowerCase() === slip.salary_month.toLowerCase() &&
+        m.year === slip.salary_year
+    )
+  );
+
+  return matched.sort((a, b) => {
+    if (a.salary_year !== b.salary_year) {
+      return a.salary_year - b.salary_year;
+    }
+    const mA = MONTH_INDEX[a.salary_month.toLowerCase()] || 0;
+    const mB = MONTH_INDEX[b.salary_month.toLowerCase()] || 0;
+    return mA - mB;
+  });
+}
+
+export async function checkSalarySlipExists(
+  companyId: string,
+  employeeId: string,
+  month: string,
+  year: number,
+  excludeId?: string
+): Promise<SalarySlip | null> {
+  let query = supabase()
+    .from('salary_slips')
+    .select(SALARY_SLIP_SELECT)
+    .eq('company_id', companyId)
+    .eq('employee_id', employeeId)
+    .eq('salary_month', month)
+    .eq('salary_year', year);
+
+  if (excludeId) {
+    query = query.neq('id', excludeId);
+  }
+
+  const { data, error } = await query.maybeSingle();
+  if (error) throw error;
+  return data ? mapSalarySlip(data) : null;
+}
+

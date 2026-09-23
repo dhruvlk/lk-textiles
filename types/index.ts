@@ -458,3 +458,40 @@ export interface SalarySlipFilters {
   paymentStatus?: SalarySlipPaymentStatus | '';
   sort?: TableSort;
 }
+
+export interface MonthYearOption {
+  month: string;
+  year: number;
+  label: string; // e.g. "August 2026"
+  shortLabel: string; // e.g. "Aug 2026"
+}
+
+export interface MultiMonthHistoryRow {
+  month: string;
+  year: number;
+  monthDisplay: string; // e.g. "Mar 2026"
+  basicSalary: number;
+  grossEarnings: number;
+  totalDeductions: number;
+  netSalary: number;
+  slipId?: string;
+  slipNumber?: string;
+  available: boolean;
+}
+
+export interface MultiMonthSummaryData {
+  employeeId: string;
+  employeeName: string;
+  joiningDate?: string | null;
+  panNumber?: string | null;
+  periodDisplay: string; // e.g. "March 2026 – August 2026"
+  monthsCount: number;
+  rows: MultiMonthHistoryRow[];
+  totalBasicSalary: number;
+  totalGrossEarnings: number;
+  totalDeductions: number;
+  totalNetSalary: number;
+  amountInWords: string;
+  notes?: string | null;
+}
+

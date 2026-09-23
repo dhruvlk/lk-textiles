@@ -28,14 +28,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { toast } from "sonner"
-import { Loader2, Calculator, ArrowLeft, CheckCircle2 } from "lucide-react"
+import { Loader2, Calculator, ArrowLeft, CheckCircle2, AlertTriangle, Layers, FileText } from "lucide-react"
 import { PageHeader } from "@/components/common/PageHeader"
 import { getEmployeesPaginated } from "@/services/employees.service"
 import {
   createSalarySlip,
   updateSalarySlip,
   generateSalarySlipNumber,
+  checkSalarySlipExists,
 } from "@/services/salary-slips.service"
+import { MultiMonthSalarySlipGenerator } from "@/components/salary-slips/multi-month-generator"
 import type { SalarySlip } from "@/types"
 import type { Employee } from "@/types/permissions"
 
@@ -86,6 +88,8 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
 
   const [employees, setEmployees] = useState<Employee[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [mode, setMode] = useState<"single" | "multiple">("single")
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null)
 
   const currentDate = new Date()
   const currentMonth = MONTHS[currentDate.getMonth()]
@@ -186,6 +190,35 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
     }
     loadSlipNumber()
   }, [isEditMode, selectedCompany, watchedMonth, watchedYear, form])
+
+  // Check for duplicate salary slip
+  const watchedEmployeeId = form.watch("employee_id")
+  useEffect(() => {
+    async function checkDuplicate() {
+      if (!isEditMode && selectedCompany && watchedEmployeeId && watchedMonth && watchedYear) {
+        try {
+          const exists = await checkSalarySlipExists(
+            selectedCompany.id,
+            watchedEmployeeId,
+            watchedMonth,
+            Number(watchedYear)
+          )
+          if (exists) {
+            setDuplicateWarning(
+              `A salary slip already exists for this employee for ${watchedMonth} ${watchedYear}. Saving will create a duplicate record.`
+            )
+          } else {
+            setDuplicateWarning(null)
+          }
+        } catch {
+          setDuplicateWarning(null)
+        }
+      } else {
+        setDuplicateWarning(null)
+      }
+    }
+    checkDuplicate()
+  }, [isEditMode, selectedCompany, watchedEmployeeId, watchedMonth, watchedYear])
 
   // Watch fields for live calculation
   const basicSalary = Number(form.watch("basic_salary") || 0)
@@ -310,32 +343,99 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
   if (!selectedCompany) return null
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <div className="space-y-6">
       <PageHeader
         eyebrow="Payroll"
-        title={isEditMode ? "Edit Salary Slip" : "Create Salary Slip"}
+        title={
+          isEditMode
+            ? "Edit Salary Slip"
+            : mode === "multiple"
+            ? "Multi-Month Salary Slips"
+            : "Create Salary Slip"
+        }
         description={
           isEditMode
             ? `Update salary slip ${initialData.salary_slip_number}`
+            : mode === "multiple"
+            ? `Generate consolidated salary statements or multi-page slips for ${selectedCompany.name}`
             : `Generate a new salary slip for ${selectedCompany.name}`
         }
         action={
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isEditMode ? "Update Salary Slip" : "Save Salary Slip"}
-            </Button>
-          </div>
+          mode === "single" ? (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                disabled={isSubmitting}
+                onClick={form.handleSubmit(onSubmit)}
+              >
+                {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isEditMode ? "Update Salary Slip" : "Save Salary Slip"}
+              </Button>
+            </div>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.push("/admin/salary-slips")}
+              >
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Slips
+              </Button>
+            </div>
+          )
         }
       />
+
+      {/* Mode Switcher Tabs (Only when creating) */}
+      {!isEditMode && (
+        <div className="flex items-center gap-2 border-b border-border pb-2">
+          <button
+            type="button"
+            onClick={() => setMode("single")}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              mode === "single"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <FileText className="h-4 w-4" />
+            Single Month Slip
+          </button>
+          <button
+            type="button"
+            onClick={() => setMode("multiple")}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+              mode === "multiple"
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            }`}
+          >
+            <Layers className="h-4 w-4" />
+            Multiple Months (Statement / Slips)
+            <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-bold">
+              New
+            </span>
+          </button>
+        </div>
+      )}
+
+      {mode === "multiple" && !isEditMode ? (
+        <MultiMonthSalarySlipGenerator
+          company={selectedCompany}
+          employees={employees}
+          onBackToSingle={() => setMode("single")}
+        />
+      ) : (
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
 
       {/* TOP ROW: EMPLOYEE DETAILS & SALARY PERIOD */}
       <div className="grid gap-6 md:grid-cols-2">
@@ -457,6 +557,13 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
                 )}
               </div>
             </div>
+
+            {duplicateWarning && (
+              <div className="flex items-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-2.5 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/20 dark:text-amber-200">
+                <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
+                <span>{duplicateWarning}</span>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -775,5 +882,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
         </Button>
       </div>
     </form>
+      )}
+    </div>
   )
 }

@@ -32,7 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { formatCurrency } from "@/lib/payment-status"
-import { getSalarySlipById } from "@/services/salary-slips.service"
+import { getSalarySlipById, getSalarySlipsByEmployee } from "@/services/salary-slips.service"
 import type { SalarySlip } from "@/types"
 import { toast } from "sonner"
 import { staggerContainer, staggerItem } from "@/lib/motion"
@@ -66,6 +66,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
   const router = useRouter()
   const { selectedCompany } = useCompany()
   const [salarySlip, setSalarySlip] = useState<SalarySlip | null>(null)
+  const [historySlips, setHistorySlips] = useState<SalarySlip[]>([])
   const [loading, setLoading] = useState(true)
 
   const loadSalarySlip = useCallback(async () => {
@@ -73,12 +74,21 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
     try {
       const data = await getSalarySlipById(id)
       setSalarySlip(data)
+
+      if (data?.employee_id && selectedCompany?.id) {
+        try {
+          const hist = await getSalarySlipsByEmployee(selectedCompany.id, data.employee_id, 7)
+          setHistorySlips(hist.filter((s) => s.id !== data.id).slice(0, 6))
+        } catch {
+          // history is optional
+        }
+      }
     } catch {
       toast.error("Failed to load salary slip details")
     } finally {
       setLoading(false)
     }
-  }, [id])
+  }, [id, selectedCompany?.id])
 
   useEffect(() => {
     loadSalarySlip()
@@ -171,6 +181,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
             <DownloadSalarySlipButton
               salarySlip={salarySlip}
               company={selectedCompany}
+              historySlips={historySlips}
             />
             <Button
               variant="outline"
@@ -378,6 +389,53 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* SALARY HISTORY (LAST 6 MONTHS) */}
+        {historySlips.length > 0 && (
+          <motion.div variants={staggerItem} className="lg:col-span-2">
+            <Card className="shadow-sm">
+              <CardHeader className="bg-muted/40 pb-3">
+                <CardTitle className="text-base font-semibold text-primary">
+                  Salary History ({historySlips.length <= 6 ? `Last ${historySlips.length} Months` : "Last 6 Months"})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Salary Month</TableHead>
+                      <TableHead className="text-right">Basic Salary</TableHead>
+                      <TableHead className="text-right">Deductions</TableHead>
+                      <TableHead className="text-right">Net Salary</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {historySlips.map((h) => (
+                      <TableRow
+                        key={h.id}
+                        className="cursor-pointer hover:bg-muted/50 transition-colors"
+                        onClick={() => router.push(`/admin/salary-slips/${h.id}`)}
+                      >
+                        <TableCell className="font-medium text-foreground">
+                          {h.salary_month} {h.salary_year}
+                        </TableCell>
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(h.basic_salary)}
+                        </TableCell>
+                        <TableCell className="text-right font-medium text-destructive">
+                          {formatCurrency(h.total_deductions)}
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-primary">
+                          {formatCurrency(h.net_salary)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </motion.div>
     </PageTransition>
   )
