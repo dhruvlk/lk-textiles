@@ -13,6 +13,7 @@ import {
   Polygon,
   Circle
 } from '@react-pdf/renderer'
+import { CompanyWatermark } from '@/components/pdf/common/CompanyWatermark'
 import Html from 'react-pdf-html'
 import type { Company, LetterPad } from '@/types'
 import { formatCompanyAddress } from '@/lib/pdf-utils'
@@ -34,7 +35,6 @@ const PRIMARY_COLOR = '#091A42' // Dark Blue
 const SECONDARY_COLOR = '#DCA86A' // Gold/Beige
 const BORDER_COLOR = '#EFE3D3' // Light beige for borders and bg
 const TEXT_COLOR = '#000000'
-const WATERMARK_COLOR = '#F9F1E7' // Very light beige for the watermark
 
 const PhoneIcon = () => (
   <Svg viewBox="0 0 24 24" width="10" height="10">
@@ -58,14 +58,6 @@ const FancyDivider = () => (
   </Svg>
 );
 
-// A decorative swish for the watermark
-const DecorativeSwish = () => (
-  <Svg viewBox="0 0 300 50" width="300" height="50">
-    <Path d="M 150 45 C 130 15, 80 5, 20 20 C 60 40, 100 20, 150 10 C 200 20, 240 40, 280 20 C 220 5, 170 15, 150 45 Z" fill={WATERMARK_COLOR} />
-    <Path d="M 150 35 C 135 15, 100 10, 50 25 C 80 35, 120 25, 150 18 C 180 25, 220 35, 250 25 C 200 10, 165 15, 150 35 Z" fill="#Fdf9f4" />
-    <Polygon points="150,45 145,25 150,15 155,25" fill={WATERMARK_COLOR} />
-  </Svg>
-);
 
 const styles = StyleSheet.create({
   page: {
@@ -84,32 +76,6 @@ const styles = StyleSheet.create({
     position: 'relative',
     display: 'flex',
     flexDirection: 'column',
-  },
-  watermarkContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: -1,
-  },
-  watermarkImage: {
-    width: 350,
-    height: 350,
-    opacity: 0.05,
-    objectFit: 'contain',
-  },
-  watermarkTextWrap: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  watermarkText: {
-    fontSize: 220,
-    color: WATERMARK_COLOR,
-    fontFamily: 'Times-Roman',
-    marginBottom: -20,
   },
   headerWrap: {
     paddingTop: 10,
@@ -262,14 +228,6 @@ export function LetterPadPDF({ letterPad, company }: LetterPadPDFProps) {
     year: 'numeric',
   }).replace(/\//g, '/') // E.g. 28.07.2026
 
-  // Fallback Initials (First letters of up to 2 words in company name)
-  const initials = company.name
-    .split(' ')
-    .map(w => w[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
 
   const fullAddress = formatCompanyAddress(company)
 
@@ -279,16 +237,7 @@ export function LetterPadPDF({ letterPad, company }: LetterPadPDFProps) {
         <View style={styles.pageBorder}>
           
           {/* Background Watermark */}
-          <View style={styles.watermarkContainer} fixed>
-            {company.logo_url ? (
-              <Image src={company.logo_url} style={styles.watermarkImage} />
-            ) : (
-              <View style={styles.watermarkTextWrap}>
-                <Text style={styles.watermarkText}>{initials}</Text>
-                <DecorativeSwish />
-              </View>
-            )}
-          </View>
+          <CompanyWatermark company={company} />
 
           {/* Header */}
           <View style={styles.headerWrap} fixed>

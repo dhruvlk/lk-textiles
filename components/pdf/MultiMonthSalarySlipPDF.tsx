@@ -5,6 +5,7 @@ import { numberToWords } from '@/lib/number-to-words';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
 import { generateSalaryRevisionNotes } from '@/lib/salary-revision-notes';
 import { SalarySlipPage, salarySlipAuthorization, salarySlipTypography } from '@/components/pdf/SalarySlipPDF';
+import { CompanyWatermark } from '@/components/pdf/common/CompanyWatermark';
 
 // Register Gujarati font for traditional header
 const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && Boolean(process.cwd);
@@ -611,6 +612,9 @@ export function MultiMonthSalarySlipPDF({
         <View style={styles.pageBorder}>
           {/* Top Left Decorative Accent Stripe */}
           <TopAccentBar />
+
+          {/* Background Watermark */}
+          <CompanyWatermark company={company} />
 
           {/* 1. COMPANY HEADER */}
           <View style={[styles.header, isCompact ? { marginBottom: 2 } : {}]}>
