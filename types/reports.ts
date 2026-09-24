@@ -92,6 +92,24 @@ export type StockReportSummary = {
   totalStockValue: number | null;
 };
 
+export type EmployeeSalaryReportRow = {
+  employeeId: string;
+  employeeName: string;
+  designation?: string | null;
+  totalGross: number;
+  totalDeductions: number;
+  totalNet: number;
+  slipCount: number;
+};
+
+export type SalaryReportSummary = {
+  totalGross: number;
+  totalDeductions: number;
+  totalNet: number;
+  totalSlips: number;
+  employeeBreakdown: EmployeeSalaryReportRow[];
+};
+
 export type ChartPoint = {
   name: string;
   value: number;
@@ -107,6 +125,7 @@ export type ReportsBundle = {
   qualities: QualityReportRow[];
   payments: PaymentReportSummary;
   stock: StockReportSummary;
+  salary?: SalaryReportSummary;
   charts: {
     monthly: ChartPoint[];
     yearly: ChartPoint[];

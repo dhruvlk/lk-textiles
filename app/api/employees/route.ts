@@ -10,6 +10,7 @@ import { emptyPermissionMatrix } from '@/constants/permissions';
 import { sanitizeEmployeeMatrix } from '@/lib/permissions';
 import { isValidIndianMobile, formatPhoneToStorage } from '@/lib/validations/phone';
 import type { PermissionMatrix } from '@/types/permissions';
+import type { CompanyMemberRow } from '@/types/database';
 
 type CreateBody = {
   companyId: string;
@@ -21,6 +22,15 @@ type CreateBody = {
   designation?: string | null;
   isActive?: boolean;
   permissions?: PermissionMatrix;
+  employeeCode?: string | null;
+  department?: string | null;
+  joiningDate?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfsc?: string | null;
+  panNumber?: string | null;
+  uanNumber?: string | null;
+  pfNumber?: string | null;
 };
 
 type UpdateBody = {
@@ -34,6 +44,15 @@ type UpdateBody = {
   password?: string;
   permissions?: PermissionMatrix;
   statusOnly?: boolean;
+  employeeCode?: string | null;
+  department?: string | null;
+  joiningDate?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfsc?: string | null;
+  panNumber?: string | null;
+  uanNumber?: string | null;
+  pfNumber?: string | null;
 };
 
 function isValidEmail(email: string) {
@@ -127,6 +146,15 @@ export async function GET(request: Request) {
         email: profile?.email || authEmailMap.get(row.user_id) || '',
         mobile: profile?.mobile ?? null,
         avatar_url: profile?.avatar_url ?? null,
+        employee_code: row.employee_code ?? null,
+        department: row.department ?? null,
+        joining_date: row.joining_date ?? null,
+        bank_name: row.bank_name ?? null,
+        bank_account_number: row.bank_account_number ?? null,
+        bank_ifsc: row.bank_ifsc ?? null,
+        pan_number: row.pan_number ?? null,
+        uan_number: row.uan_number ?? null,
+        pf_number: row.pf_number ?? null,
         permissions: permissionsByUser.get(row.user_id) ?? [],
       };
     });
@@ -256,6 +284,15 @@ export async function POST(request: Request) {
         is_active: isActive,
         designation,
         invited_by: gate.user!.id,
+        employee_code: body.employeeCode?.trim() || null,
+        department: body.department?.trim() || null,
+        joining_date: body.joiningDate?.trim() || null,
+        bank_name: body.bankName?.trim() || null,
+        bank_account_number: body.bankAccountNumber?.trim() || null,
+        bank_ifsc: body.bankIfsc?.trim() || null,
+        pan_number: body.panNumber?.trim() || null,
+        uan_number: body.uanNumber?.trim() || null,
+        pf_number: body.pfNumber?.trim() || null,
       })
       .select('id')
       .single();
@@ -384,12 +421,18 @@ export async function PATCH(request: Request) {
       }
     }
 
-    const memberPatch: {
-      designation?: string | null;
-      is_active?: boolean;
-    } = {};
+    const memberPatch: Partial<CompanyMemberRow> = {};
     if (designation !== undefined) memberPatch.designation = designation;
     if (body.isActive !== undefined) memberPatch.is_active = Boolean(body.isActive);
+    if (body.employeeCode !== undefined) memberPatch.employee_code = body.employeeCode?.trim() || null;
+    if (body.department !== undefined) memberPatch.department = body.department?.trim() || null;
+    if (body.joiningDate !== undefined) memberPatch.joining_date = body.joiningDate?.trim() || null;
+    if (body.bankName !== undefined) memberPatch.bank_name = body.bankName?.trim() || null;
+    if (body.bankAccountNumber !== undefined) memberPatch.bank_account_number = body.bankAccountNumber?.trim() || null;
+    if (body.bankIfsc !== undefined) memberPatch.bank_ifsc = body.bankIfsc?.trim() || null;
+    if (body.panNumber !== undefined) memberPatch.pan_number = body.panNumber?.trim() || null;
+    if (body.uanNumber !== undefined) memberPatch.uan_number = body.uanNumber?.trim() || null;
+    if (body.pfNumber !== undefined) memberPatch.pf_number = body.pfNumber?.trim() || null;
 
     if (Object.keys(memberPatch).length > 0) {
       const { error: memberError } = await admin

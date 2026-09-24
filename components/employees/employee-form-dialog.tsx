@@ -85,6 +85,15 @@ export function EmployeeFormDialog({
     const email = String(formData.get("email") || "").trim()
     const mobile = String(formData.get("mobile") || "").trim() || null
     const designation = String(formData.get("designation") || "").trim() || null
+    const employeeCode = String(formData.get("employeeCode") || "").trim() || null
+    const department = String(formData.get("department") || "").trim() || null
+    const joiningDate = String(formData.get("joiningDate") || "").trim() || null
+    const bankName = String(formData.get("bankName") || "").trim() || null
+    const bankAccountNumber = String(formData.get("bankAccountNumber") || "").trim() || null
+    const bankIfsc = String(formData.get("bankIfsc") || "").trim() || null
+    const panNumber = String(formData.get("panNumber") || "").trim() || null
+    const uanNumber = String(formData.get("uanNumber") || "").trim() || null
+    const pfNumber = String(formData.get("pfNumber") || "").trim() || null
     const password = String(formData.get("password") || "").trim()
 
     if (!fullName) {
@@ -107,6 +116,15 @@ export function EmployeeFormDialog({
           fullName,
           mobile,
           designation,
+          employeeCode,
+          department,
+          joiningDate,
+          bankName,
+          bankAccountNumber,
+          bankIfsc,
+          panNumber,
+          uanNumber,
+          pfNumber,
           isActive: status === "active",
           password: password || undefined,
           permissions,
@@ -124,6 +142,15 @@ export function EmployeeFormDialog({
           email,
           mobile,
           designation,
+          employeeCode,
+          department,
+          joiningDate,
+          bankName,
+          bankAccountNumber,
+          bankIfsc,
+          panNumber,
+          uanNumber,
+          pfNumber,
           password: sendInvite ? undefined : password,
           sendInvite,
           isActive: status === "active",
@@ -175,6 +202,42 @@ export function EmployeeFormDialog({
               />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="employeeCode">Employee ID</Label>
+              <Input
+                id="employeeCode"
+                name="employeeCode"
+                defaultValue={initialData?.employee_code ?? ""}
+                placeholder="EMP-001"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="department">Department</Label>
+              <Input
+                id="department"
+                name="department"
+                defaultValue={initialData?.department ?? ""}
+                placeholder="Weaving / Production / Accounts"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="designation">Designation</Label>
+              <Input
+                id="designation"
+                name="designation"
+                defaultValue={initialData?.designation ?? ""}
+                placeholder="Sales Executive"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="joiningDate">Joining Date</Label>
+              <Input
+                id="joiningDate"
+                name="joiningDate"
+                type="date"
+                defaultValue={initialData?.joining_date ?? ""}
+              />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="email">Email *</Label>
               <Input
                 id="email"
@@ -195,12 +258,48 @@ export function EmployeeFormDialog({
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="designation">Designation</Label>
+              <Label htmlFor="bankName">Bank Name</Label>
               <Input
-                id="designation"
-                name="designation"
-                defaultValue={initialData?.designation ?? ""}
-                placeholder="Sales Executive"
+                id="bankName"
+                name="bankName"
+                defaultValue={initialData?.bank_name ?? ""}
+                placeholder="HDFC Bank"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bankAccountNumber">Account Number</Label>
+              <Input
+                id="bankAccountNumber"
+                name="bankAccountNumber"
+                defaultValue={initialData?.bank_account_number ?? ""}
+                placeholder="50100234567890"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="bankIfsc">IFSC Code</Label>
+              <Input
+                id="bankIfsc"
+                name="bankIfsc"
+                defaultValue={initialData?.bank_ifsc ?? ""}
+                placeholder="HDFC0001234"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="panNumber">PAN Number</Label>
+              <Input
+                id="panNumber"
+                name="panNumber"
+                defaultValue={initialData?.pan_number ?? ""}
+                placeholder="ABCDE1234F"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="uanNumber">UAN / PF Number</Label>
+              <Input
+                id="uanNumber"
+                name="uanNumber"
+                defaultValue={initialData?.uan_number || initialData?.pf_number || ""}
+                placeholder="100123456789"
               />
             </div>
             <div className="space-y-2">

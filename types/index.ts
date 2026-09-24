@@ -400,3 +400,147 @@ export interface InquiryFilters {
   status?: InquiryStatus | 'all' | '';
   sort?: TableSort;
 }
+
+export type SalarySlipPaymentStatus = 'Pending' | 'Paid' | 'Partially Paid';
+
+export interface SalarySlip {
+  id: string;
+  company_id: string;
+  employee_id: string | null;
+  employee_name: string;
+  employee_code?: string | null;
+  designation?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
+  salary_slip_number: string;
+  salary_month: string;
+  salary_year: number;
+  pay_date: string;
+  basic_salary: number;
+  hra: number;
+  conveyance: number;
+  medical_allowance: number;
+  special_allowance: number;
+  bonus: number;
+  overtime: number;
+  other_earnings: number;
+  gross_earnings: number;
+  pf: number;
+  professional_tax: number;
+  tds: number;
+  esic: number;
+  loan_deduction: number;
+  advance_deduction: number;
+  other_deduction: number;
+  total_deductions: number;
+  net_salary: number;
+  amount_in_words?: string | null;
+  notes?: string | null;
+  payment_status: SalarySlipPaymentStatus;
+  payment_mode?: string | null;
+  payment_date?: string | null;
+  created_by?: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SalarySlipFilters {
+  search?: string;
+  employeeId?: string;
+  salaryMonth?: string;
+  salaryYear?: number | string;
+  paymentStatus?: SalarySlipPaymentStatus | '';
+  sort?: TableSort;
+}
+
+export interface MonthYearOption {
+  month: string;
+  year: number;
+  label: string; // e.g. "August 2026"
+  shortLabel: string; // e.g. "Aug 2026"
+}
+
+export interface MultiMonthHistoryRow {
+  month: string;
+  year: number;
+  monthDisplay: string; // e.g. "Mar 2026"
+  basicSalary: number;
+  grossEarnings: number;
+  totalDeductions: number;
+  netSalary: number;
+  slipId?: string;
+  slipNumber?: string;
+  available: boolean;
+}
+
+export interface MultiMonthSummaryData {
+  employeeId: string;
+  employeeName: string;
+  joiningDate?: string | null;
+  panNumber?: string | null;
+  periodDisplay: string; // e.g. "March 2026 – August 2026"
+  monthsCount: number;
+  rows: MultiMonthHistoryRow[];
+  totalBasicSalary: number;
+  totalGrossEarnings: number;
+  totalDeductions: number;
+  totalNetSalary: number;
+  amountInWords: string;
+  notes?: string | null;
+}
+
+export type DuplicateSalaryAction = 'keep' | 'update' | 'skip';
+
+export interface SalaryComponents {
+  basic_salary: number;
+  hra: number;
+  conveyance: number;
+  medical_allowance: number;
+  special_allowance: number;
+  bonus: number;
+  overtime: number;
+  other_earnings: number;
+  pf: number;
+  professional_tax: number;
+  tds: number;
+  esic: number;
+  loan_deduction: number;
+  advance_deduction: number;
+  other_deduction: number;
+}
+
+export interface SalaryRevisionPeriod extends SalaryComponents {
+  id: string;
+  fromMonth: string;
+  fromYear: number;
+  toMonth: string;
+  toYear: number;
+  label?: string;
+}
+
+export interface BulkSalaryMonthItem extends SalaryComponents {
+  month: string;
+  year: number;
+  monthIndex: number;
+  key: string; // e.g. "March-2026"
+  label: string; // e.g. "March 2026"
+  shortLabel: string; // e.g. "Mar 2026"
+  gross_earnings: number;
+  total_deductions: number;
+  net_salary: number;
+  pay_date: string;
+  payment_status: SalarySlipPaymentStatus;
+  payment_mode?: string | null;
+  payment_date?: string | null;
+  notes?: string | null;
+  existingSlip: SalarySlip | null;
+  duplicateAction: DuplicateSalaryAction;
+}
+
+

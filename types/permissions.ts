@@ -39,6 +39,15 @@ export type Employee = {
   mobile: string | null;
   avatar_url: string | null;
   permissions: PermissionMatrix;
+  employee_code?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
 };
 
 export type CreateEmployeeInput = {
@@ -51,6 +60,15 @@ export type CreateEmployeeInput = {
   designation?: string | null;
   isActive?: boolean;
   permissions: PermissionMatrix;
+  employeeCode?: string | null;
+  department?: string | null;
+  joiningDate?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfsc?: string | null;
+  panNumber?: string | null;
+  uanNumber?: string | null;
+  pfNumber?: string | null;
 };
 
 export type UpdateEmployeeInput = {
@@ -63,6 +81,16 @@ export type UpdateEmployeeInput = {
   isActive: boolean;
   password?: string;
   permissions: PermissionMatrix;
+  statusOnly?: boolean;
+  employeeCode?: string | null;
+  department?: string | null;
+  joiningDate?: string | null;
+  bankName?: string | null;
+  bankAccountNumber?: string | null;
+  bankIfsc?: string | null;
+  panNumber?: string | null;
+  uanNumber?: string | null;
+  pfNumber?: string | null;
 };
 
 export type { PermissionAction, PermissionModule };

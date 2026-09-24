@@ -19,6 +19,15 @@ type ListEmployeeRow = {
   email: string;
   mobile: string | null;
   avatar_url: string | null;
+  employee_code?: string | null;
+  department?: string | null;
+  joining_date?: string | null;
+  bank_name?: string | null;
+  bank_account_number?: string | null;
+  bank_ifsc?: string | null;
+  pan_number?: string | null;
+  uan_number?: string | null;
+  pf_number?: string | null;
   permissions: Array<{
     user_id?: string;
     module: string;
@@ -50,6 +59,15 @@ function mapEmployee(row: ListEmployeeRow): Employee {
     email: row.email,
     mobile: row.mobile,
     avatar_url: row.avatar_url,
+    employee_code: row.employee_code ?? null,
+    department: row.department ?? null,
+    joining_date: row.joining_date ?? null,
+    bank_name: row.bank_name ?? null,
+    bank_account_number: row.bank_account_number ?? null,
+    bank_ifsc: row.bank_ifsc ?? null,
+    pan_number: row.pan_number ?? null,
+    uan_number: row.uan_number ?? null,
+    pf_number: row.pf_number ?? null,
     permissions: row.permissions?.length
       ? matrixFromRows(row.permissions)
       : emptyPermissionMatrix(),

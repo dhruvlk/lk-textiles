@@ -16,6 +16,8 @@ import type {
   ReportFilters,
   ReportKpis,
   ReportsBundle,
+  EmployeeSalaryReportRow,
+  SalaryReportSummary,
   SalesPeriodSummary,
   StockReportSummary,
   YearlySalesRow,
@@ -302,6 +304,50 @@ function buildStock(stocks: StockRow[]): StockReportSummary {
   };
 }
 
+function buildSalarySummary(
+  salarySlips: Record<string, unknown>[],
+  range: DateRange
+): SalaryReportSummary {
+  const filtered = salarySlips.filter((s) => isDateInRange(s.pay_date as string, range));
+  let totalGross = 0;
+  let totalDeductions = 0;
+  let totalNet = 0;
+  const map = new Map<string, EmployeeSalaryReportRow>();
+
+  for (const s of filtered) {
+    const gross = Number(s.gross_earnings || 0);
+    const ded = Number(s.total_deductions || 0);
+    const net = Number(s.net_salary || 0);
+    totalGross += gross;
+    totalDeductions += ded;
+    totalNet += net;
+
+    const empKey = (s.employee_id as string) || (s.employee_name as string);
+    const existing = map.get(empKey) || {
+      employeeId: (s.employee_id as string) || '',
+      employeeName: (s.employee_name as string) || 'Employee',
+      designation: (s.designation as string) || null,
+      totalGross: 0,
+      totalDeductions: 0,
+      totalNet: 0,
+      slipCount: 0,
+    };
+    existing.totalGross += gross;
+    existing.totalDeductions += ded;
+    existing.totalNet += net;
+    existing.slipCount += 1;
+    map.set(empKey, existing);
+  }
+
+  return {
+    totalGross,
+    totalDeductions,
+    totalNet,
+    totalSlips: filtered.length,
+    employeeBreakdown: Array.from(map.values()),
+  };
+}
+
 function buildKpis(
   allInvoices: InvoiceRow[],
   allDeliveries: DeliveryRow[],
@@ -346,7 +392,7 @@ export async function getReportsBundle(
   companyId: string,
   filters: ReportFilters
 ): Promise<ReportsBundle> {
-  const [invoicesRes, deliveriesRes, customersRes, stocksRes] = await Promise.all([
+  const [invoicesRes, deliveriesRes, customersRes, stocksRes, salaryRes] = await Promise.all([
     supabase()
       .from('challans')
       .select(
@@ -366,17 +412,23 @@ export async function getReportsBundle(
       .from('stocks')
       .select('quality_name, available_taka, total_taka, sold_taka')
       .eq('company_id', companyId),
+    supabase()
+      .from('salary_slips')
+      .select('*')
+      .eq('company_id', companyId),
   ]);
 
   if (invoicesRes.error) throw invoicesRes.error;
   if (deliveriesRes.error) throw deliveriesRes.error;
   if (customersRes.error) throw customersRes.error;
   if (stocksRes.error) throw stocksRes.error;
+  if (salaryRes.error) throw salaryRes.error;
 
   const allInvoices = (invoicesRes.data ?? []) as InvoiceRow[];
   const allDeliveries = (deliveriesRes.data ?? []) as DeliveryRow[];
   const customers = (customersRes.data ?? []) as CustomerRow[];
   const stocks = (stocksRes.data ?? []) as StockRow[];
+  const salarySlips = (salaryRes.data ?? []) as Record<string, unknown>[];
 
   const range = resolvePeriodRange(filters.period, filters.dateFrom, filters.dateTo);
   const invoices = filterInvoices(allInvoices, range, filters);
@@ -435,6 +487,8 @@ export async function getReportsBundle(
     ],
   };
 
+  const salary = buildSalarySummary(salarySlips, range);
+
   const qualities = [
     ...new Set(
       allDeliveries
@@ -462,6 +516,7 @@ export async function getReportsBundle(
     qualities: qualityRows,
     payments,
     stock,
+    salary,
     charts,
     filterOptions: {
       customers: customers.map((c) => ({ id: c.id, name: c.name })),
