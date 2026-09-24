@@ -929,9 +929,9 @@ export function SalarySlipPDF({
     { label: 'Other Deduction', amount: salarySlip.other_deduction },
   ].filter((item) => Number(item.amount) > 0);
 
-  if (deductionsList.length === 0) {
-    deductionsList.push({ label: 'Nil Deductions', amount: 0 });
-  }
+  const hasDeductions =
+    Number(salarySlip.total_deductions || 0) > 0 ||
+    deductionsList.length > 0;
 
   const companyAddress =
     formatCompanyAddress(company);
@@ -1005,7 +1005,7 @@ export function SalarySlipPDF({
           </View>
 
           {/* 4. EARNINGS & DEDUCTIONS TABLES */}
-          {!isMulti ? (
+          {!isMulti || !hasDeductions ? (
             /* ========================================================== */
             /* REFERENCE IMAGE 1: STACKED FULL-WIDTH TABLES               */
             /* ========================================================== */
@@ -1013,7 +1013,9 @@ export function SalarySlipPDF({
               {/* EARNINGS TABLE */}
               <View style={styles.singleTableCard}>
                 <View style={styles.singleTableHeaderRow}>
-                  <Text style={styles.singleTableHeaderLeft}>PARTICULARS</Text>
+                  <Text style={styles.singleTableHeaderLeft}>
+                    {!isMulti ? 'PARTICULARS' : 'EARNINGS'}
+                  </Text>
                   <Text style={styles.singleTableHeaderRight}>AMOUNT (Rs.)</Text>
                 </View>
                 {earningsList.map((item, idx) => (
@@ -1034,27 +1036,29 @@ export function SalarySlipPDF({
               </View>
 
               {/* DEDUCTIONS TABLE */}
-              <View style={styles.singleTableCard}>
-                <View style={styles.singleTableHeaderRow}>
-                  <Text style={styles.singleTableHeaderLeft}>DEDUCTIONS</Text>
-                  <Text style={styles.singleTableHeaderRight}>AMOUNT (Rs.)</Text>
-                </View>
-                {deductionsList.map((item, idx) => (
-                  <View
-                    key={item.label}
-                    style={[styles.singleTableItemRow, idx % 2 === 1 ? styles.singleTableItemRowAlt : {}]}
-                  >
-                    <Text style={styles.singleTableItemLabel}>{item.label}</Text>
-                    <Text style={styles.singleTableItemAmount}>{formatAmount(item.amount)}</Text>
+              {hasDeductions && (
+                <View style={styles.singleTableCard}>
+                  <View style={styles.singleTableHeaderRow}>
+                    <Text style={styles.singleTableHeaderLeft}>DEDUCTIONS</Text>
+                    <Text style={styles.singleTableHeaderRight}>AMOUNT (Rs.)</Text>
                   </View>
-                ))}
-                <View style={styles.singleTableTotalRow}>
-                  <Text style={styles.singleTableTotalLabel}>Total Deductions</Text>
-                  <Text style={styles.singleTableTotalAmount}>
-                    {formatAmount(salarySlip.total_deductions)}
-                  </Text>
+                  {deductionsList.map((item, idx) => (
+                    <View
+                      key={item.label}
+                      style={[styles.singleTableItemRow, idx % 2 === 1 ? styles.singleTableItemRowAlt : {}]}
+                    >
+                      <Text style={styles.singleTableItemLabel}>{item.label}</Text>
+                      <Text style={styles.singleTableItemAmount}>{formatAmount(item.amount)}</Text>
+                    </View>
+                  ))}
+                  <View style={styles.singleTableTotalRow}>
+                    <Text style={styles.singleTableTotalLabel}>Total Deductions</Text>
+                    <Text style={styles.singleTableTotalAmount}>
+                      {formatAmount(salarySlip.total_deductions)}
+                    </Text>
+                  </View>
                 </View>
-              </View>
+              )}
             </View>
           ) : (
             /* ========================================================== */

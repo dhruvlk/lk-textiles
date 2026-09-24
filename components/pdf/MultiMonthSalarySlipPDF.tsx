@@ -599,6 +599,10 @@ export function MultiMonthSalarySlipPDF({
   const isCompact = summary.rows.length > 6;
   const isUltraCompact = summary.rows.length > 9;
 
+  const hasDeductions =
+    Number(summary.totalDeductions || 0) > 0 ||
+    summary.rows.some((r) => Number(r.totalDeductions || 0) > 0);
+
   return (
     <Document
       title={`Salary-Statement-${summary.employeeName.replace(/\s+/g, '_')}-${summary.periodDisplay.replace(/\s+/g, '_')}`}
@@ -671,10 +675,10 @@ export function MultiMonthSalarySlipPDF({
               </Text>
             </View>
             <View style={[styles.tableHeadRow, isUltraCompact ? { paddingVertical: 3 } : {}]}>
-              <Text style={styles.tableHeadMonth}>Salary Month</Text>
-              <Text style={styles.tableHeadBasic}>Basic Salary (Rs.)</Text>
-              <Text style={styles.tableHeadDeduct}>Deductions (Rs.)</Text>
-              <Text style={styles.tableHeadNet}>Net Salary (Rs.)</Text>
+              <Text style={[styles.tableHeadMonth, !hasDeductions ? { width: '34%' } : {}]}>Salary Month</Text>
+              <Text style={[styles.tableHeadBasic, !hasDeductions ? { width: '33%' } : {}]}>Basic Salary (Rs.)</Text>
+              {hasDeductions && <Text style={styles.tableHeadDeduct}>Deductions (Rs.)</Text>}
+              <Text style={[styles.tableHeadNet, !hasDeductions ? { width: '33%' } : {}]}>Net Salary (Rs.)</Text>
             </View>
             {summary.rows.map((r, i) => (
               <View
@@ -689,26 +693,30 @@ export function MultiMonthSalarySlipPDF({
                     : {},
                 ]}
               >
-                <Text style={styles.tableCellMonth}>
+                <Text style={[styles.tableCellMonth, !hasDeductions ? { width: '34%' } : {}]}>
                   {r.monthDisplay}
                 </Text>
-                <Text style={styles.tableCellBasic}>
+                <Text style={[styles.tableCellBasic, !hasDeductions ? { width: '33%' } : {}]}>
                   {formatAmount(r.basicSalary)}
                 </Text>
-                <Text style={styles.tableCellDeduct}>
-                  {formatAmount(r.totalDeductions)}
-                </Text>
-                <Text style={styles.tableCellNet}>
+                {hasDeductions && (
+                  <Text style={styles.tableCellDeduct}>
+                    {formatAmount(r.totalDeductions)}
+                  </Text>
+                )}
+                <Text style={[styles.tableCellNet, !hasDeductions ? { width: '33%' } : {}]}>
                   {formatAmount(r.netSalary)}
                 </Text>
               </View>
             ))}
             {/* Totals Row */}
             <View style={[styles.tableFooterRow, isUltraCompact ? { paddingVertical: 3 } : {}]}>
-              <Text style={styles.tableFooterMonth}>TOTAL ({summary.rows.length} MONTHS)</Text>
-              <Text style={styles.tableFooterBasic}>{formatAmount(summary.totalBasicSalary)}</Text>
-              <Text style={styles.tableFooterDeduct}>{formatAmount(summary.totalDeductions)}</Text>
-              <Text style={styles.tableFooterNet}>{formatAmount(summary.totalNetSalary)}</Text>
+              <Text style={[styles.tableFooterMonth, !hasDeductions ? { width: '34%' } : {}]}>TOTAL ({summary.rows.length} MONTHS)</Text>
+              <Text style={[styles.tableFooterBasic, !hasDeductions ? { width: '33%' } : {}]}>{formatAmount(summary.totalBasicSalary)}</Text>
+              {hasDeductions && (
+                <Text style={styles.tableFooterDeduct}>{formatAmount(summary.totalDeductions)}</Text>
+              )}
+              <Text style={[styles.tableFooterNet, !hasDeductions ? { width: '33%' } : {}]}>{formatAmount(summary.totalNetSalary)}</Text>
             </View>
           </View>
 
@@ -724,9 +732,11 @@ export function MultiMonthSalarySlipPDF({
               <Text style={styles.summarySubText}>
                 Total Basic: Rs. {formatAmount(summary.totalBasicSalary)}
               </Text>
-              <Text style={styles.summarySubText}>
-                Total Deductions: Rs. {formatAmount(summary.totalDeductions)}
-              </Text>
+              {hasDeductions && (
+                <Text style={styles.summarySubText}>
+                  Total Deductions: Rs. {formatAmount(summary.totalDeductions)}
+                </Text>
+              )}
               <Text style={styles.summarySubText}>
                 Period: {summary.periodDisplay} ({summary.monthsCount} Months)
               </Text>

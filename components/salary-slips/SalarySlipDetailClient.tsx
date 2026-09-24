@@ -156,6 +156,10 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
     { label: "Other Deduction", amount: salarySlip.other_deduction },
   ].filter((item) => Number(item.amount) > 0)
 
+  const hasDeductions =
+    Number(salarySlip.total_deductions || 0) > 0 ||
+    deductionsItems.length > 0
+
   return (
     <PageTransition className="space-y-6">
       <PageHeader
@@ -252,10 +256,12 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                 label="Gross Earnings"
                 value={formatCurrency(salarySlip.gross_earnings)}
               />
-              <DetailRow
-                label="Total Deductions"
-                value={formatCurrency(salarySlip.total_deductions)}
-              />
+              {hasDeductions && (
+                <DetailRow
+                  label="Total Deductions"
+                  value={formatCurrency(salarySlip.total_deductions)}
+                />
+              )}
               <DetailRow
                 label="Net Take-Home Salary"
                 value={formatCurrency(salarySlip.net_salary)}
@@ -267,7 +273,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
 
         {/* TWO-COLUMN TABLES: EARNINGS & DEDUCTIONS */}
         <motion.div variants={staggerItem} className="lg:col-span-2">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className={hasDeductions ? "grid gap-6 md:grid-cols-2" : "grid gap-6"}>
             {/* EARNINGS */}
             <Card className="shadow-sm">
               <CardHeader className="bg-primary/5 pb-3">
@@ -311,34 +317,28 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
             </Card>
 
             {/* DEDUCTIONS */}
-            <Card className="shadow-sm">
-              <CardHeader className="bg-destructive/5 pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-base font-semibold text-destructive">
-                    Deductions
-                  </CardTitle>
-                  <span className="text-base font-bold text-destructive">
-                    {formatCurrency(salarySlip.total_deductions)}
-                  </span>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Component</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {deductionsItems.length === 0 ? (
+            {hasDeductions && (
+              <Card className="shadow-sm">
+                <CardHeader className="bg-destructive/5 pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-base font-semibold text-destructive">
+                      Deductions
+                    </CardTitle>
+                    <span className="text-base font-bold text-destructive">
+                      {formatCurrency(salarySlip.total_deductions)}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <Table>
+                    <TableHeader>
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-muted-foreground">
-                          No deductions recorded
-                        </TableCell>
+                        <TableHead>Component</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
-                    ) : (
-                      deductionsItems.map((item) => (
+                    </TableHeader>
+                    <TableBody>
+                      {deductionsItems.map((item) => (
                         <TableRow key={item.label}>
                           <TableCell className="font-medium text-foreground">
                             {item.label}
@@ -347,18 +347,18 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                             {formatCurrency(Number(item.amount))}
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                    <TableRow className="bg-muted/40 font-bold">
-                      <TableCell>Total Deductions</TableCell>
-                      <TableCell className="text-right text-destructive">
-                        {formatCurrency(salarySlip.total_deductions)}
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
+                      ))}
+                      <TableRow className="bg-muted/40 font-bold">
+                        <TableCell>Total Deductions</TableCell>
+                        <TableCell className="text-right text-destructive">
+                          {formatCurrency(salarySlip.total_deductions)}
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </motion.div>
 
