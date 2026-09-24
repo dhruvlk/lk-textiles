@@ -211,7 +211,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                   </p>
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="gst_number">GST Number</Label>
                   <Input
@@ -230,7 +230,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="pan_number">PAN Number</Label>
                   <Input
@@ -240,7 +240,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone</Label>
                   <PhoneInput
@@ -277,7 +277,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                   defaultValue={initialCompany?.address || ""}
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="city">City</Label>
                   <Input id="city" name="city" defaultValue={initialCompany?.city || ""} />
@@ -299,7 +299,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
 
             <div className="space-y-4">
               <h3 className="font-semibold">Bank Details</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="bank_name">Bank Name</Label>
                   <Input
@@ -317,7 +317,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="account_name">Account Name</Label>
                   <Input
@@ -365,7 +365,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
               />
             </div>
 
-            <div className="flex justify-end gap-4 pt-4 border-t">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-4 border-t">
               <Button
                 type="button"
                 variant="outline"

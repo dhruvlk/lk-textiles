@@ -136,7 +136,7 @@ export function ReportCharts({
               nameKey="name"
               cx="50%"
               cy="50%"
-              outerRadius={100}
+              outerRadius={80}
               label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
             >
               {payments.map((_, index) => (

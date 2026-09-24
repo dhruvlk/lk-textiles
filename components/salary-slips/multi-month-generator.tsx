@@ -1016,7 +1016,7 @@ export function MultiMonthSalarySlipGenerator({
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* From Month & Year */}
                   <div className="space-y-2">
                     <Label className="text-xs text-muted-foreground">From Month & Year</Label>
@@ -2287,7 +2287,7 @@ export function MultiMonthSalarySlipGenerator({
               {(() => {
                 const { gross, deductions, net } = calculateMonthTotals(editingDraft)
                 return (
-                  <div className="flex justify-between items-center p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs">
+                  <div className="flex flex-wrap justify-between items-center gap-2 p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs">
                     <span>Gross: <strong>{formatCurrency(gross)}</strong></span>
                     <span className="text-destructive">Deductions: <strong>{formatCurrency(deductions)}</strong></span>
                     <span className="text-primary font-bold text-sm">Net Take-Home: {formatCurrency(net)}</span>

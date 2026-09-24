@@ -26,7 +26,7 @@ export function Header() {
   )
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-end gap-2 border-b border-border/60 glass pl-14 pr-3 sm:px-4 md:gap-3 md:pl-4 md:pr-6">
+    <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-end gap-1.5 sm:gap-2 border-b border-border/60 glass pl-13 pr-2.5 sm:px-4 md:gap-3 md:pl-4 md:pr-6">
       <div className="mr-auto min-w-0 md:mr-0" />
       {hasMultipleCompanies ? (
         <DropdownMenu>
@@ -34,7 +34,7 @@ export function Header() {
             render={
               <Button
                 variant="outline"
-                className="h-9 max-w-[220px] gap-2 px-3 shadow-xs"
+                className="h-9 max-w-[130px] sm:max-w-[180px] md:max-w-[220px] gap-1.5 sm:gap-2 px-2 sm:px-3 shadow-xs"
               />
             }
           >
@@ -56,7 +56,7 @@ export function Header() {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <div className="flex h-9 max-w-[220px] items-center gap-2 rounded-md border border-border/60 bg-card px-3 shadow-xs">
+        <div className="flex h-9 max-w-[130px] sm:max-w-[180px] md:max-w-[220px] items-center gap-1.5 sm:gap-2 rounded-md border border-border/60 bg-card px-2 sm:px-3 shadow-xs">
           {companyLabel}
         </div>
       )}
@@ -64,7 +64,7 @@ export function Header() {
       <NotificationBell />
 
       {user && (
-        <div className="flex items-center gap-2.5 rounded-full border border-border/60 bg-card py-1 pl-1 pr-3 shadow-xs">
+        <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card p-0.5 md:py-1 md:pl-1 md:pr-3 shadow-xs">
           <Avatar className="h-7 w-7">
             <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
               {user.name.charAt(0)}

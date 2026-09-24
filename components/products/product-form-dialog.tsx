@@ -62,7 +62,7 @@ export function ProductFormDialog({ onProductSaved, initialData, trigger }: Prod
           )
         }
       />
-      <DialogContent className="sm:max-w-[560px]">
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[560px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initialData ? "Edit Product" : "Add Product"}</DialogTitle>
           <DialogDescription>Manage product master for {selectedCompany?.name}</DialogDescription>
@@ -72,7 +72,7 @@ export function ProductFormDialog({ onProductSaved, initialData, trigger }: Prod
             <Label htmlFor="name">Product Name *</Label>
             <Input id="name" name="name" required defaultValue={initialData?.name} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="hsn_code">HSN Code</Label>
               <Input id="hsn_code" name="hsn_code" defaultValue={initialData?.hsn_code || selectedCompany?.hsn_code || ""} />

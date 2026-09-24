@@ -82,44 +82,46 @@ export function PermissionMatrixEditor({
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.02, duration: 0.2 }}
-                className="grid gap-3 px-4 py-3.5 sm:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,0.7fr))] sm:items-center sm:gap-2"
+                className="flex flex-col gap-2.5 px-4 py-3 sm:grid sm:grid-cols-[minmax(0,1.4fr)_repeat(5,minmax(0,0.7fr))] sm:items-center sm:gap-2"
               >
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{mod.label}</p>
                   <p className="truncate text-xs text-muted-foreground">{mod.description}</p>
                 </div>
 
-                {(
-                  [
-                    ["can_view", "view", "View"],
-                    ["can_create", "create", "Create"],
-                    ["can_edit", "edit", "Edit"],
-                    ["can_delete", "delete", "Delete"],
-                    ["can_export", "export", "Export"],
-                  ] as const
-                ).map(([flagKey, actionKey, label]) => {
-                  const available = actionKeys.has(actionKey)
-                  return (
-                    <label
-                      key={flagKey}
-                      className={cn(
-                        "flex items-center gap-2 sm:justify-center",
-                        !available && "opacity-30"
-                      )}
-                    >
-                      <span className="text-xs text-muted-foreground sm:hidden">{label}</span>
-                      <input
-                        type="checkbox"
-                        className="h-4 w-4 rounded border-border accent-primary"
-                        checked={available ? flags[flagKey] : false}
-                        disabled={disabled || !available}
-                        onChange={(e) =>
-                          updateModule(mod.module, flagKey, e.target.checked)
-                        }
-                      />
-                    </label>
-                  )
-                })}
+                <div className="grid grid-cols-2 gap-2 sm:contents">
+                  {(
+                    [
+                      ["can_view", "view", "View"],
+                      ["can_create", "create", "Create"],
+                      ["can_edit", "edit", "Edit"],
+                      ["can_delete", "delete", "Delete"],
+                      ["can_export", "export", "Export"],
+                    ] as const
+                  ).map(([flagKey, actionKey, label]) => {
+                    const available = actionKeys.has(actionKey)
+                    return (
+                      <label
+                        key={flagKey}
+                        className={cn(
+                          "flex items-center gap-2 rounded-md border border-border/50 p-1.5 sm:border-0 sm:p-0 sm:justify-center",
+                          !available && "opacity-30"
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 rounded border-border accent-primary"
+                          checked={available ? flags[flagKey] : false}
+                          disabled={disabled || !available}
+                          onChange={(e) =>
+                            updateModule(mod.module, flagKey, e.target.checked)
+                          }
+                        />
+                        <span className="text-xs text-muted-foreground sm:hidden">{label}</span>
+                      </label>
+                    )
+                  })}
+                </div>
               </motion.div>
             )
           })}

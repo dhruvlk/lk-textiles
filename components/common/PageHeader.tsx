@@ -10,7 +10,7 @@ interface PageHeaderProps {
 export function PageHeader({ title, description, action, eyebrow }: PageHeaderProps) {
   return (
     <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div className="min-w-0 space-y-1 pl-12 md:pl-0">
+      <div className="min-w-0 space-y-1">
         {eyebrow && (
           <p className="text-xs font-medium uppercase tracking-wider text-primary">{eyebrow}</p>
         )}
@@ -19,7 +19,7 @@ export function PageHeader({ title, description, action, eyebrow }: PageHeaderPr
           <p className="max-w-2xl text-sm text-muted-foreground md:text-base">{description}</p>
         )}
       </div>
-      {action && <div className="shrink-0">{action}</div>}
+      {action && <div className="w-full sm:w-auto shrink-0 flex flex-wrap gap-2">{action}</div>}
     </div>
   )
 }

@@ -286,7 +286,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                   </span>
                 </div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -329,7 +329,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                     </span>
                   </div>
                 </CardHeader>
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -365,7 +365,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
         {/* PROMINENT NET SALARY BANNER */}
         <motion.div variants={staggerItem} className="lg:col-span-2">
           <Card className="border-primary/30 bg-primary/5 shadow-sm">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
                   <span className="text-xs font-semibold tracking-wider text-muted-foreground uppercase">
@@ -399,7 +399,7 @@ export default function SalarySlipDetailClient({ id }: { id: string }) {
                   Salary History ({historySlips.length <= 6 ? `Last ${historySlips.length} Months` : "Last 6 Months"})
                 </CardTitle>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="p-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>

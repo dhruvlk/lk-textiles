@@ -55,17 +55,18 @@ export default function ChallanPrintClient({ id }: { id: string }) {
   const customer = challan.customer ?? challan.party
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 p-4">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="flex flex-col h-screen bg-gray-100 p-2 sm:p-4">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <Button
             variant="outline"
+            size="sm"
             onClick={() => router.back()}
             className=" print:hidden"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-        <div className="text-sm text-muted-foreground print:hidden">
+        <div className="text-xs sm:text-sm text-muted-foreground print:hidden">
           Note: Use the built-in PDF viewer controls to print or download.
         </div>
       </div>

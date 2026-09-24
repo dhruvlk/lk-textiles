@@ -114,9 +114,9 @@ export default function PartiesClient() {
     { header: "GST Number", cell: (p: Customer) => p.gst_number || "-" },
     {
       header: "Actions",
-      className: "text-right",
+      className: "text-right whitespace-nowrap min-w-[90px]",
       cell: (p: Customer) => (
-        <div className="flex justify-end gap-2">
+        <div className="inline-flex items-center justify-end gap-1 flex-wrap md:flex-nowrap">
           <PermissionGate module="customers" action="edit">
             <PartyFormDialog
               initialData={p}

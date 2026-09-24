@@ -271,7 +271,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
             <CardTitle>Basic Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Invoice Number *</Label>
                 <Input {...form.register("challan_number")} readOnly={isEditMode} className={isEditMode ? "bg-muted" : ""} />
@@ -285,7 +285,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
               </div>
             </div>
             
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Customer *</Label>
                 <Select
@@ -340,7 +340,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
             <CardTitle>Invoice Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Delivered By</Label>
                 <Input {...form.register("delivered_by")} placeholder="e.g. Rajesh Patel" />
@@ -353,7 +353,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                 )}
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Payment Within *</Label>
                 <div className="flex gap-2">
@@ -482,7 +482,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
           </div>
 
           <div className="mt-4 flex justify-end">
-            <div className="w-[300px] space-y-2 rounded-lg border p-4 bg-muted/50">
+            <div className="w-full sm:w-[300px] space-y-2 rounded-lg border p-4 bg-muted/50">
               <div className="flex justify-between text-sm">
                 <span>Total Pieces:</span>
                 <span className="font-medium">{totals.pieces}</span>

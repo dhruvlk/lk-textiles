@@ -22,7 +22,7 @@ export function AuthShell({
   className,
 }: AuthShellProps) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-background p-3 sm:p-4">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,oklch(0.52_0.19_264/0.08),transparent_50%)]" />
       <motion.div
         initial={{ opacity: 0, y: 16, scale: 0.98 }}
@@ -31,8 +31,8 @@ export function AuthShell({
         className={cn("relative w-full max-w-md", className)}
       >
         <Card className="shadow-float">
-          <CardContent className="p-8">
-            <div className="mb-8 flex flex-col items-center text-center">
+          <CardContent className="p-5 sm:p-8">
+            <div className="mb-6 sm:mb-8 flex flex-col items-center text-center">
               <Link href="/admin/login" className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-soft">
                 <FileText className="h-6 w-6 text-white" />
               </Link>

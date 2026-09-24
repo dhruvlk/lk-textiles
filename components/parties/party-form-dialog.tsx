@@ -87,7 +87,7 @@ export function PartyFormDialog({
           )
         }
       />
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="w-full max-w-[calc(100%-2rem)] sm:max-w-[600px] max-h-[90dvh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{initialData ? "Edit Customer" : "Add New Customer"}</DialogTitle>
           <DialogDescription>
@@ -100,7 +100,7 @@ export function PartyFormDialog({
             <Input id="name" name="name" required placeholder="XYZ Textiles" defaultValue={initialData?.name} />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="contact_person">Contact Person</Label>
               <Input id="contact_person" name="contact_person" placeholder="John Doe" defaultValue={initialData?.contact_person || ""} />
@@ -120,7 +120,7 @@ export function PartyFormDialog({
             <Input id="gst_number" name="gst_number" placeholder="22AAAAA0000A1Z5" defaultValue={initialData?.gst_number || ""} />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" name="email" type="email" defaultValue={initialData?.email || ""} />
@@ -136,7 +136,7 @@ export function PartyFormDialog({
             <Textarea id="address" name="address" placeholder="123 Textile Market" defaultValue={initialData?.address || ""} />
           </div>
           
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="space-y-2">
               <Label htmlFor="city">City</Label>
               <Input id="city" name="city" placeholder="Surat" defaultValue={initialData?.city || ""} />
