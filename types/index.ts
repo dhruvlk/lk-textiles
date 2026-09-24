@@ -495,3 +495,52 @@ export interface MultiMonthSummaryData {
   notes?: string | null;
 }
 
+export type DuplicateSalaryAction = 'keep' | 'update' | 'skip';
+
+export interface SalaryComponents {
+  basic_salary: number;
+  hra: number;
+  conveyance: number;
+  medical_allowance: number;
+  special_allowance: number;
+  bonus: number;
+  overtime: number;
+  other_earnings: number;
+  pf: number;
+  professional_tax: number;
+  tds: number;
+  esic: number;
+  loan_deduction: number;
+  advance_deduction: number;
+  other_deduction: number;
+}
+
+export interface SalaryRevisionPeriod extends SalaryComponents {
+  id: string;
+  fromMonth: string;
+  fromYear: number;
+  toMonth: string;
+  toYear: number;
+  label?: string;
+}
+
+export interface BulkSalaryMonthItem extends SalaryComponents {
+  month: string;
+  year: number;
+  monthIndex: number;
+  key: string; // e.g. "March-2026"
+  label: string; // e.g. "March 2026"
+  shortLabel: string; // e.g. "Mar 2026"
+  gross_earnings: number;
+  total_deductions: number;
+  net_salary: number;
+  pay_date: string;
+  payment_status: SalarySlipPaymentStatus;
+  payment_mode?: string | null;
+  payment_date?: string | null;
+  notes?: string | null;
+  existingSlip: SalarySlip | null;
+  duplicateAction: DuplicateSalaryAction;
+}
+
+

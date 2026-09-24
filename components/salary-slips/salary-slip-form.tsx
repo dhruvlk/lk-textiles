@@ -421,9 +421,6 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
           >
             <Layers className="h-4 w-4" />
             Multiple Months (Statement / Slips)
-            <span className="rounded-full bg-primary-foreground/20 px-1.5 py-0.5 text-[10px] font-bold">
-              New
-            </span>
           </button>
         </div>
       )}
@@ -432,6 +429,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
         <MultiMonthSalarySlipGenerator
           company={selectedCompany}
           employees={employees}
+          initialEmployeeId={form.watch("employee_id") || undefined}
           onBackToSingle={() => setMode("single")}
         />
       ) : (
@@ -601,7 +599,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
       <div className="grid gap-6 md:grid-cols-2">
         {/* EARNINGS */}
         <Card className="shadow-sm">
-          <CardHeader className="bg-primary/5 pb-3">
+          <CardHeader className="bg-primary/5 pb-3 pt-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base font-semibold text-primary">
@@ -721,7 +719,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
 
         {/* DEDUCTIONS */}
         <Card className="shadow-sm">
-          <CardHeader className="bg-destructive/5 pb-3">
+          <CardHeader className="bg-destructive/5 pb-3 pt-3">
             <div className="flex items-center justify-between">
               <div>
                 <CardTitle className="text-base font-semibold text-destructive">

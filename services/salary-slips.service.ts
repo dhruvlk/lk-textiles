@@ -9,7 +9,10 @@ import type {
   PaginationParams,
   SalarySlip,
   SalarySlipFilters,
+  BulkSalaryMonthItem,
 } from '@/types';
+import type { Employee } from '@/types/permissions';
+import { numberToWords } from '@/lib/number-to-words';
 
 type SalarySlipInsert = Database['public']['Tables']['salary_slips']['Insert'];
 type SalarySlipUpdate = Database['public']['Tables']['salary_slips']['Update'];
@@ -375,5 +378,189 @@ export async function checkSalarySlipExists(
   const { data, error } = await query.maybeSingle();
   if (error) throw error;
   return data ? mapSalarySlip(data) : null;
+}
+
+export interface BulkGenerateParams {
+  companyId: string;
+  employee: Employee;
+  items: BulkSalaryMonthItem[];
+  userId?: string;
+  onProgress?: (current: number, total: number, month: string, year: number) => void;
+}
+
+export interface BulkGenerateResult {
+  slips: SalarySlip[];
+  createdCount: number;
+  updatedCount: number;
+  keptCount: number;
+  skippedCount: number;
+}
+
+export async function bulkGenerateSalarySlips({
+  companyId,
+  employee,
+  items,
+  userId,
+  onProgress,
+}: BulkGenerateParams): Promise<BulkGenerateResult> {
+  const resultSlips: SalarySlip[] = [];
+  let createdCount = 0;
+  let updatedCount = 0;
+  let keptCount = 0;
+  let skippedCount = 0;
+
+  for (let i = 0; i < items.length; i++) {
+    const item = items[i];
+    onProgress?.(i + 1, items.length, item.month, item.year);
+
+    if (item.existingSlip) {
+      if (item.duplicateAction === 'skip') {
+        skippedCount++;
+        continue;
+      }
+      if (item.duplicateAction === 'keep') {
+        resultSlips.push(item.existingSlip);
+        keptCount++;
+        continue;
+      }
+      if (item.duplicateAction === 'update') {
+        const grossEarnings =
+          Number(item.basic_salary || 0) +
+          Number(item.hra || 0) +
+          Number(item.conveyance || 0) +
+          Number(item.medical_allowance || 0) +
+          Number(item.special_allowance || 0) +
+          Number(item.bonus || 0) +
+          Number(item.overtime || 0) +
+          Number(item.other_earnings || 0);
+
+        const totalDeductions =
+          Number(item.pf || 0) +
+          Number(item.professional_tax || 0) +
+          Number(item.tds || 0) +
+          Number(item.esic || 0) +
+          Number(item.loan_deduction || 0) +
+          Number(item.advance_deduction || 0) +
+          Number(item.other_deduction || 0);
+
+        const netSalary = Math.max(0, grossEarnings - totalDeductions);
+        const amountInWords = numberToWords(Math.round(netSalary));
+
+        const updated = await updateSalarySlip({
+          id: item.existingSlip.id,
+          basic_salary: item.basic_salary,
+          hra: item.hra,
+          conveyance: item.conveyance,
+          medical_allowance: item.medical_allowance,
+          special_allowance: item.special_allowance,
+          bonus: item.bonus,
+          overtime: item.overtime,
+          other_earnings: item.other_earnings,
+          pf: item.pf,
+          professional_tax: item.professional_tax,
+          tds: item.tds,
+          esic: item.esic,
+          loan_deduction: item.loan_deduction,
+          advance_deduction: item.advance_deduction,
+          other_deduction: item.other_deduction,
+          notes: item.notes !== undefined ? item.notes : item.existingSlip.notes,
+          payment_status: item.payment_status || item.existingSlip.payment_status,
+          pay_date: item.pay_date || item.existingSlip.pay_date,
+          amount_in_words: amountInWords,
+        });
+        resultSlips.push(updated);
+        updatedCount++;
+        continue;
+      }
+    }
+
+    // New Slip Generation
+    const slipNumber = await generateSalarySlipNumber(companyId, item.month, item.year);
+    const grossEarnings =
+      Number(item.basic_salary || 0) +
+      Number(item.hra || 0) +
+      Number(item.conveyance || 0) +
+      Number(item.medical_allowance || 0) +
+      Number(item.special_allowance || 0) +
+      Number(item.bonus || 0) +
+      Number(item.overtime || 0) +
+      Number(item.other_earnings || 0);
+
+    const totalDeductions =
+      Number(item.pf || 0) +
+      Number(item.professional_tax || 0) +
+      Number(item.tds || 0) +
+      Number(item.esic || 0) +
+      Number(item.loan_deduction || 0) +
+      Number(item.advance_deduction || 0) +
+      Number(item.other_deduction || 0);
+
+    const netSalary = Math.max(0, grossEarnings - totalDeductions);
+    const amountInWords = numberToWords(Math.round(netSalary));
+
+    const payload: Omit<SalarySlip, 'id' | 'created_at' | 'updated_at'> = {
+      company_id: companyId,
+      employee_id: employee.user_id,
+      employee_name: employee.full_name,
+      employee_code: employee.employee_code || null,
+      designation: employee.designation || null,
+      department: employee.department || null,
+      joining_date: employee.joining_date || null,
+      bank_name: employee.bank_name || null,
+      bank_account_number: employee.bank_account_number || null,
+      bank_ifsc: employee.bank_ifsc || null,
+      pan_number: employee.pan_number || null,
+      uan_number: employee.uan_number || null,
+      pf_number: employee.pf_number || null,
+      salary_slip_number: slipNumber,
+      salary_month: item.month,
+      salary_year: item.year,
+      pay_date: item.pay_date || new Date().toISOString().split('T')[0],
+      basic_salary: item.basic_salary,
+      hra: item.hra,
+      conveyance: item.conveyance,
+      medical_allowance: item.medical_allowance,
+      special_allowance: item.special_allowance,
+      bonus: item.bonus,
+      overtime: item.overtime,
+      other_earnings: item.other_earnings,
+      gross_earnings: grossEarnings,
+      pf: item.pf,
+      professional_tax: item.professional_tax,
+      tds: item.tds,
+      esic: item.esic,
+      loan_deduction: item.loan_deduction,
+      advance_deduction: item.advance_deduction,
+      other_deduction: item.other_deduction,
+      total_deductions: totalDeductions,
+      net_salary: netSalary,
+      amount_in_words: amountInWords,
+      notes: item.notes || null,
+      payment_status: item.payment_status || 'Paid',
+      payment_mode: item.payment_mode || null,
+      payment_date: item.payment_date || null,
+      created_by: userId || null,
+    };
+
+    const created = await createSalarySlip(payload, userId);
+    resultSlips.push(created);
+    createdCount++;
+  }
+
+  // Sort chronologically ascending
+  resultSlips.sort((a, b) => {
+    if (a.salary_year !== b.salary_year) return a.salary_year - b.salary_year;
+    const mA = MONTH_INDEX[a.salary_month.toLowerCase()] || 0;
+    const mB = MONTH_INDEX[b.salary_month.toLowerCase()] || 0;
+    return mA - mB;
+  });
+
+  return {
+    slips: resultSlips,
+    createdCount,
+    updatedCount,
+    keptCount,
+    skippedCount,
+  };
 }
 

@@ -31,6 +31,148 @@ export const BORDER_COLOR = '#DCE2EA'; // Subtle Gray-Blue Border
 export const TEXT_DARK = '#111827';
 export const TEXT_MUTED = '#4B5563';
 
+// ----------------------------------------------------------------------------
+// SHARED SALARY SLIP DESIGN TOKENS (SOURCE OF TRUTH: SINGLE MONTH)
+// ----------------------------------------------------------------------------
+export const salarySlipAuthorization = {
+  authFooter: {
+    marginTop: 'auto',
+    paddingHorizontal: 28,
+    paddingBottom: 30,
+    alignItems: 'flex-end',
+  },
+  authBlock: {
+    alignItems: 'center',
+    width: 175,
+  },
+  authCompanyHeader: {
+    fontSize: 14,
+    fontFamily: 'Times-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'center',
+  },
+  authStampSpace: {
+    height: 65, // ~25-28mm generous stamp area
+  },
+  authLine: {
+    width: 165,
+    borderTopWidth: 1,
+    borderTopColor: PRIMARY_COLOR,
+    marginBottom: 3,
+  },
+  authSignatoryTitle: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    color: PRIMARY_COLOR,
+    textAlign: 'center',
+  },
+  authSignatorySubtitle: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica',
+    color: '#6B7280',
+    textAlign: 'center',
+    marginTop: 1,
+  },
+} as const;
+
+export const salarySlipTypography = {
+  // Document Header
+  docTitle: {
+    fontSize: 24,
+    fontFamily: 'Times-Bold',
+  },
+  docPeriod: {
+    fontSize: 18,
+    fontFamily: 'Times-Bold',
+  },
+  docPeriodLabel: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 1.8,
+  },
+  // Employee Info
+  empCardHeader: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 0.8,
+  },
+  empLabel: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica',
+  },
+  empColon: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+  },
+  empValue: {
+    fontSize: 10,
+    fontFamily: 'Helvetica-Bold',
+  },
+  // Breakdown & History Table
+  tableHeader: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+    letterSpacing: 0.8,
+  },
+  tableHead: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+  },
+  tableCell: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+  },
+  tableCellBold: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+  },
+  tableTotal: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+  },
+  // Net / Total Salary Summary Box
+  summaryTitle: {
+    fontSize: 19,
+    fontFamily: 'Times-Bold',
+  },
+  summaryAmount: {
+    fontSize: 19,
+    fontFamily: 'Times-Bold',
+  },
+  wordsLabel: {
+    fontSize: 8,
+    fontFamily: 'Helvetica',
+  },
+  wordsValue: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica-Bold',
+  },
+  // Note Callout Box
+  noteTitle: {
+    fontSize: 8,
+    fontFamily: 'Helvetica-Bold',
+  },
+  noteLine: {
+    fontSize: 7.5,
+    fontFamily: 'Helvetica',
+    lineHeight: 1.35,
+  },
+  // Authorization
+  authCompanyHeader: {
+    fontSize: 14,
+    fontFamily: 'Times-Bold',
+  },
+  authSignatoryTitle: {
+    fontSize: 9.5,
+    fontFamily: 'Helvetica-Bold',
+  },
+  authSignatorySubtitle: {
+    fontSize: 8.5,
+    fontFamily: 'Helvetica',
+  },
+} as const;
+
+
 const PhoneIcon = () => (
   <Svg viewBox="0 0 24 24" width="10" height="10">
     <Path
@@ -668,7 +810,7 @@ const styles = StyleSheet.create({
     height: 65, // ~25-28mm generous stamp area for Single Month
   },
   authStampSpaceMulti: {
-    height: 40, // ~16-18mm compact stamp area for Multi-Month
+    height: 65, // Exact same stamp area as Single Month
   },
   authLine: {
     width: 165,
@@ -746,6 +888,7 @@ export interface SalarySlipPDFProps {
   historySlips?: SalarySlip[];
   showHistory?: boolean;
   variant?: 'single' | 'multi';
+  wrapInDocument?: boolean;
 }
 
 export function SalarySlipPDF({
@@ -754,6 +897,7 @@ export function SalarySlipPDF({
   historySlips = [],
   showHistory = true,
   variant,
+  wrapInDocument = true,
 }: SalarySlipPDFProps) {
   // Determine mode: if variant is explicitly provided, use it; otherwise, if history exists and showHistory is true, use 'multi'
   const isMulti =
@@ -797,10 +941,9 @@ export function SalarySlipPDF({
     ? generateSalaryRevisionNotes(historySlips, salarySlip.notes)
     : [];
 
-  return (
-    <Document title={`Salary-Slip-${salarySlip.salary_slip_number}`}>
-      <Page size="A4" style={styles.page}>
-        <View style={styles.pageBorder}>
+  const pageContent = (
+    <Page size="A4" style={styles.page}>
+      <View style={styles.pageBorder}>
           {/* Top Left Decorative Accent Stripe */}
           <TopAccentBar />
 
@@ -1043,7 +1186,7 @@ export function SalarySlipPDF({
               <View style={!isMulti ? styles.authStampSpaceSingle : styles.authStampSpaceMulti} />
               <View style={styles.authLine} />
               <Text style={styles.authSignatoryTitle}>Authorized Signatory</Text>
-              <Text style={styles.authSignatorySubtitle}>(Director / Accounts)</Text>
+              <Text style={styles.authSignatorySubtitle}>(Director)</Text>
             </View>
           </View>
 
@@ -1051,6 +1194,19 @@ export function SalarySlipPDF({
           <BottomWave />
         </View>
       </Page>
+  );
+
+  if (wrapInDocument === false) {
+    return pageContent;
+  }
+
+  return (
+    <Document title={`Salary-Slip-${salarySlip.salary_slip_number}`}>
+      {pageContent}
     </Document>
   );
+}
+
+export function SalarySlipPage(props: Omit<SalarySlipPDFProps, 'wrapInDocument'>) {
+  return <SalarySlipPDF {...props} wrapInDocument={false} />;
 }

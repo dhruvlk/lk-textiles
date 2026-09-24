@@ -4,7 +4,7 @@ import { Company, SalarySlip, MultiMonthSummaryData } from '@/types';
 import { numberToWords } from '@/lib/number-to-words';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
 import { generateSalaryRevisionNotes } from '@/lib/salary-revision-notes';
-import { SalarySlipPDF } from '@/components/pdf/SalarySlipPDF';
+import { SalarySlipPage, salarySlipAuthorization, salarySlipTypography } from '@/components/pdf/SalarySlipPDF';
 
 // Register Gujarati font for traditional header
 const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && Boolean(process.cwd);
@@ -214,23 +214,19 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   docTitle: {
-    fontSize: 22,
-    fontFamily: 'Times-Bold',
+    ...salarySlipTypography.docTitle,
     color: PRIMARY_COLOR,
   },
   docPeriodCol: {
     alignItems: 'flex-end',
   },
   docPeriodText: {
-    fontSize: 14,
-    fontFamily: 'Times-Bold',
+    ...salarySlipTypography.docPeriod,
     color: PRIMARY_COLOR,
   },
   docPeriodLabel: {
-    fontSize: 7.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.docPeriodLabel,
     color: '#6B7280',
-    letterSpacing: 1.8,
     marginTop: 1,
   },
 
@@ -254,10 +250,8 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER_COLOR,
   },
   empCardHeaderText: {
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.empCardHeader,
     color: PRIMARY_COLOR,
-    letterSpacing: 0.8,
   },
   empCardBody: {
     paddingVertical: 7,
@@ -270,20 +264,17 @@ const styles = StyleSheet.create({
   },
   empLabel: {
     width: 95,
-    fontSize: 9.5,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.empLabel,
     color: TEXT_MUTED,
   },
   empColon: {
     width: 14,
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.empColon,
     color: TEXT_MUTED,
   },
   empValue: {
     flex: 1,
-    fontSize: 10,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.empValue,
     color: TEXT_DARK,
   },
 
@@ -305,10 +296,8 @@ const styles = StyleSheet.create({
     borderBottomColor: BORDER_COLOR,
   },
   tableHeaderText: {
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableHeader,
     color: PRIMARY_COLOR,
-    letterSpacing: 0.8,
   },
   tableHeadRow: {
     flexDirection: 'row',
@@ -320,28 +309,24 @@ const styles = StyleSheet.create({
   },
   tableHeadMonth: {
     width: '28%',
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableHead,
     color: PRIMARY_COLOR,
   },
   tableHeadBasic: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableHead,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
   tableHeadDeduct: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableHead,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
   tableHeadNet: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableHead,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
@@ -357,28 +342,24 @@ const styles = StyleSheet.create({
   },
   tableCellMonth: {
     width: '28%',
-    fontSize: 9,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.tableCell,
     color: '#374151',
   },
   tableCellBasic: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.tableCell,
     color: TEXT_DARK,
     textAlign: 'right',
   },
   tableCellDeduct: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.tableCell,
     color: TEXT_DARK,
     textAlign: 'right',
   },
   tableCellNet: {
     width: '24%',
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableCellBold,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
@@ -392,28 +373,24 @@ const styles = StyleSheet.create({
   },
   tableFooterMonth: {
     width: '28%',
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableTotal,
     color: PRIMARY_COLOR,
   },
   tableFooterBasic: {
     width: '24%',
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableTotal,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
   tableFooterDeduct: {
     width: '24%',
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableTotal,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
   tableFooterNet: {
     width: '24%',
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.tableTotal,
     color: PRIMARY_COLOR,
     textAlign: 'right',
   },
@@ -435,13 +412,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   summaryTitle: {
-    fontSize: 18,
-    fontFamily: 'Times-Bold',
+    ...salarySlipTypography.summaryTitle,
     color: PRIMARY_COLOR,
   },
   summaryAmount: {
-    fontSize: 18,
-    fontFamily: 'Times-Bold',
+    ...salarySlipTypography.summaryAmount,
     color: PRIMARY_COLOR,
   },
   summarySubRow: {
@@ -466,14 +441,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   wordsLabel: {
-    fontSize: 9,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.wordsLabel,
     color: '#6B7280',
     marginRight: 4,
   },
   wordsValue: {
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.wordsValue,
     color: PRIMARY_COLOR,
     flex: 1,
   },
@@ -498,57 +471,37 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   noteTitle: {
-    fontSize: 9,
-    fontFamily: 'Helvetica-Bold',
+    ...salarySlipTypography.noteTitle,
     color: PRIMARY_COLOR,
     marginBottom: 2.5,
   },
   noteLine: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica',
+    ...salarySlipTypography.noteLine,
     color: '#374151',
-    lineHeight: 1.35,
     marginBottom: 1,
   },
 
   // AUTHORIZATION FOOTER SECTION
   authFooter: {
-    marginTop: 'auto',
-    paddingHorizontal: 28,
-    paddingBottom: 30,
-    alignItems: 'flex-end',
+    ...salarySlipAuthorization.authFooter,
   },
   authBlock: {
-    alignItems: 'center',
-    width: 175,
+    ...salarySlipAuthorization.authBlock,
   },
   authCompanyHeader: {
-    fontSize: 14,
-    fontFamily: 'Times-Bold',
-    color: PRIMARY_COLOR,
-    textAlign: 'center',
+    ...salarySlipAuthorization.authCompanyHeader,
   },
   authStampSpace: {
-    height: 44,
+    ...salarySlipAuthorization.authStampSpace,
   },
   authLine: {
-    width: 165,
-    borderTopWidth: 1,
-    borderTopColor: PRIMARY_COLOR,
-    marginBottom: 3,
+    ...salarySlipAuthorization.authLine,
   },
   authSignatoryTitle: {
-    fontSize: 9.5,
-    fontFamily: 'Helvetica-Bold',
-    color: PRIMARY_COLOR,
-    textAlign: 'center',
+    ...salarySlipAuthorization.authSignatoryTitle,
   },
   authSignatorySubtitle: {
-    fontSize: 8.5,
-    fontFamily: 'Helvetica',
-    color: '#6B7280',
-    textAlign: 'center',
-    marginTop: 1,
+    ...salarySlipAuthorization.authSignatorySubtitle,
   },
 
   bottomWaveSvg: {
@@ -621,14 +574,14 @@ export function MultiMonthSalarySlipPDF({
     summary.amountInWords ||
     numberToWords(Math.round(summary.totalNetSalary));
 
-  // If detailed mode, render each slip using SalarySlipPDF on its own page
+  // If detailed mode, render each slip using SalarySlipPage on its own page
   if (mode === 'detailed' && detailedSlips.length > 0) {
     return (
       <Document
         title={`Salary-Slips-${summary.employeeName.replace(/\s+/g, '_')}-${summary.periodDisplay.replace(/\s+/g, '_')}`}
       >
         {detailedSlips.map((slip) => (
-          <SalarySlipPDF
+          <SalarySlipPage
             key={slip.id}
             salarySlip={slip}
             company={company}
@@ -643,6 +596,9 @@ export function MultiMonthSalarySlipPDF({
   const notesList = generateSalaryRevisionNotes(detailedSlips, summary.notes);
 
   // Summary Mode: 1-Page Comprehensive Statement
+  const isCompact = summary.rows.length > 6;
+  const isUltraCompact = summary.rows.length > 9;
+
   return (
     <Document
       title={`Salary-Statement-${summary.employeeName.replace(/\s+/g, '_')}-${summary.periodDisplay.replace(/\s+/g, '_')}`}
@@ -653,7 +609,7 @@ export function MultiMonthSalarySlipPDF({
           <TopAccentBar />
 
           {/* 1. COMPANY HEADER */}
-          <View style={styles.header}>
+          <View style={[styles.header, isCompact ? { marginBottom: 2 } : {}]}>
             <View style={styles.phoneRow}>
               <PhoneIcon />
               <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
@@ -673,7 +629,7 @@ export function MultiMonthSalarySlipPDF({
           </View>
 
           {/* 2. DOCUMENT HEADER */}
-          <View style={styles.docHeader}>
+          <View style={[styles.docHeader, isCompact ? { marginTop: 4, marginBottom: 4 } : {}]}>
             <Text style={styles.docTitle}>Salary Statement</Text>
             <View style={styles.docPeriodCol}>
               <Text style={styles.docPeriodText}>{summary.periodDisplay}</Text>
@@ -682,12 +638,12 @@ export function MultiMonthSalarySlipPDF({
           </View>
 
           {/* 3. EMPLOYEE DETAILS */}
-          <View style={styles.empSection}>
+          <View style={[styles.empSection, isCompact ? { marginBottom: 5 } : {}]}>
             <View style={styles.empCard}>
-              <View style={styles.empCardHeader}>
+              <View style={[styles.empCardHeader, isCompact ? { paddingVertical: 3 } : {}]}>
                 <Text style={styles.empCardHeaderText}>EMPLOYEE DETAILS</Text>
               </View>
-              <View style={styles.empCardBody}>
+              <View style={[styles.empCardBody, isCompact ? { paddingVertical: 4 } : {}]}>
                 <View style={styles.empRow}>
                   <Text style={styles.empLabel}>Employee Name</Text>
                   <Text style={styles.empColon}>:</Text>
@@ -708,13 +664,13 @@ export function MultiMonthSalarySlipPDF({
           </View>
 
           {/* 4. SALARY BREAKDOWN TABLE */}
-          <View style={styles.tableSection}>
-            <View style={styles.tableHeader}>
+          <View style={[styles.tableSection, isCompact ? { marginBottom: 5 } : {}]}>
+            <View style={[styles.tableHeader, isCompact ? { paddingVertical: 3 } : {}]}>
               <Text style={styles.tableHeaderText}>
                 MONTHLY SALARY BREAKDOWN ({summary.rows.length} {summary.rows.length === 1 ? 'MONTH' : 'MONTHS'})
               </Text>
             </View>
-            <View style={styles.tableHeadRow}>
+            <View style={[styles.tableHeadRow, isUltraCompact ? { paddingVertical: 3 } : {}]}>
               <Text style={styles.tableHeadMonth}>Salary Month</Text>
               <Text style={styles.tableHeadBasic}>Basic Salary (Rs.)</Text>
               <Text style={styles.tableHeadDeduct}>Deductions (Rs.)</Text>
@@ -723,16 +679,32 @@ export function MultiMonthSalarySlipPDF({
             {summary.rows.map((r, i) => (
               <View
                 key={`${r.month}-${r.year}`}
-                style={[styles.tableDataRow, i % 2 === 1 ? styles.tableDataRowAlt : {}]}
+                style={[
+                  styles.tableDataRow,
+                  i % 2 === 1 ? styles.tableDataRowAlt : {},
+                  isUltraCompact
+                    ? { paddingVertical: 2.2, paddingHorizontal: 8 }
+                    : isCompact
+                    ? { paddingVertical: 3, paddingHorizontal: 10 }
+                    : {},
+                ]}
               >
-                <Text style={styles.tableCellMonth}>{r.monthDisplay}</Text>
-                <Text style={styles.tableCellBasic}>{formatAmount(r.basicSalary)}</Text>
-                <Text style={styles.tableCellDeduct}>{formatAmount(r.totalDeductions)}</Text>
-                <Text style={styles.tableCellNet}>{formatAmount(r.netSalary)}</Text>
+                <Text style={styles.tableCellMonth}>
+                  {r.monthDisplay}
+                </Text>
+                <Text style={styles.tableCellBasic}>
+                  {formatAmount(r.basicSalary)}
+                </Text>
+                <Text style={styles.tableCellDeduct}>
+                  {formatAmount(r.totalDeductions)}
+                </Text>
+                <Text style={styles.tableCellNet}>
+                  {formatAmount(r.netSalary)}
+                </Text>
               </View>
             ))}
             {/* Totals Row */}
-            <View style={styles.tableFooterRow}>
+            <View style={[styles.tableFooterRow, isUltraCompact ? { paddingVertical: 3 } : {}]}>
               <Text style={styles.tableFooterMonth}>TOTAL ({summary.rows.length} MONTHS)</Text>
               <Text style={styles.tableFooterBasic}>{formatAmount(summary.totalBasicSalary)}</Text>
               <Text style={styles.tableFooterDeduct}>{formatAmount(summary.totalDeductions)}</Text>
@@ -741,7 +713,7 @@ export function MultiMonthSalarySlipPDF({
           </View>
 
           {/* 5. TOTAL SALARY SUMMARY BOX */}
-          <View style={styles.summaryBox}>
+          <View style={[styles.summaryBox, isCompact ? { paddingVertical: 5, marginBottom: 5 } : {}]}>
             <View style={styles.summaryTop}>
               <Text style={styles.summaryTitle}>Total Net Salary</Text>
               <Text style={styles.summaryAmount}>
@@ -768,7 +740,7 @@ export function MultiMonthSalarySlipPDF({
 
           {/* 6. NOTE CALLOUT BOX */}
           {notesList.length > 0 ? (
-            <View style={styles.noteBox}>
+            <View style={[styles.noteBox, isCompact ? { padding: 5, marginBottom: 5 } : {}]}>
               <View style={styles.noteIconCol}>
                 <NoteIcon />
               </View>
@@ -790,7 +762,7 @@ export function MultiMonthSalarySlipPDF({
               <View style={styles.authStampSpace} />
               <View style={styles.authLine} />
               <Text style={styles.authSignatoryTitle}>Authorized Signatory</Text>
-              <Text style={styles.authSignatorySubtitle}>(Director / Accounts)</Text>
+              <Text style={styles.authSignatorySubtitle}>(Director)</Text>
             </View>
           </View>
 
