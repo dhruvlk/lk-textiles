@@ -40,13 +40,26 @@ import { CapabilitiesTab } from "./tabs/CapabilitiesTab"
 import { AdvantagesTab } from "./tabs/AdvantagesTab"
 import { ContactTab } from "./tabs/ContactTab"
 import { FooterTab } from "./tabs/FooterTab"
+import { PrivacyPolicyTab } from "./tabs/PrivacyPolicyTab"
+import { TermsConditionsTab } from "./tabs/TermsConditionsTab"
+import { ShieldAlert, Scale } from "lucide-react"
 
 interface LandingAdminDashboardProps {
   adminEmail?: string
   onLogout: () => void
 }
 
-type TabKey = "brand" | "seo" | "hero" | "heritage" | "capabilities" | "advantages" | "contact" | "footer"
+type TabKey =
+  | "brand"
+  | "seo"
+  | "hero"
+  | "heritage"
+  | "capabilities"
+  | "advantages"
+  | "contact"
+  | "footer"
+  | "privacy"
+  | "terms"
 
 interface TabConfig {
   key: TabKey
@@ -64,6 +77,8 @@ const tabs: TabConfig[] = [
   { key: "advantages", label: "Why Choose Us", icon: ShieldCheck, description: "Key selling points, certifications & advantages" },
   { key: "contact", label: "Contact Details", icon: Phone, description: "Office address, phone numbers & inquiry contacts" },
   { key: "footer", label: "Footer", icon: FileText, description: "Copyright, social handles, links & legal credits" },
+  { key: "privacy", label: "Privacy Policy", icon: ShieldAlert, description: "Manage privacy policy, personal data handling & disclosures" },
+  { key: "terms", label: "Terms & Conditions", icon: Scale, description: "Manage terms of service, user rights, licenses & legal agreements" },
 ]
 
 export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDashboardProps) {
@@ -77,6 +92,10 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const router = useRouter()
+
+  const isLegalTab = activeTab === "privacy" || activeTab === "terms"
+  const liveHref = activeTab === "privacy" ? "/privacy-policy" : activeTab === "terms" ? "/terms-and-conditions" : "/"
+  const liveLabel = activeTab === "privacy" ? "View Privacy Policy" : activeTab === "terms" ? "View Terms" : "View Live Site"
 
   const currentTab = useMemo(() => {
     return tabs.find((t) => t.key === activeTab) || tabs[0]
@@ -284,7 +303,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
         </div>
 
         {/* Navigation Items List */}
-        <div className="flex-1 overflow-y-auto p-3.5 space-y-1.5 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto p-3.5 space-y-1.5 no-scrollbar">
           <div className="px-3 py-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
             Page Sections
           </div>
@@ -377,7 +396,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5 no-scrollbar">
               <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                 Sections
               </div>
@@ -452,7 +471,12 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                   {currentTab.label}
                 </span>
                 {/* Save status badge */}
-                {isDirty ? (
+                {isLegalTab ? (
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200/70 shadow-2xs">
+                    <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                    <span>Legal Document CMS</span>
+                  </span>
+                ) : isDirty ? (
                   <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/70 shadow-2xs">
                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                     <span className="hidden sm:inline">Unsaved Changes</span>
@@ -472,18 +496,18 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
           <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
             {/* View Live Site Link */}
             <Link
-              href="/"
+              href={liveHref}
               target="_blank"
               rel="noopener noreferrer"
               className="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100/80 hover:bg-slate-200/80 border border-slate-200/70 transition-all shadow-2xs"
             >
               <Globe className="w-3.5 h-3.5 text-slate-500" />
-              <span>View Live Site</span>
+              <span>{liveLabel}</span>
               <ExternalLink className="w-3 h-3 text-slate-400" />
             </Link>
 
-            {/* Discard Button */}
-            {isDirty && (
+            {/* Discard Button (Only for homepage tabs) */}
+            {!isLegalTab && isDirty && (
               <Button
                 type="button"
                 variant="outline"
@@ -496,40 +520,42 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
               </Button>
             )}
 
-            {/* Save / Publish Button */}
-            <Button
-              type="button"
-              size="sm"
-              disabled={!isDirty || isSaving || Boolean(uploadingField)}
-              onClick={handleSave}
-              className={cn(
-                "rounded-xl px-3.5 sm:px-4 text-xs font-bold transition-all shadow-sm",
-                isDirty && !uploadingField
-                  ? "bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white hover:brightness-110 shadow-md shadow-slate-900/15 scale-[1.02] active:scale-[0.99]"
-                  : "bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none"
-              )}
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin" />
-                  <span className="hidden sm:inline">Publishing...</span>
-                </>
-              ) : uploadingField ? (
-                <>
-                  <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin text-slate-400" />
-                  <span className="hidden sm:inline">Uploading Image...</span>
-                </>
-              ) : (
-                <>
-                  {isDirty ? (
-                    <Save className="w-3.5 h-3.5 sm:mr-1.5" />
-                  ) : (
-                    <CheckCircle2 className="w-3.5 h-3.5 sm:mr-1.5 text-emerald-500" />
-                  )}
-                  <span>{isDirty ? "Publish Changes" : "All Changes Saved"}</span>
-                </>
-              )}
-            </Button>
+            {/* Save / Publish Button (Only for homepage tabs) */}
+            {!isLegalTab && (
+              <Button
+                type="button"
+                size="sm"
+                disabled={!isDirty || isSaving || Boolean(uploadingField)}
+                onClick={handleSave}
+                className={cn(
+                  "rounded-xl px-3.5 sm:px-4 text-xs font-bold transition-all shadow-sm",
+                  isDirty && !uploadingField
+                    ? "bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white hover:brightness-110 shadow-md shadow-slate-900/15 scale-[1.02] active:scale-[0.99]"
+                    : "bg-slate-100 text-slate-400 border border-slate-200/60 cursor-not-allowed shadow-none"
+                )}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin" />
+                    <span className="hidden sm:inline">Publishing...</span>
+                  </>
+                ) : uploadingField ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 sm:mr-1.5 animate-spin text-slate-400" />
+                    <span className="hidden sm:inline">Uploading Image...</span>
+                  </>
+                ) : (
+                  <>
+                    {isDirty ? (
+                      <Save className="w-3.5 h-3.5 sm:mr-1.5" />
+                    ) : (
+                      <CheckCircle2 className="w-3.5 h-3.5 sm:mr-1.5 text-emerald-500" />
+                    )}
+                    <span>{isDirty ? "Publish Changes" : "All Changes Saved"}</span>
+                  </>
+                )}
+              </Button>
+            )}
 
             {/* Logout */}
             <button
@@ -547,7 +573,7 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
         {/* Main Scrollable Content Container */}
         <main
           id="landing-admin-main"
-          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 bg-[#F8F9FA] scroll-smooth"
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8 bg-[#F8F9FA] scroll-smooth no-scrollbar"
         >
           <div className="max-w-5xl mx-auto space-y-6 pb-28">
             {/* Active Section Header Banner */}
@@ -634,6 +660,10 @@ export function LandingAdminDashboard({ adminEmail, onLogout }: LandingAdminDash
                   setFormData={setFormData}
                 />
               )}
+
+              {activeTab === "privacy" && <PrivacyPolicyTab />}
+
+              {activeTab === "terms" && <TermsConditionsTab />}
             </div>
           </div>
         </main>

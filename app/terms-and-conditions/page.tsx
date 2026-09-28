@@ -1,35 +1,35 @@
 import type { Metadata } from "next"
 import Link from "next/link"
-import { ChevronLeft, ShieldAlert, ArrowLeft, Mail } from "lucide-react"
+import { ChevronLeft, Scale, ArrowLeft, Mail } from "lucide-react"
 import { getPublishedLegalContent } from "@/lib/landing/legal-content"
 import { getPublishedLandingContent } from "@/lib/landing/content"
 import { Button } from "@/components/ui/button"
 
 export async function generateMetadata(): Promise<Metadata> {
   const [legal, landing] = await Promise.all([
-    getPublishedLegalContent("privacy_policy"),
+    getPublishedLegalContent("terms_conditions"),
     getPublishedLandingContent(),
   ])
 
   const brandName = landing.brand?.name || "LK Textiles"
-  const title = legal?.title ? `${legal.title} | ${brandName}` : `Privacy Policy | ${brandName}`
+  const title = legal?.title ? `${legal.title} | ${brandName}` : `Terms & Conditions | ${brandName}`
   const description =
     legal?.description ||
     landing.seo?.description ||
-    "Privacy policy and data handling information for LK Textiles. We are committed to protecting your privacy and personal information."
+    "Terms and conditions of service for LK Textiles. Please read these terms carefully before using our website or services."
   const ogImage = landing.seo?.ogImage || "/og-image.png"
 
   return {
     title,
     description,
     alternates: {
-      canonical: "https://lk-textiles.vercel.app/privacy-policy",
+      canonical: "https://lk-textiles.vercel.app/terms-and-conditions",
     },
     openGraph: {
       siteName: brandName,
       title,
       description,
-      url: "https://lk-textiles.vercel.app/privacy-policy",
+      url: "https://lk-textiles.vercel.app/terms-and-conditions",
       type: "website",
       locale: "en_US",
       images: [
@@ -51,9 +51,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function PrivacyPolicyPage() {
+export default async function TermsAndConditionsPage() {
   const [legal, landing] = await Promise.all([
-    getPublishedLegalContent("privacy_policy"),
+    getPublishedLegalContent("terms_conditions"),
     getPublishedLandingContent(),
   ])
 
@@ -77,7 +77,7 @@ export default async function PrivacyPolicyPage() {
             {/* Header */}
             <div className="border-b border-slate-200/80 pb-8 mb-10">
               <h1 className="text-3xl md:text-5xl font-black text-slate-950 tracking-tight mb-4">
-                {legal.title || "Privacy Policy"}
+                {legal.title || "Terms & Conditions"}
               </h1>
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                 <span>
@@ -116,13 +116,13 @@ export default async function PrivacyPolicyPage() {
           /* Empty / Not-Found State */
           <div className="py-16 md:py-24 text-center max-w-lg mx-auto">
             <div className="w-16 h-16 rounded-3xl bg-slate-100 border border-slate-200/80 flex items-center justify-center text-slate-700 mx-auto mb-6 shadow-xs">
-              <ShieldAlert className="w-8 h-8 text-slate-500" />
+              <Scale className="w-8 h-8 text-slate-500" />
             </div>
             <h1 className="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight mb-3">
-              Privacy Policy Not Available
+              Terms & Conditions Not Available
             </h1>
             <p className="text-sm md:text-base text-slate-500 leading-relaxed mb-8">
-              The Privacy Policy for {brandName} is currently being updated or has not been published yet. Please check back later or contact our team directly for inquiries.
+              The Terms & Conditions for {brandName} are currently being updated or have not been published yet. Please check back later or contact our team directly.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
               <Link href="/">
