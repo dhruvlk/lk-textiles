@@ -19,7 +19,6 @@ import { DeleteConfirmationModal } from "./DeleteConfirmationModal"
 import { PublishButton } from "./PublishButton"
 import { LegalContentType, LegalContent } from "@/types/landing-legal"
 import { defaultLegalContentMap } from "@/constants/default-legal-content"
-import { cn } from "@/lib/utils"
 
 interface LegalContentCardProps {
   type: LegalContentType
@@ -54,54 +53,64 @@ export function LegalContentCard({
   const [isDeleting, setIsDeleting] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
 
-  // Fetch current content from server API
-  const fetchContent = async () => {
-    try {
-      setIsLoading(true)
-      const res = await fetch(`/api/admin/landing/legal?type=${type}`, { cache: "no-store" })
-      if (!res.ok) {
-        throw new Error("Failed to load legal document.")
-      }
-      const json = await res.json()
-      if (json.data) {
-        setInitialData(json.data)
-        setFormData({
-          title: json.data.title || "",
-          description: json.data.description || "",
-          content: json.data.content || "",
-        })
-      } else {
-        // Fallback to defaults
-        const fallback = defaultLegalContentMap[type]
-        if (fallback) {
-          setInitialData(fallback)
+  useEffect(() => {
+    let ignore = false
+
+    async function load() {
+      try {
+        setIsLoading(true)
+        const res = await fetch(`/api/admin/landing/legal?type=${type}`, { cache: "no-store" })
+        if (!res.ok) {
+          throw new Error("Failed to load legal document.")
+        }
+        const json = await res.json()
+        if (ignore) return
+
+        if (json.data) {
+          setInitialData(json.data)
           setFormData({
-            title: fallback.title,
-            description: fallback.description,
-            content: fallback.content,
+            title: json.data.title || "",
+            description: json.data.description || "",
+            content: json.data.content || "",
           })
+        } else {
+          // Fallback to defaults
+          const fallback = defaultLegalContentMap[type]
+          if (fallback) {
+            setInitialData(fallback)
+            setFormData({
+              title: fallback.title,
+              description: fallback.description,
+              content: fallback.content,
+            })
+          }
+        }
+      } catch {
+        if (!ignore) {
+          toast.error(`Could not load ${title}. Using default values.`)
+          const fallback = defaultLegalContentMap[type]
+          if (fallback) {
+            setInitialData(fallback)
+            setFormData({
+              title: fallback.title,
+              description: fallback.description,
+              content: fallback.content,
+            })
+          }
+        }
+      } finally {
+        if (!ignore) {
+          setIsLoading(false)
         }
       }
-    } catch {
-      toast.error(`Could not load ${title}. Using default values.`)
-      const fallback = defaultLegalContentMap[type]
-      if (fallback) {
-        setInitialData(fallback)
-        setFormData({
-          title: fallback.title,
-          description: fallback.description,
-          content: fallback.content,
-        })
-      }
-    } finally {
-      setIsLoading(false)
     }
-  }
 
-  useEffect(() => {
-    fetchContent()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type])
+    void load()
+
+    return () => {
+      ignore = true
+    }
+  }, [type, title])
 
   // Check if dirty (unsaved changes exist)
   const isDirty = useMemo(() => {

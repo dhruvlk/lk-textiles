@@ -9,6 +9,7 @@ import {
   resolveInvoiceTerms,
 } from '@/lib/pdf-utils';
 import { getItemPieces, getItemQuantityDisplay } from '@/lib/challan-item';
+import { formatCompanyPhone } from '@/lib/validations/phone';
 
 // Register standard fonts
 Font.register({
@@ -523,10 +524,14 @@ export function ChallanPDF({ challan, company, party }: ChallanPDFProps) {
               <View style={styles.religiousTextWrapper}>
                 <Text style={styles.religiousText}>|| શ્રી ગણેશાય નમઃ ||</Text>
               </View>
-              <View style={styles.phoneWrapper}>
-                <PhoneIcon />
-                <Text style={styles.phoneText}>{company.phone || '-'}</Text>
-              </View>
+              {formatCompanyPhone(company.phone) ? (
+                <View style={styles.phoneWrapper}>
+                  <PhoneIcon />
+                  <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
+                </View>
+              ) : (
+                <View style={styles.phoneWrapper} />
+              )}
             </View>
             <Text style={styles.companyName}>
               {(company.name || '').replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}

@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Line, Polygon, Circle } from '@react-pdf/renderer';
 import type { Company, Customer, DeliveryChallan } from '@/types';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
+import { formatCompanyPhone } from '@/lib/validations/phone';
 
 Font.register({
   family: 'Gujarati',
@@ -401,7 +402,11 @@ const styles = StyleSheet.create({
 
 function formatPhones(phone?: string | null): string[] {
   if (!phone?.trim()) return [];
-  return phone.split(/[,/|]+/).map((p) => p.trim()).filter(Boolean).slice(0, 2);
+  return phone
+    .split(/[,/|]+/)
+    .map((p) => formatCompanyPhone(p))
+    .filter(Boolean)
+    .slice(0, 2);
 }
 
 function splitAddressLines(address: string): [string, string] {

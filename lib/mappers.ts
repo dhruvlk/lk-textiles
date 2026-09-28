@@ -1,9 +1,13 @@
-import { formatPhoneToStorage } from '@/lib/validations/phone';
+import { formatPhoneToStorage, formatCompanyPhone } from '@/lib/validations/phone';
 import type { Company } from '@/types';
 import type { CompanyRow } from '@/types/database';
 
 export function mapCompany(row: CompanyRow): Company {
-  return { ...row };
+  const mapped = { ...row };
+  if (mapped.phone) {
+    mapped.phone = formatCompanyPhone(mapped.phone);
+  }
+  return mapped;
 }
 
 export function companyToInsert(

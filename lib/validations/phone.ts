@@ -47,6 +47,32 @@ export function formatPhoneToStorage(val?: string | null): string | null {
 }
 
 /**
+ * Generic formatter for displaying a company/party phone number in standard Indian format.
+ * Transforms any 10-digit Indian number into: "+91 XXXXXXXXXX"
+ * Returns "" if phone is missing, null, or empty.
+ * Contains NO hardcoded company numbers or fallbacks.
+ */
+export function formatCompanyPhone(phone?: string | null): string {
+  if (!phone || !phone.trim()) {
+    return "";
+  }
+
+  const digits = cleanPhoneDigits(phone);
+
+  if (digits.length === 10) {
+    return `+91 ${digits}`;
+  }
+
+  const trimmed = phone.trim();
+  if (trimmed.startsWith("+91")) {
+    const rest = trimmed.slice(3).trim();
+    return rest ? `+91 ${rest}` : "";
+  }
+
+  return trimmed;
+}
+
+/**
  * Checks whether a given string is a valid Indian mobile number (+91 + 10 digits).
  */
 export function isValidIndianMobile(
