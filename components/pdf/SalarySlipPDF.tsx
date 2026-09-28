@@ -5,6 +5,7 @@ import { numberToWords } from '@/lib/number-to-words';
 import { formatCompanyAddress } from '@/lib/pdf-utils';
 import { generateSalaryRevisionNotes } from '@/lib/salary-revision-notes';
 import { CompanyWatermark } from '@/components/pdf/common/CompanyWatermark';
+import { formatCompanyPhone } from '@/lib/validations/phone';
 
 // Register Gujarati font for traditional header
 const isNode = typeof window === 'undefined' && typeof process !== 'undefined' && Boolean(process.cwd);
@@ -848,19 +849,7 @@ function formatAmount(val: number | string | null | undefined): string {
   });
 }
 
-function formatCompanyPhone(phone?: string | null): string {
-  if (!phone) return '+91 9825121931';
-  const trimmed = phone.trim();
-  if (trimmed.startsWith('+91')) {
-    const rest = trimmed.slice(3).trim();
-    return `+91 ${rest}`;
-  }
-  if (trimmed.startsWith('91') && trimmed.length > 10) {
-    const rest = trimmed.slice(2).trim();
-    return `+91 ${rest}`;
-  }
-  return `+91 ${trimmed}`;
-}
+
 
 function formatDate(dateStr?: string | null): string {
   if (!dateStr) return '—';
@@ -953,10 +942,12 @@ export function SalarySlipPDF({
 
           {/* 1. COMPANY HEADER */}
           <View style={styles.header}>
-            <View style={styles.phoneRow}>
-              <PhoneIcon />
-              <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
-            </View>
+            {formatCompanyPhone(company.phone) ? (
+              <View style={styles.phoneRow}>
+                <PhoneIcon />
+                <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
+              </View>
+            ) : null}
 
             <Text style={styles.companyName}>{company.name}</Text>
             <Text style={styles.companyTagline}>

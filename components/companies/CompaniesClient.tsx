@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils"
 import { useState } from "react"
 import { useAuth } from "@/hooks/useAuth"
 import type { Company } from "@/types"
+import { formatCompanyPhone } from "@/lib/validations/phone"
 
 export default function CompaniesClient() {
   const { companies, selectedCompany, setSelectedCompany } = useCompany()
@@ -116,7 +117,7 @@ export default function CompaniesClient() {
                 </CardHeader>
                 <CardContent className="space-y-1 text-sm text-muted-foreground">
                   <p className="line-clamp-1">{company.email || "No email"}</p>
-                  <p className="line-clamp-1">{company.phone || "No phone"}</p>
+                  <p className="line-clamp-1">{company.phone ? formatCompanyPhone(company.phone) : "No phone"}</p>
                   <p className="line-clamp-2 pt-1">{company.address || "No address"}</p>
                 </CardContent>
               </Card>

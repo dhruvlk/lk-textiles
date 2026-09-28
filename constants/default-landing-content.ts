@@ -132,7 +132,7 @@ export const defaultLandingContent: LandingPageContent = {
     subtitle:
       "Discuss your grey fabric, art silk, or custom manufacturing requirements with our team in Surat.",
     address: "Survey No.8, Plot No.29/1, Mahaprabhu Nagar, Limbayat, Surat, 395012",
-    phone1: "+91 98251 21931",
+    phone1: "+91 9828121931",
     phone2: "+91 70698 66165",
     email: "lktextiles6165@gmail.com",
     hours: "Mon - Sat: 9:00 AM - 8:00 PM IST",
@@ -142,7 +142,7 @@ export const defaultLandingContent: LandingPageContent = {
       "Redefining the standards of global textile manufacturing with uncompromising quality and sustainable innovation. As a trusted Surat Textile Manufacturer, we deliver excellence in every fabric.",
     copyright: "LK Textiles. All rights reserved.",
     socialLinks: {
-      whatsapp: "https://wa.me/919825121931",
+      whatsapp: "https://wa.me/919828121931",
     },
   },
 }

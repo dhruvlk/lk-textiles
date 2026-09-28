@@ -17,6 +17,7 @@ import { CompanyWatermark } from '@/components/pdf/common/CompanyWatermark'
 import Html from 'react-pdf-html'
 import type { Company, LetterPad } from '@/types'
 import { formatCompanyAddress } from '@/lib/pdf-utils'
+import { formatCompanyPhone } from '@/lib/validations/phone'
 
 // Need to register Gujarati font for the top line if it's dynamic, 
 // but we will hardcode the specific decorative text if it's the standard.
@@ -245,12 +246,12 @@ export function LetterPadPDF({ letterPad, company }: LetterPadPDFProps) {
               {/* Optional Gujarati text commonly used in Indian textiles context, hardcoded per design if this is specific for the user, but we can make it purely decorative or omit if not standard. The design has exactly this. */}
               <Text style={styles.religiousText}>|| શ્રી ગણેશાય નમઃ ||</Text>
               
-              {company.phone && (
+              {formatCompanyPhone(company.phone) ? (
                 <View style={styles.phoneBlock}>
                   <PhoneIcon />
-                  <Text style={styles.phoneText}>{company.phone}</Text>
+                  <Text style={styles.phoneText}>{formatCompanyPhone(company.phone)}</Text>
                 </View>
-              )}
+              ) : null}
             </View>
 
             <Text style={styles.companyName}>{company.name}</Text>

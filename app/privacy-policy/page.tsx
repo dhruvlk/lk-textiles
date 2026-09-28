@@ -82,11 +82,13 @@ export default async function PrivacyPolicyPage() {
               <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                 <span>
                   Last updated:{" "}
-                  {new Date(legal.updated_at || Date.now()).toLocaleDateString("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  })}
+                  {legal.updated_at
+                    ? new Date(legal.updated_at).toLocaleDateString("en-US", {
+                        month: "long",
+                        day: "numeric",
+                        year: "numeric",
+                      })
+                    : "Recently"}
                 </span>
                 <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                 <span>{brandName}</span>
