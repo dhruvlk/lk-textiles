@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
-import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import {
   Bold,
@@ -125,7 +124,6 @@ export function RichTextEditor({ value, onChange, disabled, className }: RichTex
       code: false,
       blockquote: false,
     }),
-    Underline,
     TextAlign.configure({
       types: ['heading', 'paragraph'],
     }),
