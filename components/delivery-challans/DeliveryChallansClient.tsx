@@ -208,8 +208,9 @@ export default function DeliveryChallansClient() {
     },
     {
       header: "Actions",
+      className: "text-right whitespace-nowrap min-w-[215px]",
       cell: (row: DeliveryChallan) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="inline-flex items-center justify-end gap-1 flex-wrap md:flex-nowrap">
           <Button
             variant="ghost"
             size="icon"

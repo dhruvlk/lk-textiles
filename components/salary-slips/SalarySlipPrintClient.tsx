@@ -76,7 +76,7 @@ export default function SalarySlipPrintClient({ id }: { id: string }) {
   return (
     <div className="flex flex-col h-screen bg-slate-200/80">
       {/* Top Navigation & Toolbar */}
-      <div className="h-14 border-b bg-background px-6 flex items-center justify-between shadow-sm print:hidden">
+      <div className="min-h-14 py-2 border-b bg-background px-3 sm:px-6 flex flex-wrap items-center justify-between gap-2 shadow-sm print:hidden">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
@@ -128,7 +128,7 @@ export default function SalarySlipPrintClient({ id }: { id: string }) {
       </div>
 
       {/* Main Centered Document Viewport */}
-      <div className="flex-1 overflow-auto p-4 md:p-6 flex items-center justify-center">
+      <div className="flex-1 overflow-auto p-2 sm:p-4 md:p-6 flex items-center justify-center">
         <div className="w-full max-w-4xl h-full rounded-xl overflow-hidden shadow-2xl border border-slate-300 bg-white">
           <PDFViewer width="100%" height="100%" className="border-none">
             <SalarySlipPDF

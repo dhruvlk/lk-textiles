@@ -173,9 +173,9 @@ export default function StockClient() {
     },
     {
       header: "Actions",
-      className: "text-right",
+      className: "text-right whitespace-nowrap min-w-[90px]",
       cell: (row: Stock) => (
-        <div className="flex justify-end gap-2">
+        <div className="inline-flex items-center justify-end gap-1 flex-wrap md:flex-nowrap">
           <PermissionGate module="stock" action="edit">
             <StockFormDialog
               initialData={row}

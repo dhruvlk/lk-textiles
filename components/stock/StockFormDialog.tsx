@@ -121,7 +121,7 @@ export function StockFormDialog({ onSaved, initialData, trigger }: StockFormDial
             </p>
           </div>
           {initialData && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Sold Taka</Label>
                 <Input value={initialData.sold_taka} readOnly className="bg-muted" />

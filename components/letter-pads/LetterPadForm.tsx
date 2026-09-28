@@ -177,7 +177,7 @@ export function LetterPadForm({ initialData }: LetterPadFormProps) {
               )}
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
               <Button
                 type="button"
                 variant="outline"

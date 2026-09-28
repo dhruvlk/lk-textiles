@@ -197,7 +197,7 @@ export function Sidebar() {
             <Button
               variant="outline"
               size="icon"
-              className="absolute top-3 left-3 z-50 h-11 w-11 md:hidden"
+              className="fixed top-2.5 left-2.5 z-50 h-9 w-9 sm:h-10 sm:w-10 md:hidden shadow-xs"
             />
           }
         >

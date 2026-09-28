@@ -569,11 +569,11 @@ export default function InquiriesClient() {
                   </p>
 
                   <div className="mt-3 flex items-center justify-between border-t border-border/50 pt-2 text-xs">
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground truncate max-w-[140px] sm:max-w-none">
                       {inquiry.email}
                     </span>
                     <div
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-2 shrink-0"
                       onClick={(e) => e.stopPropagation()}
                     >
                       <Button
@@ -606,7 +606,7 @@ export default function InquiriesClient() {
 
       {/* Inquiry Detail Modal */}
       <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
-        <DialogContent className="sm:max-w-xl md:max-w-2xl p-6 sm:p-7 gap-5 overflow-hidden">
+        <DialogContent className="sm:max-w-xl md:max-w-2xl p-5 sm:p-7 gap-5 max-h-[90dvh] overflow-y-auto">
           {selectedInquiry && (
             <div className="space-y-5">
               <DialogHeader className="pr-10 space-y-3">

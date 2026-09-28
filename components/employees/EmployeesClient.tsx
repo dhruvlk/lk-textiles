@@ -168,9 +168,9 @@ export default function EmployeesClient() {
     },
     {
       header: "Actions",
-      className: "text-right",
+      className: "text-right whitespace-nowrap min-w-[190px]",
       cell: (row: Employee) => (
-        <div className="flex justify-end gap-1">
+        <div className="inline-flex items-center justify-end gap-1.5 flex-wrap md:flex-nowrap">
           <EmployeeFormDialog
             initialData={row}
             onSaved={loadEmployees}
@@ -182,14 +182,14 @@ export default function EmployeesClient() {
           />
           <Button
             variant={row.is_active ? "destructive" : "default"}
-            size="lg"
+            size="sm"
             onClick={() => toggleStatus(row)}
           >
             {row.is_active ? "Deactivate" : "Activate"}
           </Button>
           <Button
             variant="destructive"
-            size="lg"
+            size="sm"
             onClick={() => {
               setEmployeeToRemove(row)
               setDeleteDialogOpen(true)

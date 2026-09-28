@@ -46,7 +46,9 @@ export function DataTable<T>({
 }: DataTableProps<T>) {
   const cardColumns = columns.filter((col) => !col.hideOnMobile)
   const primary = cardColumns[0]
-  const rest = cardColumns.slice(1)
+  const nonPrimary = cardColumns.slice(1)
+  const actionCol = nonPrimary.find((col) => col.header.toLowerCase().includes("action"))
+  const rest = nonPrimary.filter((col) => !col.header.toLowerCase().includes("action"))
 
   return (
     <div className="space-y-4">
@@ -102,6 +104,11 @@ export function DataTable<T>({
                     </div>
                   ))}
                 </dl>
+                {actionCol && (
+                  <div className="mt-3.5 border-t border-border/60 pt-3 flex flex-wrap items-center justify-end gap-1.5">
+                    {cellValue(actionCol, row)}
+                  </div>
+                )}
               </article>
             ))
           )}
@@ -121,11 +128,17 @@ export function DataTable<T>({
             <Table>
               <TableHeader className="bg-muted/30">
                 <TableRow className="hover:bg-transparent">
-                  {columns.map((col, index) => (
-                    <TableHead key={index} className={col.className}>
-                      {col.header}
-                    </TableHead>
-                  ))}
+                  {columns.map((col, index) => {
+                    const isAction = col.header.toLowerCase().includes("action")
+                    return (
+                      <TableHead
+                        key={index}
+                        className={cn(col.className, isAction && "whitespace-nowrap")}
+                      >
+                        {col.header}
+                      </TableHead>
+                    )
+                  })}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -141,11 +154,17 @@ export function DataTable<T>({
                 ) : (
                   data.map((row, rowIndex) => (
                     <TableRow key={rowIndex}>
-                      {columns.map((col, colIndex) => (
-                        <TableCell key={colIndex} className={col.className}>
-                          {cellValue(col, row)}
-                        </TableCell>
-                      ))}
+                      {columns.map((col, colIndex) => {
+                        const isAction = col.header.toLowerCase().includes("action")
+                        return (
+                          <TableCell
+                            key={colIndex}
+                            className={cn(col.className, isAction && "whitespace-nowrap py-2")}
+                          >
+                            {cellValue(col, row)}
+                          </TableCell>
+                        )
+                      })}
                     </TableRow>
                   ))
                 )}

@@ -217,9 +217,9 @@ export default function ChallansClient() {
     },
     {
       header: "Actions",
-      className: "text-right",
+      className: "text-right whitespace-nowrap min-w-[215px]",
       cell: (c: Challan) => (
-        <div className="flex items-center justify-end gap-1">
+        <div className="inline-flex items-center justify-end gap-1 flex-wrap md:flex-nowrap">
           <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}`)} title="View details">
             <Eye className="h-4 w-4" />
           </Button>
@@ -228,17 +228,17 @@ export default function ChallansClient() {
           </Button>
           <DownloadChallanButton challan={c} company={selectedCompany} />
           <PermissionGate module="invoices" action="edit">
-            <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}/edit`)}>
+            <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${c.id}/edit`)} title="Edit">
               <Edit className="h-4 w-4" />
             </Button>
           </PermissionGate>
           <PermissionGate module="invoices" action="create">
-            <Button variant="ghost" size="icon" onClick={() => handleDuplicate(c)}>
+            <Button variant="ghost" size="icon" onClick={() => handleDuplicate(c)} title="Duplicate">
               <Copy className="h-4 w-4" />
             </Button>
           </PermissionGate>
           <PermissionGate module="invoices" action="delete">
-            <Button variant="destructive" size="icon" onClick={() => { setChallanToDelete(c); setDeleteDialogOpen(true) }}>
+            <Button variant="destructive" size="icon" onClick={() => { setChallanToDelete(c); setDeleteDialogOpen(true) }} title="Delete">
               <Trash2 className="h-4 w-4" />
             </Button>
           </PermissionGate>

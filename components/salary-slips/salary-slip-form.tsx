@@ -397,7 +397,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
 
       {/* Mode Switcher Tabs (Only when creating) */}
       {!isEditMode && (
-        <div className="flex items-center gap-2 border-b border-border pb-2">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border pb-2">
           <button
             type="button"
             onClick={() => setMode("single")}
@@ -471,7 +471,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
               </Select>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="employee_name">Employee Name *</Label>
                 <Input
@@ -497,7 +497,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pan_number">PAN Number</Label>
                 <Input
@@ -519,7 +519,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Salary Month *</Label>
                 <Select
@@ -563,7 +563,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
               </div>
             )}
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="pay_date">Pay Date *</Label>
                 <Input
@@ -827,7 +827,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
 
       {/* NET SALARY SUMMARY CARD */}
       <Card className="border-primary/20 bg-primary/5 shadow-sm">
-        <CardContent className="p-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <div className="flex items-center gap-2">
@@ -861,7 +861,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
       </Card>
 
       {/* FORM ACTION BUTTONS */}
-      <div className="flex justify-end gap-3 pt-2">
+      <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-3 pt-2">
         <Button
           type="button"
           variant="outline"
