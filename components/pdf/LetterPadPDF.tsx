@@ -1,4 +1,3 @@
-/* eslint-disable jsx-a11y/alt-text */
 import {
   Document,
   Page,
@@ -6,7 +5,6 @@ import {
   View,
   StyleSheet,
   Font,
-  Image,
   Svg,
   Path,
   Line,

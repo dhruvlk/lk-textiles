@@ -102,6 +102,32 @@ export function HeritageTab({ formData, setFormData, uploadingField, setUploadin
         </div>
       </div>
 
+      {/* Call to Action Button */}
+      <div className="grid sm:grid-cols-2 gap-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-slate-700">Button Label</Label>
+          <Input
+            value={formData.heritage.ctaText}
+            onChange={(e) =>
+              setFormData({ ...formData, heritage: { ...formData.heritage, ctaText: e.target.value } })
+            }
+            placeholder="e.g. Explore Capabilities"
+            className="h-10 text-sm bg-white"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-bold text-slate-700">Button Link Target</Label>
+          <Input
+            value={formData.heritage.ctaLink}
+            onChange={(e) =>
+              setFormData({ ...formData, heritage: { ...formData.heritage, ctaLink: e.target.value } })
+            }
+            placeholder="e.g. /#capabilities"
+            className="h-10 text-sm bg-white"
+          />
+        </div>
+      </div>
+
       {/* Heritage Images */}
       <div className="grid sm:grid-cols-2 gap-6 pt-2">
         <ImageUploaderField
