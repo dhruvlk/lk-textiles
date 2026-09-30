@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { Scale } from "lucide-react"
 import { LegalContentCard } from "../LegalContentCard"
 

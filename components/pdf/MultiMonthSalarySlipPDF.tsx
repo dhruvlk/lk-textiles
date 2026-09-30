@@ -1,4 +1,3 @@
-import React from 'react';
 import { Document, Page, Text, View, StyleSheet, Font, Svg, Path, Polygon } from '@react-pdf/renderer';
 import { Company, SalarySlip, MultiMonthSummaryData } from '@/types';
 import { numberToWords } from '@/lib/number-to-words';

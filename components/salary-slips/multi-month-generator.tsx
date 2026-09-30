@@ -58,7 +58,6 @@ import {
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
 import {
-  Calendar,
   Download,
   Eye,
   FileText,
@@ -199,7 +198,6 @@ export function MultiMonthSalarySlipGenerator({
 
   // PDF Export state
   const [isExportingPdf, setIsExportingPdf] = useState(false)
-  const [outputMode, setOutputMode] = useState<"summary" | "detailed">("summary")
 
   const selectedEmployee = useMemo(
     () => employees.find((e) => e.user_id === selectedEmployeeId) || null,
@@ -254,7 +252,6 @@ export function MultiMonthSalarySlipGenerator({
   useEffect(() => {
     if (!rangeInfo.isValid) return
 
-    const sMonthIdx = MONTHS.indexOf(rangeStartMonth)
     const items: BulkSalaryMonthItem[] = []
 
     for (let total = rangeInfo.startTotal; total <= rangeInfo.endTotal; total++) {

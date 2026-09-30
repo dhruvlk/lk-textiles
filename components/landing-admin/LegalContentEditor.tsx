@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo, useEffect } from "react"
+import { useMemo, useEffect } from "react"
 import { useEditor, EditorContent, type Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import TextAlign from "@tiptap/extension-text-align"

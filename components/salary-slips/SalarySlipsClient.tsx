@@ -67,7 +67,7 @@ export default function SalarySlipsClient() {
   const [monthFilter, setMonthFilter] = useState("")
   const [yearFilter, setYearFilter] = useState("")
   const [statusFilter, setStatusFilter] = useState<SalarySlipPaymentStatus | "">("")
-  const [sortKey, setSortKey] = useState(SORT_OPTIONS[0].value)
+  const [sortKey] = useState(SORT_OPTIONS[0].value)
 
   const [employees, setEmployees] = useState<Employee[]>([])
   const [salarySlips, setSalarySlips] = useState<SalarySlip[]>([])

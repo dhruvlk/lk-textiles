@@ -1,6 +1,5 @@
 "use client"
 
-import React from "react"
 import { Button } from "@/components/ui/button"
 import { CheckCircle2, Loader2, Save } from "lucide-react"
 import { cn } from "@/lib/utils"

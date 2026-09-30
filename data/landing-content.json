@@ -57,7 +57,6 @@
       {
         "id": "art-silk",
         "title": "Art Silk Fabric",
-        "isDark": true,
         "linkUrl": "#contact",
         "imageUrl": "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055228930-ztlw2b.jpg",
         "linkText": "View Art Silk Products",
@@ -69,7 +68,6 @@
         "linkUrl": "#contact",
         "imageUrl": "",
         "linkText": "Learn More",
-        "isSpecial": true,
         "description": "Sustainable textile products including zero-discharge dyeing processes."
       },
       {

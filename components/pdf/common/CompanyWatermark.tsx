@@ -1,5 +1,4 @@
 /* eslint-disable jsx-a11y/alt-text */
-import React from 'react';
 import { View, Text, Image, StyleSheet, Svg, Path, Polygon } from '@react-pdf/renderer';
 import { Company } from '@/types';
 

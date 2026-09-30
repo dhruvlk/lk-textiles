@@ -73,7 +73,6 @@ export const defaultLandingContent: LandingPageContent = {
           "https://zizfqhfcqheqtourwikd.supabase.co/storage/v1/object/public/landing-assets/images/1790055228930-ztlw2b.jpg",
         linkText: "View Art Silk Products",
         linkUrl: "#contact",
-        isDark: true,
       },
       {
         id: "sustainable",
@@ -83,7 +82,6 @@ export const defaultLandingContent: LandingPageContent = {
         imageUrl: "",
         linkText: "Learn More",
         linkUrl: "#contact",
-        isSpecial: true,
       },
       {
         id: "yarns",

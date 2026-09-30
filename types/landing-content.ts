@@ -5,8 +5,6 @@ export interface ProductItem {
   imageUrl: string
   linkText: string
   linkUrl: string
-  isSpecial?: boolean
-  isDark?: boolean
 }
 
 export interface AdvantageItem {

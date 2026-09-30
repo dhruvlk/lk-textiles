@@ -107,32 +107,30 @@ export function CapabilitiesTab({ formData, setFormData, uploadingField, setUplo
               />
             </div>
 
-            {prod.imageUrl && (
-              <ImageUploaderField
-                label="Tile Image"
-                currentUrl={prod.imageUrl}
-                fieldPath={`prod-${idx}`}
-                uploadingField={uploadingField}
-                aspectRatio="video"
-                onUploadSuccess={(url) => {
-                  const updated = [...formData.capabilities.products]
-                  updated[idx] = { ...updated[idx], imageUrl: url }
-                  setFormData({
-                    ...formData,
-                    capabilities: { ...formData.capabilities, products: updated },
-                  })
-                }}
-                onRemove={() => {
-                  const updated = [...formData.capabilities.products]
-                  updated[idx] = { ...updated[idx], imageUrl: "" }
-                  setFormData({
-                    ...formData,
-                    capabilities: { ...formData.capabilities, products: updated },
-                  })
-                }}
-                onUploadStateChange={setUploadingField}
-              />
-            )}
+            <ImageUploaderField
+              label="Tile Image"
+              currentUrl={prod.imageUrl}
+              fieldPath={`prod-${idx}`}
+              uploadingField={uploadingField}
+              aspectRatio="video"
+              onUploadSuccess={(url) => {
+                const updated = [...formData.capabilities.products]
+                updated[idx] = { ...updated[idx], imageUrl: url }
+                setFormData({
+                  ...formData,
+                  capabilities: { ...formData.capabilities, products: updated },
+                })
+              }}
+              onRemove={() => {
+                const updated = [...formData.capabilities.products]
+                updated[idx] = { ...updated[idx], imageUrl: "" }
+                setFormData({
+                  ...formData,
+                  capabilities: { ...formData.capabilities, products: updated },
+                })
+              }}
+              onUploadStateChange={setUploadingField}
+            />
           </div>
         ))}
       </div>

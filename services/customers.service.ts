@@ -117,7 +117,3 @@ export async function deleteCustomer(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export const getParties = getCustomers;
-export const addParty = addCustomer;
-export const updateParty = updateCustomer;
-export const deleteParty = deleteCustomer;

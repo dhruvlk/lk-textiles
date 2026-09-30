@@ -67,16 +67,7 @@ export function resolveInvoiceTerms(company: Company): string[] {
   return parseTerms(company.terms_conditions);
 }
 
-export function resolveDeliveryChallanTerms(company: Company): string[] {
-  return parseTerms(company.terms_conditions);
-}
 
-/** @deprecated Use getBankDetailRows for aligned PDF layout */
-export function formatBankDetails(company: Company): string[] {
-  return getBankDetailRows(company).map((row) =>
-    row.label ? `${row.label} ${row.value}` : row.value
-  );
-}
 
 export function parseTerms(terms?: string | null): string[] {
   if (!terms?.trim()) return [];
@@ -117,7 +108,4 @@ export function resolveHsnCode(
   return '-';
 }
 
-/** @deprecated Use resolveHsnCode */
-export function primaryHsnCode(items: { product?: { hsn_code?: string | null } | null }[]): string {
-  return resolveHsnCode(null, items);
-}
+
