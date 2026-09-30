@@ -73,7 +73,7 @@ export function Header() {
           <div className="hidden min-w-0 md:block">
             <p className="truncate text-sm font-medium leading-none">{user.name}</p>
             <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {user.role} · {user.email}
+              {user.role}
             </p>
           </div>
         </div>
