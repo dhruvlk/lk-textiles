@@ -43,6 +43,8 @@ export interface Company {
   id: string;
   user_id?: string;
   name: string;
+  parent_company_id?: string | null;
+  is_primary?: boolean;
   owner_name?: string | null;
   logo_url?: string | null;
   stamp_url?: string | null;

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { User, AuthContextType, RegisterCompanyInput } from '@/types/auth';
+import { User, AuthContextType, RegisterCompanyInput, RegisterUserInput } from '@/types/auth';
 import { createClient } from '@/lib/supabase/client';
 import { buildAppUser } from '@/lib/user-session';
 import { getProfile } from '@/services/profiles.service';
@@ -65,10 +65,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await signOut();
       return null;
     }
-    const [profile, membership] = await Promise.all([
+    let [profile, membership] = await Promise.all([
       getProfile(authUser.id),
       getPrimaryMembership(authUser.id),
     ]);
+
+    if (!membership && authUser.user_metadata?.company_name) {
+      await provisionPendingCompanyAccount();
+      membership = await getPrimaryMembership(authUser.id);
+    }
+
     return buildAppUser(authUser, profile, membership);
   }, []);
 
@@ -95,7 +101,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function init() {
       const { data: { user: authUser } } = await supabase.auth.getUser();
       if (authUser && mounted) {
-        await provisionPendingCompanyAccount().catch(() => undefined);
         const appUser = await hydrateUser(authUser);
         if (appUser) {
           setUserStable(appUser);
@@ -124,9 +129,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (session?.user) {
-          if (event === 'SIGNED_IN') {
-            await provisionPendingCompanyAccount().catch(() => undefined);
-          }
           const appUser = await hydrateUser(session.user);
           if (!mounted) return;
           if (appUser) {
@@ -171,7 +173,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshUser, setUserStable, supabase]);
 
-  const register = useCallback(async (input: RegisterCompanyInput) => {
+  const register = useCallback(async (input: RegisterUserInput | RegisterCompanyInput) => {
     try {
       const result = await registerCompanyAccount(input);
       if (!result.requiresConfirmation) {

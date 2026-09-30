@@ -50,13 +50,14 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
       setCompanies(storedCompanies)
 
       const storedId = await getSelectedCompanyId()
+      const primary = storedCompanies.find((c) => c.is_primary)
       const active = storedCompanies.find((c) => c.is_active)
       const membershipCompany = companyId
         ? storedCompanies.find((c) => c.id === companyId)
         : undefined
       const found = storedId
         ? storedCompanies.find((c) => c.id === storedId)
-        : membershipCompany ?? active ?? storedCompanies[0]
+        : primary ?? active ?? membershipCompany ?? storedCompanies[0]
 
       setSelectedCompanyState((prev) => {
         const next = found ?? storedCompanies[0] ?? null

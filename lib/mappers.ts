@@ -16,6 +16,7 @@ export function companyToInsert(
   return {
     user_id: company.user_id,
     name: company.name,
+    parent_company_id: company.parent_company_id ?? null,
     owner_name: company.owner_name ?? null,
     logo_url: company.logo_url ?? null,
     stamp_url: company.stamp_url ?? null,
@@ -53,5 +54,6 @@ export function companyToInsert(
     default_unit: company.default_unit ?? 'Taka',
     default_delivered_by: company.default_delivered_by ?? null,
     is_active: company.is_active ?? false,
+    is_primary: company.is_primary ?? false,
   };
 }

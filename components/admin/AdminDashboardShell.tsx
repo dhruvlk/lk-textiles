@@ -15,6 +15,34 @@ import { PageTransition } from "@/components/common/motion"
 
 const subscribe = () => () => {}
 
+import { useCompany } from "@/components/company-provider"
+
+function AdminDashboardInner({ children }: { children: React.ReactNode }) {
+  const { isLoading } = useCompany()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Header />
+        <main className="scrollbar-stable min-h-0 flex-1 overflow-x-hidden">
+          <PageTransition className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-8">
+            <RoutePermissionGate>{children}</RoutePermissionGate>
+          </PageTransition>
+        </main>
+      </div>
+    </div>
+  )
+}
+
 export function AdminDashboardShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const { isAuthenticated, isLoading } = useAuth()
@@ -44,24 +72,11 @@ export function AdminDashboardShell({ children }: { children: React.ReactNode })
     return <>{children}</>
   }
 
-  // 3. In all other cases:
-  // - User is authenticated with Challan on /admin (renders Challan dashboard with sidebar & header)
-  // - Or user is accessing any Challan subroute (/admin/invoices, /admin/delivery-challans, /admin/stock, etc.)
   return (
     <AuthGuard>
       <CompanyProvider>
         <PermissionProvider>
-          <div className="flex min-h-screen bg-background">
-            <Sidebar />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Header />
-              <main className="scrollbar-stable min-h-0 flex-1 overflow-x-hidden">
-                <PageTransition className="mx-auto w-full max-w-7xl px-3 py-4 sm:px-4 sm:py-5 md:px-6 md:py-6 lg:px-8">
-                  <RoutePermissionGate>{children}</RoutePermissionGate>
-                </PageTransition>
-              </main>
-            </div>
-          </div>
+          <AdminDashboardInner>{children}</AdminDashboardInner>
         </PermissionProvider>
       </CompanyProvider>
     </AuthGuard>

@@ -15,6 +15,14 @@ import { PageHeader } from "@/components/common/PageHeader"
 import { CompanyAvatar } from "@/components/companies/CompanyAvatar"
 import { PhoneInput } from "@/components/ui/phone-input"
 import { isValidIndianMobile } from "@/lib/validations/phone"
+import { cn } from "@/lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import {
   addCompany,
   updateCompany,
@@ -34,7 +42,15 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [companyName, setCompanyName] = useState(initialCompany?.name || "")
+  const [parentCompanyId, setParentCompanyId] = useState(initialCompany?.parent_company_id || "none")
+  const [companyType, setCompanyType] = useState<"independent" | "child">(
+    initialCompany?.parent_company_id ? "child" : "independent"
+  )
   const [prevInitialName, setPrevInitialName] = useState(initialCompany?.name)
+
+  const availableParents = companies.filter(
+    (c) => c.id !== initialCompany?.id && (!c.parent_company_id || c.parent_company_id === null)
+  )
 
   if (initialCompany?.name !== prevInitialName) {
     setPrevInitialName(initialCompany?.name)
@@ -63,9 +79,20 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
       return
     }
 
+    const parentId =
+      companyType === "child" && parentCompanyId && parentCompanyId !== "none"
+        ? parentCompanyId
+        : null
+
+    if (companyType === "child" && !parentId) {
+      toast.error("Please select a parent company for this child company")
+      return
+    }
+
     setIsLoading(true)
 
     try {
+
       if (mode === "create") {
         if (!user) {
           toast.error("You must be logged in to create a company")
@@ -75,6 +102,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
         const newCompany = await addCompany({
           user_id: user.id,
           name: formData.get("name") as string,
+          parent_company_id: parentId,
           logo_url: null,
           gst_number: (formData.get("gst_number") as string) || null,
           hsn_code: (formData.get("hsn_code") as string) || null,
@@ -95,7 +123,8 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
           bank_details: (formData.get("bank_details") as string) || null,
           terms_conditions: (formData.get("terms_conditions") as string) || null,
           signature_url: null,
-          is_active: companies.length === 0,
+          is_active: false,
+          is_primary: false,
         })
 
         let finalCompany = newCompany
@@ -120,6 +149,7 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
         const updatedCompany = await updateCompany({
           ...initialCompany,
           name: formData.get("name") as string,
+          parent_company_id: parentId,
           logo_url: logoUrl,
           gst_number: (formData.get("gst_number") as string) || null,
           hsn_code: (formData.get("hsn_code") as string) || null,
@@ -184,13 +214,87 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="tagline">Tagline</Label>
+                <Label htmlFor="tagline">Tagline / Business Nature</Label>
                 <Input
                   id="tagline"
                   name="tagline"
                   defaultValue={initialCompany?.tagline || ""}
-                  placeholder="e.g. Manufacturers : Art Silk Cloth"
+                  placeholder="e.g. Textile Manufacturing & Trading"
                 />
+              </div>
+
+              <div className="space-y-3 rounded-lg border border-border/70 p-4 bg-muted/10">
+                <div className="space-y-2">
+                  <Label>Company Structure</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCompanyType("independent")
+                        setParentCompanyId("none")
+                      }}
+                      className={cn(
+                        "flex flex-col items-start p-3 rounded-lg border text-left transition-all",
+                        companyType === "independent"
+                          ? "border-primary bg-primary/5 ring-1 ring-primary text-foreground"
+                          : "border-border/60 hover:border-border hover:bg-muted/30 text-muted-foreground"
+                      )}
+                    >
+                      <span className="text-sm font-semibold text-foreground">Independent Company</span>
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        Standalone business entity or parent group company
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      disabled={availableParents.length === 0}
+                      onClick={() => {
+                        setCompanyType("child")
+                        if (parentCompanyId === "none" && availableParents.length > 0) {
+                          setParentCompanyId(availableParents[0].id)
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-col items-start p-3 rounded-lg border text-left transition-all",
+                        companyType === "child"
+                          ? "border-primary bg-primary/5 ring-1 ring-primary text-foreground"
+                          : "border-border/60 hover:border-border hover:bg-muted/30 text-muted-foreground",
+                        availableParents.length === 0 && "opacity-50 cursor-not-allowed"
+                      )}
+                    >
+                      <span className="text-sm font-semibold text-foreground">Child Company</span>
+                      <span className="text-xs text-muted-foreground mt-0.5">
+                        {availableParents.length === 0
+                          ? "Requires at least one independent parent company"
+                          : "Subsidiary, mill branch, or processing unit"}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                {companyType === "child" && (
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <Label htmlFor="parent_company_id">Parent Company *</Label>
+                    <Select
+                      value={parentCompanyId === "none" ? "" : parentCompanyId}
+                      onValueChange={(val) => setParentCompanyId(val || "none")}
+                    >
+                      <SelectTrigger id="parent_company_id">
+                        <SelectValue placeholder="Select parent company" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableParents.map((parent) => (
+                          <SelectItem key={parent.id} value={parent.id}>
+                            {parent.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      This child company will be dynamically linked to the selected parent company.
+                    </p>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-4">
                 <CompanyAvatar

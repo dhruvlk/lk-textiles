@@ -12,6 +12,7 @@ export type CompanyMemberRow = {
   user_id: string;
   role: string;
   is_active: boolean;
+  is_primary?: boolean;
   designation: string | null;
   invited_by: string | null;
   employee_code?: string | null;
@@ -122,6 +123,8 @@ export type CompanyRow = {
   id: string;
   user_id: string;
   name: string;
+  parent_company_id: string | null;
+  is_primary?: boolean;
   owner_name: string | null;
   logo_url: string | null;
   stamp_url: string | null;

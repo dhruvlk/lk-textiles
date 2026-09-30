@@ -16,6 +16,7 @@ export type CompanyMemberRow = {
   user_id: string;
   role: UserRole;
   is_active: boolean;
+  is_primary?: boolean;
   designation: string | null;
   invited_by: string | null;
   created_at: string;
@@ -28,6 +29,7 @@ export interface CompanyMember {
   user_id: string;
   role: UserRole;
   is_active: boolean;
+  is_primary?: boolean;
   designation?: string | null;
   invited_by?: string | null;
   created_at?: string;

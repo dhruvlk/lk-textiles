@@ -23,14 +23,14 @@ type LoginFormValues = z.infer<typeof loginSchema>
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, isAuthenticated } = useAuth()
+  const { login, isAuthenticated, isLoading: isAuthLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.replace("/")
+    if (!isAuthLoading && isAuthenticated) {
+      router.replace("/admin")
     }
-  }, [isAuthenticated, router])
+  }, [isAuthenticated, isAuthLoading, router])
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -40,15 +40,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginFormValues) => {
     setIsLoading(true)
 
-    // Strictly block Landing Page Admin credentials from Challan System login
-    const normalizedEmail = values.email.trim().toLowerCase()
-    if (normalizedEmail === "lktextiles6165@gmail.com") {
-      setIsLoading(false)
-      toast.error("This account cannot log in through the Challan System. Please use 'Open Landing Page Admin' below.")
-      return
-    }
-
-    // Challan Supabase login only
+    // Challan Supabase login
     const result = await login(values.email, values.password)
     if (!result.error) {
       toast.success("Welcome back!")
@@ -61,7 +53,7 @@ export default function LoginPage() {
     setIsLoading(false)
   }
 
-  if (isAuthenticated) return null
+  if (!isAuthLoading && isAuthenticated) return null
 
   return (
     <AuthShell

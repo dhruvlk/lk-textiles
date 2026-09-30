@@ -10,11 +10,20 @@ export interface User {
   avatarUrl?: string | null;
 }
 
+export interface RegisterUserInput {
+  fullName: string;
+  companyName: string;
+  email: string;
+  mobile?: string;
+  password: string;
+}
+
 export interface RegisterCompanyInput {
   companyName: string;
-  ownerName: string;
+  ownerName?: string;
+  fullName?: string;
   email: string;
-  mobile: string;
+  mobile?: string;
   gstNumber?: string;
   address?: string;
   password: string;
@@ -25,7 +34,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: string }>;
-  register: (input: RegisterCompanyInput) => Promise<{
+  register: (input: RegisterUserInput | RegisterCompanyInput) => Promise<{
     error?: string;
     requiresConfirmation?: boolean;
   }>;

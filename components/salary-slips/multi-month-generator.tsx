@@ -1949,7 +1949,7 @@ export function MultiMonthSalarySlipGenerator({
                             </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground">
-                            Official consolidated statement with Vaishali Textile header, month-by-month table, total salary, and authorized signatory. Ideal for bank verification and loans.
+                            Official consolidated statement with company header, month-by-month table, total salary, and authorized signatory. Ideal for bank verification and loans.
                           </p>
                         </div>
                       </div>

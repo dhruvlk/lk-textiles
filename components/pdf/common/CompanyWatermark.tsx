@@ -6,11 +6,10 @@ import { Company } from '@/types';
 export const WATERMARK_COLOR = '#F9F1E7';
 
 /**
- * Derives initials from company name (e.g. "Vaishali Textile" -> "VT")
- * Matches existing LetterPad fallback initials logic.
+ * Derives initials from company name (e.g. "Apex Textiles" -> "AT")
  */
 export function getCompanyInitials(name?: string | null): string {
-  if (!name) return 'VT';
+  if (!name) return '';
   return (
     name
       .trim()
@@ -19,7 +18,7 @@ export function getCompanyInitials(name?: string | null): string {
       .filter(Boolean)
       .slice(0, 2)
       .join('')
-      .toUpperCase() || 'VT'
+      .toUpperCase() || ''
   );
 }
 
@@ -75,6 +74,8 @@ export interface CompanyWatermarkProps {
 
 export function CompanyWatermark({ company }: CompanyWatermarkProps) {
   const initials = getCompanyInitials(company?.name);
+
+  if (!company?.logo_url && !initials) return null;
 
   return (
     <View style={watermarkStyles.watermarkContainer} fixed>

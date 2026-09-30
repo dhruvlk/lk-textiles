@@ -1,44 +1,27 @@
 import { createClient } from '@/lib/supabase/client';
 import { isValidIndianMobile, formatPhoneToStorage } from '@/lib/validations/phone';
-import type { RegisterCompanyInput } from '@/types/auth';
+import { setSelectedCompanyId, addCompany } from '@/services/companies.service';
+import type { RegisterCompanyInput, RegisterUserInput } from '@/types/auth';
 
 const supabase = () => createClient();
 
-type AuthRpcClient = {
-  rpc(
-    fn: 'register_company_account',
-    args: {
-      p_company_name: string;
-      p_owner_name: string;
-      p_mobile: string;
-      p_gst_number?: string | null;
-      p_address?: string | null;
-    }
-  ): PromiseLike<{ data: string | null; error: { message: string } | null }>;
-  rpc(
-    fn: 'provision_pending_company_account'
-  ): PromiseLike<{ data: string | null; error: { message: string } | null }>;
-};
-
-export async function registerCompanyAccount(input: RegisterCompanyInput) {
-  if (!isValidIndianMobile(input.mobile, { required: true })) {
-    throw new Error('Mobile number must be a valid 10-digit number prefixed with +91');
-  }
-  const mobile = formatPhoneToStorage(input.mobile)!;
+export async function registerUserAccount(input: RegisterUserInput) {
+  const mobile =
+    input.mobile && isValidIndianMobile(input.mobile)
+      ? formatPhoneToStorage(input.mobile)
+      : null;
   const client = supabase();
 
   const { data: authData, error: signUpError } = await client.auth.signUp({
-    email: input.email,
+    email: input.email.trim(),
     password: input.password,
     options: {
       data: {
-        name: input.ownerName,
-        owner_name: input.ownerName,
+        name: input.fullName.trim(),
+        full_name: input.fullName.trim(),
+        company_name: input.companyName.trim(),
         mobile,
         role: 'Owner',
-        company_name: input.companyName,
-        gst_number: input.gstNumber ?? null,
-        company_address: input.address ?? null,
       },
     },
   });
@@ -50,34 +33,101 @@ export async function registerCompanyAccount(input: RegisterCompanyInput) {
     return { requiresConfirmation: true as const };
   }
 
-  const { error: provisionError } = await (client as unknown as AuthRpcClient).rpc(
-    'register_company_account',
-    {
-      p_company_name: input.companyName,
-      p_owner_name: input.ownerName,
-      p_mobile: mobile,
-      p_gst_number: input.gstNumber ?? null,
-      p_address: input.address ?? null,
-    }
-  );
+  // Create User Profile + Primary Company + Owner Membership + Sequence
+  try {
+    const { data: rpcCompanyId, error: rpcError } = await client.rpc(
+      'register_company_account',
+      {
+        p_company_name: input.companyName.trim(),
+        p_owner_name: input.fullName.trim(),
+        p_mobile: mobile || '',
+      }
+    );
 
-  if (provisionError) throw provisionError;
+    let activeCompanyId = (rpcCompanyId as string) || null;
+
+    if (rpcError || !activeCompanyId) {
+      await client.from('profiles').upsert({
+        id: authData.user.id,
+        full_name: input.fullName.trim(),
+        mobile,
+      });
+
+      const newCompany = await addCompany({
+        user_id: authData.user.id,
+        name: input.companyName.trim(),
+        email: input.email.trim(),
+        phone: mobile,
+        is_active: true,
+        is_primary: true,
+      });
+
+      if (newCompany?.id) {
+        activeCompanyId = newCompany.id;
+        await client
+          .from('challan_sequences')
+          .insert({
+            company_id: newCompany.id,
+            last_number: 0,
+            updated_at: new Date().toISOString(),
+          })
+          .select();
+      }
+    }
+
+    if (activeCompanyId) {
+      await setSelectedCompanyId(activeCompanyId);
+    }
+  } catch (err) {
+    console.error('Error creating primary company during registration:', err);
+  }
 
   return { requiresConfirmation: false as const };
 }
 
-export async function provisionPendingCompanyAccount(): Promise<string | null> {
-  const { data, error } = await (supabase() as unknown as AuthRpcClient).rpc(
-    'provision_pending_company_account'
-  );
-  if (error) throw error;
-  return data;
+export async function registerCompanyAccount(input: RegisterCompanyInput | RegisterUserInput) {
+  const fullName =
+    'fullName' in input && input.fullName
+      ? input.fullName
+      : 'ownerName' in input && input.ownerName
+      ? input.ownerName
+      : 'User';
+
+  return registerUserAccount({
+    fullName,
+    companyName: input.companyName,
+    email: input.email,
+    mobile: input.mobile,
+    password: input.password,
+  });
 }
+
+export async function provisionPendingCompanyAccount(): Promise<string | null> {
+  const client = supabase();
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return null;
+
+  try {
+    const { data, error } = await client.rpc('provision_pending_company_account');
+    if (error) {
+      console.warn('provision_pending_company_account error:', error.message);
+      return null;
+    }
+    const companyId = data as string;
+    if (companyId) {
+      await setSelectedCompanyId(companyId);
+    }
+    return companyId || null;
+  } catch (err) {
+    console.warn('provisionPendingCompanyAccount error:', err);
+    return null;
+  }
+}
+
 
 export async function signInWithEmail(email: string, password: string) {
   const { error } = await supabase().auth.signInWithPassword({ email, password });
   if (error) throw error;
-  await provisionPendingCompanyAccount();
 }
 
 export async function requestPasswordReset(email: string) {

@@ -948,10 +948,10 @@ export function SalarySlipPDF({
               </View>
             ) : null}
 
-            <Text style={styles.companyName}>{company.name}</Text>
-            <Text style={styles.companyTagline}>
-              {company.tagline || 'Manufacturers : Art Silk Cloth'}
-            </Text>
+            <Text style={styles.companyName}>{company.name || ''}</Text>
+            {company.tagline ? (
+              <Text style={styles.companyTagline}>{company.tagline}</Text>
+            ) : null}
 
             <FlankedDiamonds />
 

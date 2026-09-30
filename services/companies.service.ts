@@ -19,15 +19,25 @@ export async function getCompanies(): Promise<Company[]> {
 
   if (membershipError) throw membershipError;
 
-  const companyIds = (memberships ?? []).map((m) => m.company_id);
-  if (companyIds.length === 0) return [];
+  const memberCompanyIds = (memberships ?? []).map((m) => m.company_id);
+
+  const { data: ownedCompanies } = await supabase()
+    .from('companies')
+    .select('id')
+    .eq('user_id', user.id);
+
+  const allCompanyIds = Array.from(
+    new Set([...memberCompanyIds, ...(ownedCompanies ?? []).map((c) => c.id)])
+  );
+
+  if (allCompanyIds.length === 0) return [];
 
   const { data, error } = await supabase()
     .from('companies')
     .select('*')
-    .in('id', companyIds)
+    .in('id', allCompanyIds)
     // @ts-expect-error status is not yet in generated types
-    .eq('status', 'Active')
+    .neq('status', 'Archived')
     .order('name');
 
   if (error) throw error;

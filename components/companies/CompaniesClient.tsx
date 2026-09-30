@@ -75,13 +75,31 @@ export default function CompaniesClient() {
                       size="card"
                       interactive
                     />
-                    <div className="min-w-0 space-y-0.5">
-                      <CardTitle className="truncate text-base font-semibold leading-tight">
-                        {company.name}
-                      </CardTitle>
-                      <CardDescription className="line-clamp-1 text-xs">
-                        {company.gst_number ? `GST: ${company.gst_number}` : "No GST provided"}
-                      </CardDescription>
+                    <div className="min-w-0 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <CardTitle className="truncate text-base font-semibold leading-tight">
+                          {company.name}
+                        </CardTitle>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {company.is_primary && (
+                          <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">
+                            Primary
+                          </span>
+                        )}
+                        {company.parent_company_id ? (
+                          <span className="inline-flex items-center rounded-full bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold text-blue-600">
+                            Child of {companies.find((c) => c.id === company.parent_company_id)?.name || "Parent"}
+                          </span>
+                        ) : companies.some((c) => c.parent_company_id === company.id) ? (
+                          <span className="inline-flex items-center rounded-full bg-purple-500/10 px-2 py-0.5 text-[10px] font-semibold text-purple-600">
+                            Parent Entity ({companies.filter((c) => c.parent_company_id === company.id).length} units)
+                          </span>
+                        ) : null}
+                        <span className="line-clamp-1 text-xs text-muted-foreground">
+                          {company.gst_number ? `GST: ${company.gst_number}` : "No GST provided"}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   {selectedCompany?.id === company.id && (
