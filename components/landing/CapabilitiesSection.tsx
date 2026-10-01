@@ -59,15 +59,26 @@ export function CapabilitiesSection() {
           </div>
 
           {/* Square Feature 2 */}
-          <div className="bento-item md:col-span-1 md:row-span-1 group relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 bg-white p-8 flex flex-col">
-            <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-6">
-              <Leaf className="h-6 w-6" />
+          <div className="bento-item md:col-span-1 md:row-span-1 group relative rounded-3xl overflow-hidden shadow-sm border border-slate-200/60 bg-white">
+            <Image
+              src={p3.imageUrl}
+              alt={p3.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 33vw"
+              className="object-cover opacity-50 group-hover:scale-105 group-hover:opacity-90 transition-all duration-700"
+            />
+            <div className="relative z-10 h-full p-8 flex flex-col justify-between bg-gradient-to-t from-white via-white/60">
+              <div>
+                <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 mb-6 shadow-sm">
+                  <Leaf className="h-6 w-6" />
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-2">{p3.title}</h3>
+                <p className="text-slate-600 text-sm leading-relaxed">{p3.description}</p>
+              </div>
+              <Link href={p3.linkUrl} className="inline-flex w-fit items-center font-medium text-emerald-600 hover:text-emerald-700 transition-colors mt-4">
+                {p3.linkText} <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 mb-2">{p3.title}</h3>
-            <p className="text-slate-600 text-sm flex-grow">{p3.description}</p>
-            <Link href={p3.linkUrl} className="inline-flex w-fit items-center font-medium text-emerald-600 hover:text-emerald-700 transition-colors mt-4">
-              {p3.linkText} <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
           </div>
 
           {/* Large Feature 2 */}
