@@ -4,10 +4,11 @@
 import { useCompany } from "@/components/company-provider"
 import { useAuth } from "@/hooks/useAuth"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Users, FileText, CalendarDays, IndianRupee, Building2, ArrowRight, Inbox, Mail } from "lucide-react"
+import { Users, FileText, CalendarDays, IndianRupee, Building2, ArrowRight, Inbox, Mail, Receipt, ShoppingBag, Wallet, BadgePercent, Clock } from "lucide-react"
 import { getDashboardStats } from "@/services/dashboard.service"
+import { getPurchaseExpenseOverviewStats } from "@/services/financial-years.service"
 import { useEffect, useMemo, useState } from "react"
-import { DashboardStats } from "@/types"
+import { DashboardStats, PurchaseExpenseOverviewStats } from "@/types"
 import { format } from "date-fns"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -29,6 +30,7 @@ export default function DashboardClient() {
   const { user } = useAuth()
   const { selectedCompany } = useCompany()
   const [stats, setStats] = useState<DashboardStats | null>(null)
+  const [purchaseOverview, setPurchaseOverview] = useState<PurchaseExpenseOverviewStats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const companyId = selectedCompany?.id
 
@@ -52,8 +54,14 @@ export default function DashboardClient() {
       if (isFirstLoad) setIsLoading(true)
 
       try {
-        const data = await getDashboardStats(companyId)
-        if (!cancelled) setStats(data)
+        const [data, poData] = await Promise.all([
+          getDashboardStats(companyId),
+          getPurchaseExpenseOverviewStats(companyId).catch(() => null),
+        ])
+        if (!cancelled) {
+          setStats(data)
+          if (poData) setPurchaseOverview(poData)
+        }
       } catch {
         if (!cancelled && isFirstLoad) setStats(null)
       } finally {
@@ -271,6 +279,68 @@ export default function DashboardClient() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Purchase & Expense Overview Widget (Requirement #38) */}
+      <Card className="border-border/60 shadow-xs">
+        <CardHeader className="flex flex-row items-center justify-between pb-3">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base font-semibold">
+              <Receipt className="h-5 w-5 text-primary" />
+              Purchase & Expense Overview
+            </CardTitle>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Current financial year purchases, operational expenses, and GST input credit
+            </p>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => router.push("/admin/purchases")}>
+            Manage Purchases
+            <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+          </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+            <div className="p-4 rounded-xl border bg-muted/20">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                <ShoppingBag className="h-3.5 w-3.5 text-sky-600" /> Purchases
+              </p>
+              <p className="text-lg font-bold text-foreground mt-1 tabular-nums">
+                {isLoading ? "..." : `₹${(purchaseOverview?.totalPurchases ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Yarn, fabric & stock</p>
+            </div>
+
+            <div className="p-4 rounded-xl border bg-muted/20">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                <Wallet className="h-3.5 w-3.5 text-amber-600" /> Expenses
+              </p>
+              <p className="text-lg font-bold text-foreground mt-1 tabular-nums">
+                {isLoading ? "..." : `₹${(purchaseOverview?.totalExpenses ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Rent, power & repairs</p>
+            </div>
+
+            <div className="p-4 rounded-xl border bg-muted/20">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                <BadgePercent className="h-3.5 w-3.5 text-emerald-600" /> Input GST
+              </p>
+              <p className="text-lg font-bold text-emerald-600 mt-1 tabular-nums">
+                {isLoading ? "..." : `₹${(purchaseOverview?.inputGst ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Eligible tax credit</p>
+            </div>
+
+            <div className="p-4 rounded-xl border bg-muted/20">
+              <p className="text-[11px] font-semibold text-muted-foreground uppercase flex items-center gap-1.5">
+                <Clock className="h-3.5 w-3.5 text-rose-600" /> Outstanding
+              </p>
+              <p className="text-lg font-bold text-rose-600 mt-1 tabular-nums">
+                {isLoading ? "..." : `₹${(purchaseOverview?.totalOutstanding ?? 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">{purchaseOverview?.pendingBills ?? 0} pending bills</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Recent Website Inquiries */}
       <Card className="border-border/60 shadow-xs">

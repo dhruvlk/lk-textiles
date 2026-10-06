@@ -11,6 +11,7 @@ export const PERMISSION_MODULES = [
   'products',
   'letter_pads',
   'salary_slips',
+  'purchases',
 ] as const;
 
 export type PermissionModule = (typeof PERMISSION_MODULES)[number];
@@ -127,6 +128,12 @@ export const MODULE_CONFIG: ModuleConfig[] = [
     description: 'Create and manage employee salary slips',
     actions: CRUD,
   },
+  {
+    module: 'purchases',
+    label: 'Purchases & Expenses',
+    description: 'Manage purchase bills, expenses, GST input, and document vault',
+    actions: CRUD,
+  },
 ];
 
 /** Route prefix → permission module */
@@ -136,6 +143,7 @@ export const ROUTE_MODULE_MAP: { prefix: string; module: PermissionModule }[] = 
   { prefix: '/admin/parties', module: 'customers' },
   { prefix: '/admin/products', module: 'products' },
   { prefix: '/admin/stock', module: 'stock' },
+  { prefix: '/admin/purchases', module: 'purchases' },
   { prefix: '/admin/delivery-challans', module: 'delivery_challans' },
   { prefix: '/admin/invoices', module: 'invoices' },
   { prefix: '/admin/letter-pads', module: 'letter_pads' },

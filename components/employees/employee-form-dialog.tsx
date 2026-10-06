@@ -198,7 +198,7 @@ export function EmployeeFormDialog({
                 name="fullName"
                 required
                 defaultValue={initialData?.full_name}
-                placeholder="Rahul Sharma"
+                placeholder="Enter employee full name"
               />
             </div>
             <div className="space-y-2">

@@ -1,0 +1,2 @@
+-- Remote migration 20261001000001
+-- Synced with remote schema
