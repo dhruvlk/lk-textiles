@@ -40,6 +40,7 @@ import {
 } from "@/services/company-banks.service"
 import { createNotification } from "@/services/notifications.service"
 import { applyCompanyTheme } from "@/lib/company-theme"
+import { PersonalExpensesSettingsSection } from "@/components/settings/sections/PersonalExpensesSettingsSection"
 import type { Company, CompanyBankAccount, DefaultGstType, NumberFyFormat } from "@/types"
 import { cn } from "@/lib/utils"
 
@@ -51,6 +52,7 @@ const SECTIONS = [
   { id: "terms", label: "Terms" },
   { id: "defaults", label: "Defaults" },
   { id: "theme", label: "Theme" },
+  { id: "personal_expenses", label: "Personal Expenses" },
 ] as const
 
 type SectionId = (typeof SECTIONS)[number]["id"]
@@ -184,7 +186,7 @@ export default function SettingsClient() {
         title="Company Settings"
         description={`Configure ${selectedCompany.name}`}
         action={
-          can("settings", "edit") ? (
+          can("settings", "edit") && section !== "personal_expenses" ? (
             <Button onClick={save} disabled={saving} className="min-h-11 px-5">
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
               Save settings
@@ -540,7 +542,11 @@ export default function SettingsClient() {
         </SectionCard>
       )}
 
-      {can("settings", "edit") && (
+      {section === "personal_expenses" && (
+        <PersonalExpensesSettingsSection />
+      )}
+
+      {can("settings", "edit") && section !== "personal_expenses" && (
         <div className="sticky bottom-3 z-10 flex justify-end md:hidden">
           <Button onClick={save} disabled={saving} className="min-h-12 shadow-lg">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}

@@ -14,6 +14,7 @@ import {
   FileSignature,
   ReceiptText,
   Receipt,
+  WalletCards,
   PieChart,
   LogOut,
   Menu,
@@ -39,7 +40,7 @@ const navigation: {
   href: string
   icon: LucideIcon
   feature?: keyof typeof FEATURES
-  module: PermissionModule
+  module?: PermissionModule
 }[] = [
     { name: "Dashboard", href: "/admin", icon: LayoutDashboard, module: "dashboard" },
     { name: "Companies", href: "/admin/companies", icon: Building2, module: "companies" },
@@ -47,6 +48,7 @@ const navigation: {
     { name: "Products", href: "/admin/products", icon: Package, feature: "productsModule", module: "products" },
     { name: "Stock", href: "/admin/stock", icon: Warehouse, module: "stock" },
     { name: "Purchases & Expenses", href: "/admin/purchases", icon: Receipt, module: "purchases" },
+    { name: "Personal Expenses", href: "/admin/personal-expenses", icon: WalletCards },
     { name: "Delivery Challans", href: "/admin/delivery-challans", icon: Truck, module: "delivery_challans" },
     { name: "Invoice", href: "/admin/invoices", icon: FileText, module: "invoices" },
     { name: "Letter Pad", href: "/admin/letter-pads", icon: FileSignature, module: "letter_pads" },
@@ -179,6 +181,7 @@ export function Sidebar() {
 
   const navItems = navigation.filter((item) => {
     if (item.feature && !FEATURES[item.feature]) return false
+    if (!item.module) return true
     if (isLoading) return item.module === "dashboard"
     return canView(item.module)
   })

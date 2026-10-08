@@ -567,6 +567,73 @@ export type FinancialYearRow = {
   updated_at: string;
 };
 
+export type PersonalExpenseCategoryRow = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  parent_id: string | null;
+  color: string | null;
+  icon: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseSettingsRow = {
+  id: string;
+  user_id: string;
+  expense_number_prefix: string;
+  starting_number: number;
+  next_number: number;
+  default_currency: string;
+  default_payment_method: string;
+  default_category_id: string | null;
+  custom_payment_methods: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseRow = {
+  id: string;
+  user_id: string;
+  expense_number: string;
+  expense_date: string;
+  category_id: string | null;
+  category_name: string;
+  subcategory_id: string | null;
+  subcategory_name: string | null;
+  description: string;
+  amount: number;
+  payment_method: string;
+  payment_status: 'Paid' | 'Pending' | 'Partially Paid';
+  paid_amount: number;
+  pending_amount: number;
+  paid_to: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseDocumentRow = {
+  id: string;
+  expense_id: string;
+  user_id: string;
+  file_name: string;
+  storage_path: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+};
+
+export type PersonalExpenseAuditLogRow = {
+  id: string;
+  user_id: string;
+  expense_id: string;
+  action: string;
+  details: string | null;
+  created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -936,6 +1003,80 @@ export interface Database {
         Update: Partial<FinancialYearRow>;
         Relationships: [];
       };
+      personal_expense_categories: {
+        Row: PersonalExpenseCategoryRow;
+        Insert: Omit<PersonalExpenseCategoryRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          parent_id?: string | null;
+          color?: string | null;
+          icon?: string | null;
+          is_active?: boolean;
+        };
+        Update: Partial<PersonalExpenseCategoryRow>;
+        Relationships: [];
+      };
+      personal_expense_settings: {
+        Row: PersonalExpenseSettingsRow;
+        Insert: Omit<PersonalExpenseSettingsRow, 'id' | 'created_at' | 'updated_at' | 'default_category_id'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          expense_number_prefix?: string;
+          starting_number?: number;
+          next_number?: number;
+          default_currency?: string;
+          default_payment_method?: string;
+          default_category_id?: string | null;
+          custom_payment_methods?: string[];
+        };
+        Update: Partial<PersonalExpenseSettingsRow>;
+        Relationships: [];
+      };
+      personal_expenses: {
+        Row: PersonalExpenseRow;
+        Insert: Omit<PersonalExpenseRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          category_id?: string | null;
+          subcategory_id?: string | null;
+          subcategory_name?: string | null;
+          paid_amount?: number;
+          pending_amount?: number;
+          paid_to?: string | null;
+          notes?: string | null;
+        };
+        Update: Partial<PersonalExpenseRow>;
+        Relationships: [];
+      };
+      personal_expense_documents: {
+        Row: PersonalExpenseDocumentRow;
+        Insert: Omit<PersonalExpenseDocumentRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<PersonalExpenseDocumentRow>;
+        Relationships: [
+          {
+            foreignKeyName: "personal_expense_documents_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "personal_expenses";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      personal_expense_audit_logs: {
+        Row: PersonalExpenseAuditLogRow;
+        Insert: Omit<PersonalExpenseAuditLogRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<PersonalExpenseAuditLogRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -1036,6 +1177,18 @@ export interface Database {
           p_purchase_id?: string | null;
           p_notes?: string | null;
           p_user_id?: string | null;
+        };
+        Returns: undefined;
+      };
+      generate_personal_expense_number: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: string;
+      };
+      ensure_default_personal_categories: {
+        Args: {
+          p_user_id: string;
         };
         Returns: undefined;
       };
