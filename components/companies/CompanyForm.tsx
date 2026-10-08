@@ -280,7 +280,11 @@ export function CompanyForm({ mode, initialCompany }: CompanyFormProps) {
                       onValueChange={(val) => setParentCompanyId(val || "none")}
                     >
                       <SelectTrigger id="parent_company_id">
-                        <SelectValue placeholder="Select parent company" />
+                        <SelectValue placeholder="Select parent company">
+                          {(val: string | null) =>
+                            availableParents.find((p) => p.id === val)?.name || "Select parent company"
+                          }
+                        </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {availableParents.map((parent) => (

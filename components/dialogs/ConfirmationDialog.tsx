@@ -76,14 +76,14 @@ export function ConfirmationDialog({
         }
       }}
     >
-      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white/95 backdrop-blur-2xl shadow-xl p-6 sm:p-7">
+      <DialogContent className="sm:max-w-md rounded-2xl sm:rounded-3xl border border-border/80 bg-card/95 backdrop-blur-2xl shadow-xl p-6 sm:p-7">
         <div className="flex flex-col sm:flex-row items-start gap-4">
           {icon && (
             <div
               className={`flex items-center justify-center w-12 h-12 rounded-2xl shrink-0 shadow-xs ${
                 variant === "destructive"
-                  ? "bg-rose-50 text-rose-600 border border-rose-200/60"
-                  : "bg-slate-100 text-slate-700 border border-slate-200/70"
+                  ? "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                  : "bg-muted text-foreground border border-border/70"
               }`}
             >
               {icon}
@@ -91,22 +91,22 @@ export function ConfirmationDialog({
           )}
           <div className="space-y-1.5 flex-1 text-left">
             <DialogHeader className="p-0 text-left">
-              <DialogTitle className="text-lg font-bold text-slate-900 tracking-tight">
+              <DialogTitle className="text-lg font-bold text-foreground tracking-tight">
                 {title}
               </DialogTitle>
-              <DialogDescription className="text-sm text-slate-500 leading-relaxed pt-1">
+              <DialogDescription className="text-sm text-muted-foreground leading-relaxed pt-1">
                 {description}
               </DialogDescription>
             </DialogHeader>
           </div>
         </div>
-        <DialogFooter className="gap-2.5 pt-4 sm:justify-end border-t border-slate-100 mt-2">
+        <DialogFooter className="gap-2.5 pt-4 sm:justify-end border-t border-border/50 mt-2">
           <Button
             type="button"
             variant="outline"
             disabled={isLoading}
             onClick={() => onOpenChange(false)}
-            className="rounded-xl px-4 py-2 text-xs font-semibold text-slate-700 border-slate-200 hover:bg-slate-100 shadow-2xs"
+            className="rounded-xl px-4 py-2 text-xs font-semibold shadow-2xs"
           >
             {cancelText}
           </Button>

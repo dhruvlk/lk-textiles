@@ -389,6 +389,251 @@ export type InquiryRow = {
   updated_at: string;
 };
 
+export type SupplierRow = {
+  id: string;
+  company_id: string;
+  name: string;
+  contact_person: string | null;
+  mobile: string | null;
+  email: string | null;
+  address: string | null;
+  city: string | null;
+  state: string | null;
+  pincode: string | null;
+  gstin: string | null;
+  pan: string | null;
+  payment_terms: string | null;
+  opening_balance: number;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ExpenseCategoryRow = {
+  id: string;
+  company_id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  is_system: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PurchaseRow = {
+  id: string;
+  company_id: string;
+  supplier_id: string | null;
+  supplier_name: string;
+  supplier_gstin: string | null;
+  invoice_number: string;
+  invoice_date: string;
+  due_date: string | null;
+  financial_year: string;
+  purchase_type: 'Stock Purchase' | 'Expense Purchase' | 'Asset Purchase' | 'Service Purchase' | 'Other';
+  is_gst_bill: boolean;
+  hsn_sac: string | null;
+  subtotal: number;
+  discount: number;
+  gst_rate: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  igst_amount: number;
+  total_gst: number;
+  round_off: number;
+  grand_total: number;
+  payment_status: 'Paid' | 'Partially Paid' | 'Unpaid';
+  paid_amount: number;
+  balance_amount: number;
+  payment_method: 'Cash' | 'Bank Transfer' | 'UPI' | 'Cheque' | 'Card' | 'Other' | null;
+  status: 'Draft' | 'Active' | 'Archived' | 'Cancelled';
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PurchaseItemRow = {
+  id: string;
+  purchase_id: string;
+  product_id: string | null;
+  stock_id: string | null;
+  item_name: string;
+  description: string | null;
+  hsn_sac: string | null;
+  quantity: number;
+  unit: string;
+  rate: number;
+  discount: number;
+  taxable_amount: number;
+  gst_rate: number;
+  gst_amount: number;
+  total_amount: number;
+  yarn_type: string | null;
+  count: string | null;
+  denier: string | null;
+  color: string | null;
+  lot_number: string | null;
+  batch_number: string | null;
+  roll_number: string | null;
+  beam_number: string | null;
+  quality: string | null;
+  width: string | null;
+  gsm: string | null;
+  meters: number | null;
+  weight: number | null;
+  created_at: string;
+};
+
+export type ExpenseRow = {
+  id: string;
+  company_id: string;
+  expense_date: string;
+  financial_year: string;
+  category_id: string | null;
+  category_name: string;
+  paid_to: string;
+  supplier_id: string | null;
+  amount: number;
+  is_gst_applicable: boolean;
+  vendor_gstin: string | null;
+  hsn_sac: string | null;
+  taxable_amount: number;
+  gst_rate: number;
+  cgst_amount: number;
+  sgst_amount: number;
+  igst_amount: number;
+  total_gst: number;
+  total_amount: number;
+  payment_method: 'Cash' | 'Bank Transfer' | 'UPI' | 'Cheque' | 'Card' | 'Other';
+  payment_status: 'Paid' | 'Partially Paid' | 'Unpaid';
+  paid_amount: number;
+  reference_number: string | null;
+  notes: string | null;
+  status: 'Active' | 'Archived';
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PurchasePaymentRow = {
+  id: string;
+  company_id: string;
+  purchase_id: string | null;
+  expense_id: string | null;
+  payment_date: string;
+  amount: number;
+  payment_method: 'Cash' | 'Bank Transfer' | 'UPI' | 'Cheque' | 'Card' | 'Other';
+  reference_number: string | null;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+};
+
+export type DocumentRow = {
+  id: string;
+  company_id: string;
+  financial_year: string;
+  document_type: 'Purchase Bill' | 'Expense Bill' | 'GST Document' | 'Transport Bill' | 'Machine Bill' | 'Other';
+  purchase_id: string | null;
+  expense_id: string | null;
+  supplier_id: string | null;
+  file_name: string;
+  file_type: string;
+  file_size: number;
+  storage_path: string;
+  public_url: string | null;
+  tags: string[];
+  description: string | null;
+  ocr_data: Json | null;
+  status: 'Draft' | 'Active' | 'Archived';
+  uploaded_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type FinancialYearRow = {
+  id: string;
+  company_id: string;
+  year_label: string;
+  start_date: string;
+  end_date: string;
+  status: 'Open' | 'Reviewing' | 'Closed';
+  closing_notes: string | null;
+  closed_at: string | null;
+  closed_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseCategoryRow = {
+  id: string;
+  user_id: string | null;
+  name: string;
+  parent_id: string | null;
+  color: string | null;
+  icon: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseSettingsRow = {
+  id: string;
+  user_id: string;
+  expense_number_prefix: string;
+  starting_number: number;
+  next_number: number;
+  default_currency: string;
+  default_payment_method: string;
+  default_category_id: string | null;
+  custom_payment_methods: string[];
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseRow = {
+  id: string;
+  user_id: string;
+  expense_number: string;
+  expense_date: string;
+  category_id: string | null;
+  category_name: string;
+  subcategory_id: string | null;
+  subcategory_name: string | null;
+  description: string;
+  amount: number;
+  payment_method: string;
+  payment_status: 'Paid' | 'Pending' | 'Partially Paid';
+  paid_amount: number;
+  pending_amount: number;
+  paid_to: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PersonalExpenseDocumentRow = {
+  id: string;
+  expense_id: string;
+  user_id: string;
+  file_name: string;
+  storage_path: string;
+  file_type: string;
+  file_size: number;
+  created_at: string;
+};
+
+export type PersonalExpenseAuditLogRow = {
+  id: string;
+  user_id: string;
+  expense_id: string;
+  action: string;
+  details: string | null;
+  created_at: string;
+};
+
 export interface Database {
   public: {
     Tables: {
@@ -574,9 +819,14 @@ export interface Database {
       };
       audit_logs: {
         Row: AuditLogRow;
-        Insert: Omit<AuditLogRow, 'id' | 'created_at'> & {
+        Insert: Omit<AuditLogRow, 'id' | 'created_at' | 'employee_name' | 'ip_address' | 'module' | 'entity_type' | 'entity_id'> & {
           id?: string;
           created_at?: string;
+          employee_name?: string | null;
+          ip_address?: string | null;
+          module?: string | null;
+          entity_type?: string | null;
+          entity_id?: string | null;
         };
         Update: Partial<AuditLogRow>;
         Relationships: [];
@@ -656,6 +906,175 @@ export interface Database {
         Row: SalarySlipSequenceRow;
         Insert: SalarySlipSequenceRow;
         Update: Partial<SalarySlipSequenceRow>;
+        Relationships: [];
+      };
+      suppliers: {
+        Row: SupplierRow;
+        Insert: Omit<SupplierRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<SupplierRow>;
+        Relationships: [];
+      };
+      expense_categories: {
+        Row: ExpenseCategoryRow;
+        Insert: Omit<ExpenseCategoryRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ExpenseCategoryRow>;
+        Relationships: [];
+      };
+      purchases: {
+        Row: PurchaseRow;
+        Insert: Omit<PurchaseRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<PurchaseRow>;
+        Relationships: [];
+      };
+      purchase_items: {
+        Row: PurchaseItemRow;
+        Insert: Omit<PurchaseItemRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<PurchaseItemRow>;
+        Relationships: [];
+      };
+      expenses: {
+        Row: ExpenseRow;
+        Insert: Omit<ExpenseRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<ExpenseRow>;
+        Relationships: [];
+      };
+      purchase_payments: {
+        Row: PurchasePaymentRow;
+        Insert: Omit<PurchasePaymentRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+          purchase_id?: string | null;
+          expense_id?: string | null;
+          reference_number?: string | null;
+          notes?: string | null;
+          created_by?: string | null;
+        };
+        Update: Partial<PurchasePaymentRow>;
+        Relationships: [];
+      };
+      documents: {
+        Row: DocumentRow;
+        Insert: Omit<DocumentRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          ocr_data?: Json | null;
+          tags?: string[];
+          status?: 'Draft' | 'Active' | 'Archived';
+          public_url?: string | null;
+          description?: string | null;
+          supplier_id?: string | null;
+          purchase_id?: string | null;
+          expense_id?: string | null;
+          uploaded_by?: string | null;
+        };
+        Update: Partial<DocumentRow>;
+        Relationships: [];
+      };
+      financial_years: {
+        Row: FinancialYearRow;
+        Insert: Omit<FinancialYearRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          closing_notes?: string | null;
+          closed_at?: string | null;
+          closed_by?: string | null;
+        };
+        Update: Partial<FinancialYearRow>;
+        Relationships: [];
+      };
+      personal_expense_categories: {
+        Row: PersonalExpenseCategoryRow;
+        Insert: Omit<PersonalExpenseCategoryRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          parent_id?: string | null;
+          color?: string | null;
+          icon?: string | null;
+          is_active?: boolean;
+        };
+        Update: Partial<PersonalExpenseCategoryRow>;
+        Relationships: [];
+      };
+      personal_expense_settings: {
+        Row: PersonalExpenseSettingsRow;
+        Insert: Omit<PersonalExpenseSettingsRow, 'id' | 'created_at' | 'updated_at' | 'default_category_id'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          expense_number_prefix?: string;
+          starting_number?: number;
+          next_number?: number;
+          default_currency?: string;
+          default_payment_method?: string;
+          default_category_id?: string | null;
+          custom_payment_methods?: string[];
+        };
+        Update: Partial<PersonalExpenseSettingsRow>;
+        Relationships: [];
+      };
+      personal_expenses: {
+        Row: PersonalExpenseRow;
+        Insert: Omit<PersonalExpenseRow, 'id' | 'created_at' | 'updated_at'> & {
+          id?: string;
+          created_at?: string;
+          updated_at?: string;
+          category_id?: string | null;
+          subcategory_id?: string | null;
+          subcategory_name?: string | null;
+          paid_amount?: number;
+          pending_amount?: number;
+          paid_to?: string | null;
+          notes?: string | null;
+        };
+        Update: Partial<PersonalExpenseRow>;
+        Relationships: [];
+      };
+      personal_expense_documents: {
+        Row: PersonalExpenseDocumentRow;
+        Insert: Omit<PersonalExpenseDocumentRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<PersonalExpenseDocumentRow>;
+        Relationships: [
+          {
+            foreignKeyName: "personal_expense_documents_expense_id_fkey";
+            columns: ["expense_id"];
+            isOneToOne: false;
+            referencedRelation: "personal_expenses";
+            referencedColumns: ["id"];
+          }
+        ];
+      };
+      personal_expense_audit_logs: {
+        Row: PersonalExpenseAuditLogRow;
+        Insert: Omit<PersonalExpenseAuditLogRow, 'id' | 'created_at'> & {
+          id?: string;
+          created_at?: string;
+        };
+        Update: Partial<PersonalExpenseAuditLogRow>;
         Relationships: [];
       };
     };
@@ -748,6 +1167,30 @@ export interface Database {
           uan_number?: string | null;
           pf_number?: string | null;
         }[];
+      };
+      process_purchase_stock_change: {
+        Args: {
+          p_company_id: string;
+          p_stock_id: string;
+          p_quantity: number;
+          p_transaction_type: string;
+          p_purchase_id?: string | null;
+          p_notes?: string | null;
+          p_user_id?: string | null;
+        };
+        Returns: undefined;
+      };
+      generate_personal_expense_number: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: string;
+      };
+      ensure_default_personal_categories: {
+        Args: {
+          p_user_id: string;
+        };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;
