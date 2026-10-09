@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reset Your Password - Textile CMS</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%;
+      table-layout: fixed;
+      background-color: #f8fafc;
+      padding: 40px 0;
+    }
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e2e8f0;
+    }
+    .header {
+      background-color: #001142;
+      padding: 32px 24px;
+      text-align: center;
+    }
+    .brand-title {
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .brand-subtitle {
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.5px;
+      margin: 4px 0 0 0;
+    }
+    .body-content {
+      padding: 36px 32px;
+    }
+    .heading {
+      color: #0f172a;
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 16px 0;
+    }
+    .paragraph {
+      color: #475569;
+      font-size: 15px;
+      line-height: 1.6;
+      margin: 0 0 24px 0;
+    }
+    .button-container {
+      text-align: center;
+      margin: 32px 0;
+    }
+    .reset-button {
+      display: inline-block;
+      background-color: #2563eb;
+      color: #ffffff !important;
+      font-size: 15px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 13px 32px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+    }
+    .reset-button:hover {
+      background-color: #1d4ed8;
+    }
+    .callout {
+      background-color: #f1f5f9;
+      border-left: 4px solid #2563eb;
+      padding: 14px 16px;
+      border-radius: 0 6px 6px 0;
+      margin: 24px 0;
+    }
+    .callout-text {
+      color: #334155;
+      font-size: 13px;
+      line-height: 1.5;
+      margin: 0;
+    }
+    .fallback-section {
+      border-top: 1px solid #e2e8f0;
+      padding-top: 20px;
+      margin-top: 24px;
+    }
+    .fallback-label {
+      color: #64748b;
+      font-size: 12px;
+      margin-bottom: 6px;
+    }
+    .fallback-url {
+      color: #2563eb;
+      font-size: 12px;
+      word-break: break-all;
+      line-height: 1.4;
+    }
+    .footer {
+      background-color: #f8fafc;
+      padding: 24px 32px;
+      text-align: center;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer-text {
+      color: #94a3b8;
+      font-size: 12px;
+      line-height: 1.5;
+      margin: 0 0 6px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
+      <tr>
+        <td align="center">
+          <div class="container">
+            <!-- Header -->
+            <div class="header">
+              <h1 class="brand-title">Textile CMS</h1>
+              <p class="brand-subtitle">LK Textiles Management Portal</p>
+            </div>
+
+            <!-- Content -->
+            <div class="body-content">
+              <h2 class="heading">Reset your password</h2>
+              <p class="paragraph">
+                We received a request to reset the password for your Textile CMS account. Click the button below to choose a new secure password:
+              </p>
+
+              <!-- CTA Button -->
+              <div class="button-container">
+                <a href="{{ .ConfirmationURL }}" class="reset-button" target="_blank" rel="noopener noreferrer">
+                  Reset Password
+                </a>
+              </div>
+
+              <!-- Security Notice -->
+              <div class="callout">
+                <p class="callout-text">
+                  <strong>Did not request this?</strong> If you didn't ask to reset your password, you can safely ignore this email. Your existing password will remain unchanged and your account is secure.
+                </p>
+              </div>
+
+              <!-- Fallback Link -->
+              <div class="fallback-section">
+                <p class="fallback-label">
+                  If the button above does not work, copy and paste this link into your browser:
+                </p>
+                <a href="{{ .ConfirmationURL }}" class="fallback-url">
+                  {{ .ConfirmationURL }}
+                </a>
+              </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="footer">
+              <p class="footer-text">
+                This link will expire in 1 hour for your security.
+              </p>
+              <p class="footer-text">
+                &copy; Textile CMS &bull; LK Textiles. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</body>
+</html>

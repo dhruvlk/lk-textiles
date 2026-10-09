@@ -55,22 +55,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(next);
   }, []);
 
-  const hydrateUser = useCallback(async (authUser: {
-    id: string;
-    email?: string;
-    user_metadata?: Record<string, unknown>;
-  }) => {
+  const hydrateUser = useCallback(async (
+    authUser: {
+      id: string;
+      email?: string;
+      user_metadata?: Record<string, unknown>;
+    },
+    options?: { isRecovery?: boolean }
+  ) => {
     const inactiveMessage = await getInactiveAccountMessage(authUser.id);
     if (inactiveMessage) {
       await signOut();
       return null;
     }
-    let [profile, membership] = await Promise.all([
+    const [profile, initialMembership] = await Promise.all([
       getProfile(authUser.id),
       getPrimaryMembership(authUser.id),
     ]);
+    let membership = initialMembership;
 
-    if (!membership && authUser.user_metadata?.company_name) {
+    // Do NOT auto-provision during password recovery
+    if (!options?.isRecovery && !membership && authUser.user_metadata?.company_name) {
       await provisionPendingCompanyAccount();
       membership = await getPrimaryMembership(authUser.id);
     }
@@ -129,7 +134,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (session?.user) {
-          const appUser = await hydrateUser(session.user);
+          const isRecovery = event === 'PASSWORD_RECOVERY';
+          const appUser = await hydrateUser(session.user, { isRecovery });
           if (!mounted) return;
           if (appUser) {
             setUserStable(appUser);
