@@ -29,7 +29,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Public API routes accessible without login
-  const publicApiRoutes = ['/api/contact', '/api/auth/', '/api/admin/landing'];
+  const publicApiRoutes = ['/api/contact', '/api/auth/', '/api/admin/landing', '/auth/callback'];
   const isPublicApi = publicApiRoutes.some((r) => request.nextUrl.pathname.startsWith(r));
 
   // Protected API routes must return JSON errors, not HTML redirects to /login

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/client';
 import { isValidIndianMobile, formatPhoneToStorage } from '@/lib/validations/phone';
 import { setSelectedCompanyId, addCompany } from '@/services/companies.service';
+import { getResetPasswordRedirectUrl } from '@/lib/auth-url';
 import type { RegisterCompanyInput, RegisterUserInput } from '@/types/auth';
 
 const supabase = () => createClient();
@@ -131,12 +132,10 @@ export async function signInWithEmail(email: string, password: string) {
 }
 
 export async function requestPasswordReset(email: string) {
-  const redirectTo =
-    typeof window !== 'undefined'
-      ? `${window.location.origin}/reset-password`
-      : undefined;
+  const cleanEmail = email.trim().toLowerCase();
+  const redirectTo = getResetPasswordRedirectUrl();
 
-  const { error } = await supabase().auth.resetPasswordForEmail(email, {
+  const { error } = await supabase().auth.resetPasswordForEmail(cleanEmail, {
     redirectTo,
   });
   if (error) throw error;
