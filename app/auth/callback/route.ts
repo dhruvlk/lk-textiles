@@ -41,7 +41,11 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(targetUrl);
     }
 
-    return NextResponse.redirect(new URL(next, requestUrl.origin));
+    const tokenSuccessUrl = new URL(next, requestUrl.origin);
+    if (next.startsWith('/admin/reset-password')) {
+      tokenSuccessUrl.searchParams.set('recovery', '1');
+    }
+    return NextResponse.redirect(tokenSuccessUrl);
   }
 
   // Handle PKCE code exchange
@@ -61,11 +65,10 @@ export async function GET(request: NextRequest) {
 
   const forwardedHost = request.headers.get('x-forwarded-host');
   const isLocalEnv = process.env.NODE_ENV === 'development';
-  if (isLocalEnv) {
-    return NextResponse.redirect(new URL(next, requestUrl.origin));
-  } else if (forwardedHost) {
-    return NextResponse.redirect(new URL(next, `https://${forwardedHost}`));
-  } else {
-    return NextResponse.redirect(new URL(next, requestUrl.origin));
+  const targetBase = isLocalEnv || !forwardedHost ? requestUrl.origin : `https://${forwardedHost}`;
+  const targetUrl = new URL(next, targetBase);
+  if (next.startsWith('/admin/reset-password')) {
+    targetUrl.searchParams.set('recovery', '1');
   }
+  return NextResponse.redirect(targetUrl);
 }

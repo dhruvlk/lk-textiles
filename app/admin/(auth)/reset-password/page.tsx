@@ -44,227 +44,294 @@ function ResetPasswordContent() {
   const [redirectCountdown, setRedirectCountdown] = useState(3)
   const countdownTimerRef = useRef<NodeJS.Timeout | null>(null)
 
+  const isExchangingRef = useRef(false)
+  const isResolvedValidRef = useRef(false)
+  const recoveryMarkerRef = useRef(false)
+
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
     mode: "onTouched",
   })
 
-  // Validate recovery authorization
-  const validateRecoveryAuth = useCallback(async () => {
-    const supabase = createClient()
-
-    // 1. Check for query error parameters (?error=access_denied&error_description=...)
-    const queryError = searchParams.get("error")
-    const queryErrorDescription = searchParams.get("error_description")
-    if (queryError) {
-      const msg =
-        queryErrorDescription ||
-        "This password reset link is invalid or has expired. Please request a new link."
-      setPageState({ type: "invalid", error: msg })
-      return
-    }
-
-    // 2. Check for hash error parameters (#error=access_denied&error_description=...)
-    if (typeof window !== "undefined" && window.location.hash) {
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      if (params.get("error")) {
-        const desc =
-          params.get("error_description") ||
-          "This password reset link is invalid or has expired. Please request a new link."
-        setPageState({ type: "invalid", error: desc })
-        return
-      }
-    }
-
-    // 3. Check for token_hash (?token_hash=... or in hash) - Cross-browser friendly without PKCE storage dependency
-    let tokenHash = searchParams.get("token_hash")
-    if (!tokenHash && typeof window !== "undefined" && window.location.hash) {
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      tokenHash = params.get("token_hash")
-    }
-
-    if (tokenHash) {
+  // Helper to check whether recovery was previously authorized in this browser session
+  const isRecoveryMarked = useCallback(() => {
+    if (recoveryMarkerRef.current) return true
+    if (typeof window !== "undefined") {
       try {
-        const { data, error } = await supabase.auth.verifyOtp({
-          token_hash: tokenHash,
-          type: "recovery",
-        })
-
-        if (error || !data.session) {
-          setPageState({
-            type: "invalid",
-            error:
-              error?.message ||
-              "The password reset link is invalid or has expired.",
-          })
-          return
-        }
-
-        try {
-          sessionStorage.setItem(RECOVERY_STORAGE_KEY, "true")
-        } catch {
-          // ignore
-        }
-
-        if (typeof window !== "undefined") {
-          window.history.replaceState({}, "", window.location.pathname)
-        }
-
-        setPageState({ type: "valid" })
-        return
-      } catch (err) {
-        setPageState({
-          type: "invalid",
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to verify password reset link.",
-        })
-        return
+        return sessionStorage.getItem(RECOVERY_STORAGE_KEY) === "true"
+      } catch {
+        return false
       }
     }
+    return false
+  }, [])
 
-    // 4. Check for PKCE auth code in searchParams (?code=...)
-    const code = searchParams.get("code")
-    if (code) {
-      try {
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error || !data.session) {
-          const lowerMsg = (error?.message || "").toLowerCase()
-          if (lowerMsg.includes("pkce") || lowerMsg.includes("code verifier")) {
-            setPageState({
-              type: "invalid",
-              error:
-                "This reset link was opened in a different browser, device, or incognito window than where you requested it. For security, please open the link in the same browser where you submitted the reset request, or request a new link.",
-            })
-            return
-          }
-
-          setPageState({
-            type: "invalid",
-            error:
-              error?.message ||
-              "The password reset code is invalid or has already been used.",
-          })
-          return
-        }
-
-        // Recovery session established! Mark in sessionStorage for reload tolerance
-        try {
-          sessionStorage.setItem(RECOVERY_STORAGE_KEY, "true")
-        } catch {
-          // ignore
-        }
-
-        // Strip sensitive one-time code from URL without reloading
-        if (typeof window !== "undefined") {
-          window.history.replaceState({}, "", window.location.pathname)
-        }
-
-        setPageState({ type: "valid" })
-        return
-      } catch (err) {
-        setPageState({
-          type: "invalid",
-          error:
-            err instanceof Error
-              ? err.message
-              : "Failed to verify password reset code.",
-        })
-        return
-      }
-    }
-
-    // 5. Check for implicit hash fragment (#access_token=...&type=recovery)
-    let isHashRecovery = false
-    if (typeof window !== "undefined" && window.location.hash) {
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      if (
-        params.get("type") === "recovery" ||
-        params.get("access_token")
-      ) {
-        isHashRecovery = true
-      }
-    }
-
-    // 6. Check active session AND verify recovery authorization marker
-    const { data: { session } } = await supabase.auth.getSession()
-
-    let hasRecoveryMarker = false
-    try {
-      hasRecoveryMarker =
-        sessionStorage.getItem(RECOVERY_STORAGE_KEY) === "true"
-    } catch {
-      hasRecoveryMarker = false
-    }
-
-    if (session && (isHashRecovery || hasRecoveryMarker)) {
+  // Helper to mark recovery authorization as successfully verified
+  const markRecoveryValid = useCallback(() => {
+    isResolvedValidRef.current = true
+    recoveryMarkerRef.current = true
+    if (typeof window !== "undefined") {
       try {
         sessionStorage.setItem(RECOVERY_STORAGE_KEY, "true")
       } catch {
-        // ignore
+        // ignore storage errors
       }
-
-      if (typeof window !== "undefined" && window.location.hash) {
+      // Strip sensitive code/token parameters from the URL without triggering a page reload
+      if (window.location.search || window.location.hash) {
         window.history.replaceState({}, "", window.location.pathname)
       }
-
-      setPageState({ type: "valid" })
-      return
     }
+    setPageState({ type: "valid" })
+  }, [])
 
-    // 7. Listen for auth state change if Supabase is still parsing hash
+  // Helper to mark recovery authorization as invalid
+  const markRecoveryInvalid = useCallback((errorMsg: string) => {
+    // If a valid recovery session was already confirmed, do not let background retries overwrite it
+    if (isResolvedValidRef.current) return
+
+    recoveryMarkerRef.current = false
+    if (typeof window !== "undefined") {
+      try {
+        sessionStorage.removeItem(RECOVERY_STORAGE_KEY)
+      } catch {
+        // ignore storage errors
+      }
+    }
+    setPageState({ type: "invalid", error: errorMsg })
+  }, [])
+
+  useEffect(() => {
+    let isMounted = true
+    const supabase = createClient()
+
+    // 1. Listen continuously to auth state changes.
+    // In @supabase/ssr, when detectSessionInUrl is true (default),
+    // GoTrueClient automatically exchanges code/hash during init and emits PASSWORD_RECOVERY.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && isHashRecovery)) {
-          try {
-            sessionStorage.setItem(RECOVERY_STORAGE_KEY, "true")
-          } catch {
-            // ignore
+        if (!isMounted) return
+
+        if (event === "PASSWORD_RECOVERY") {
+          markRecoveryValid()
+          return
+        }
+
+        if (event === "SIGNED_IN" && session) {
+          const hasCodeOrHash =
+            Boolean(searchParams.get("code")) ||
+            Boolean(searchParams.get("token_hash")) ||
+            searchParams.get("recovery") === "1" ||
+            (typeof window !== "undefined" &&
+              (window.location.hash.includes("access_token") ||
+                window.location.hash.includes("type=recovery")))
+
+          if (hasCodeOrHash || isRecoveryMarked()) {
+            markRecoveryValid()
           }
-          if (typeof window !== "undefined" && window.location.hash) {
-            window.history.replaceState({}, "", window.location.pathname)
-          }
-          setPageState({ type: "valid" })
         }
       }
     )
 
-    // Wait a brief tick for onAuthStateChange to resolve if hash exists
-    if (isHashRecovery) {
-      setTimeout(async () => {
-        const { data: { session: retrySession } } = await supabase.auth.getSession()
-        if (retrySession) {
-          setPageState({ type: "valid" })
-        } else {
-          setPageState({
-            type: "invalid",
-            error:
-              "Unable to verify your password reset session. Please request a new link.",
-          })
+    async function verifyRecoverySession() {
+      // Step A: Check for query error parameters (?error=access_denied&error_description=...)
+      const queryError = searchParams.get("error")
+      const queryErrorDescription = searchParams.get("error_description")
+      if (queryError) {
+        const msg =
+          queryErrorDescription ||
+          "This password reset link is invalid or has expired. Please request a new link."
+        markRecoveryInvalid(msg)
+        return
+      }
+
+      // Step B: Check for hash error parameters (#error=access_denied&error_description=...)
+      if (typeof window !== "undefined" && window.location.hash) {
+        const hash = window.location.hash.substring(1)
+        const params = new URLSearchParams(hash)
+        if (params.get("error")) {
+          const desc =
+            params.get("error_description") ||
+            "This password reset link is invalid or has expired. Please request a new link."
+          markRecoveryInvalid(desc)
+          return
         }
-        subscription.unsubscribe()
-      }, 500)
-      return
+      }
+
+      // Step C: Check for token_hash (?token_hash=... or in hash) - Cross-browser OTP verification
+      let tokenHash = searchParams.get("token_hash")
+      if (!tokenHash && typeof window !== "undefined" && window.location.hash) {
+        const hash = window.location.hash.substring(1)
+        const params = new URLSearchParams(hash)
+        tokenHash = params.get("token_hash")
+      }
+
+      if (tokenHash) {
+        if (isExchangingRef.current) return
+        isExchangingRef.current = true
+        try {
+          const { data, error } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: "recovery",
+          })
+
+          if (!isMounted) return
+
+          if (error || !data.session) {
+            markRecoveryInvalid(
+              error?.message ||
+                "The password reset link is invalid or has expired. Please request a new link."
+            )
+            return
+          }
+
+          markRecoveryValid()
+          return
+        } catch (err) {
+          if (!isMounted) return
+          markRecoveryInvalid(
+            err instanceof Error ? err.message : "Failed to verify password reset link."
+          )
+          return
+        }
+      }
+
+      // Step D: Check for callback route recovery redirect (?recovery=1)
+      if (searchParams.get("recovery") === "1") {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession()
+        if (!isMounted) return
+        if (session) {
+          markRecoveryValid()
+          return
+        }
+      }
+
+      // Step E: Check for PKCE auth code (?code=...)
+      const code = searchParams.get("code")
+
+      // Step F: Check active session from Supabase SDK.
+      // In @supabase/ssr, getSession() automatically awaits GoTrueClient's initializePromise.
+      // If code was present and code-verifier was in cookies, initializePromise ALREADY exchanged it!
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!isMounted) return
+
+      const hasHashRecovery =
+        typeof window !== "undefined" &&
+        (window.location.hash.includes("type=recovery") ||
+          window.location.hash.includes("access_token"))
+
+      if (session && (code || hasHashRecovery || isRecoveryMarked())) {
+        markRecoveryValid()
+        return
+      }
+
+      // If code is in URL but getSession() returned no session yet,
+      // exchange it explicitly while preserving the code verifier
+      if (code) {
+        if (isExchangingRef.current) return
+        isExchangingRef.current = true
+
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+          if (!isMounted) return
+
+          if (error || !data.session) {
+            const lowerMsg = (error?.message || "").toLowerCase()
+            if (
+              lowerMsg.includes("pkce") ||
+              lowerMsg.includes("code verifier") ||
+              lowerMsg.includes("non-empty")
+            ) {
+              markRecoveryInvalid(
+                "This reset link was opened in a different browser, device, or incognito window than where you requested it. For security, please open the link in the same browser where you submitted the reset request, or request a new link."
+              )
+              return
+            }
+
+            // Before failing, check if the session was established in parallel by the SDK init
+            const {
+              data: { session: parallelSession },
+            } = await supabase.auth.getSession()
+            if (parallelSession) {
+              markRecoveryValid()
+              return
+            }
+
+            markRecoveryInvalid(
+              error?.message ||
+                "The password reset code is invalid or has already been used. Please request a new link."
+            )
+            return
+          }
+
+          markRecoveryValid()
+          return
+        } catch (err) {
+          if (!isMounted) return
+          // Check if session was established despite exception
+          const {
+            data: { session: parallelSession },
+          } = await supabase.auth.getSession()
+          if (parallelSession) {
+            markRecoveryValid()
+            return
+          }
+
+          markRecoveryInvalid(
+            err instanceof Error ? err.message : "Failed to verify password reset code."
+          )
+          return
+        }
+      }
+
+      // Step G: Implicit flow with hash fragment (#access_token=...&type=recovery)
+      if (hasHashRecovery) {
+        let attempts = 0
+        const interval = setInterval(async () => {
+          attempts++
+          if (!isMounted) {
+            clearInterval(interval)
+            return
+          }
+          const {
+            data: { session: hashSession },
+          } = await supabase.auth.getSession()
+          if (hashSession) {
+            clearInterval(interval)
+            markRecoveryValid()
+          } else if (attempts >= 6) {
+            clearInterval(interval)
+            markRecoveryInvalid(
+              "Unable to verify your password reset session. Please request a new link."
+            )
+          }
+        }, 250)
+        return
+      }
+
+      // Step H: Page reload or back navigation with existing recovery marker
+      if (session && isRecoveryMarked()) {
+        markRecoveryValid()
+        return
+      }
+
+      // Step I: No valid code, token, hash, or recovery session: Reject unauthorized access
+      markRecoveryInvalid(
+        "No valid password reset session was found. Please open the link sent to your email or request a new one."
+      )
     }
 
-    subscription.unsubscribe()
+    verifyRecoverySession()
 
-    // 8. No token_hash, no code, no hash, no recovery marker: reject unauthorized access!
-    setPageState({
-      type: "invalid",
-      error:
-        "No valid password reset session was found. Please open the link sent to your email or request a new one.",
-    })
-  }, [searchParams])
-
-  useEffect(() => {
-    validateRecoveryAuth()
-  }, [validateRecoveryAuth])
+    return () => {
+      isMounted = false
+      subscription.unsubscribe()
+    }
+  }, [searchParams, markRecoveryValid, markRecoveryInvalid, isRecoveryMarked])
 
   // Countdown timer for automatic redirect on success
   useEffect(() => {
@@ -288,24 +355,44 @@ function ResetPasswordContent() {
     setFormError(null)
 
     try {
-      const result = await updatePassword(values.password)
-      if (result.error) {
-        setFormError(result.error)
-        toast.error(result.error)
+      const supabase = createClient()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      if (!session) {
+        const expiredMsg =
+          "Your password reset session has expired or is no longer active. Please request a new link."
+        setFormError(expiredMsg)
+        setPageState({ type: "invalid", error: expiredMsg })
+        setIsSubmitting(false)
+        return
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: values.password,
+      })
+
+      if (error) {
+        setFormError(error.message)
+        toast.error(error.message)
         setIsSubmitting(false)
         return
       }
 
       // Password updated successfully!
       form.reset({ password: "", confirmPassword: "" })
-      try {
-        sessionStorage.removeItem(RECOVERY_STORAGE_KEY)
-      } catch {
-        // ignore
+      recoveryMarkerRef.current = false
+      if (typeof window !== "undefined") {
+        try {
+          sessionStorage.removeItem(RECOVERY_STORAGE_KEY)
+        } catch {
+          // ignore
+        }
       }
 
       // Cleanly sign out recovery session so user can log in fresh with new password
       try {
+        await supabase.auth.signOut()
         await logout()
       } catch {
         // ignore sign-out error

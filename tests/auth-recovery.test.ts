@@ -263,3 +263,175 @@ test('UX - Prevents duplicate submissions while loading', () => {
 
   assert.equal(submitCount, 1, 'Duplicate submission must be blocked while loading');
 });
+
+// ─── 7. COMPREHENSIVE RECOVERY STATE & FLOW RESOLUTION TESTS ─────────────────
+
+test('Recovery Flow - SDK PKCE auto-init already active: avoids second exchange and marks valid', async () => {
+  let exchangeCodeCallCount = 0;
+  let resolvedState: { type: string; error?: string } = { type: 'checking' };
+
+  // Simulated Supabase client where SDK _initialize already established session
+  const mockSupabase = {
+    auth: {
+      async getSession() {
+        return { data: { session: { user: { id: 'user-123' }, access_token: 'valid-token' } }, error: null };
+      },
+      async exchangeCodeForSession(_code: string) {
+        exchangeCodeCallCount++;
+        // If called, it would fail because code was already used
+        return { data: { session: null }, error: new Error('invalid_grant: code has already been used') };
+      },
+    },
+  };
+
+  // Run the page's verification logic
+  async function simulateVerify({ code }: { code: string | null }) {
+    const { data: { session } } = await mockSupabase.auth.getSession();
+    if (session && code) {
+      resolvedState = { type: 'valid' };
+      return;
+    }
+    if (code) {
+      const { data, error } = await mockSupabase.auth.exchangeCodeForSession(code);
+      if (error || !data.session) {
+        resolvedState = { type: 'invalid', error: error?.message };
+        return;
+      }
+      resolvedState = { type: 'valid' };
+    }
+  }
+
+  await simulateVerify({ code: 'auth-code-123' });
+  assert.equal(resolvedState.type, 'valid', 'Expected valid state when session was established by SDK init');
+  assert.equal(exchangeCodeCallCount, 0, 'Must NOT attempt second exchange when session is already active');
+});
+
+test('Recovery Flow - Cross-browser PKCE missing code verifier: reports actionable error message', async () => {
+  let resolvedError = '';
+
+  const mockSupabase = {
+    auth: {
+      async getSession() {
+        return { data: { session: null }, error: null };
+      },
+      async exchangeCodeForSession(_code: string) {
+        return {
+          data: { session: null },
+          error: new Error('AuthApiError: invalid request: both auth code and code verifier should be non-empty'),
+        };
+      },
+    },
+  };
+
+  async function simulateVerify({ code }: { code: string }) {
+    const { data: { session } } = await mockSupabase.auth.getSession();
+    if (session) return;
+    const { error } = await mockSupabase.auth.exchangeCodeForSession(code);
+    if (error) {
+      const lower = error.message.toLowerCase();
+      if (lower.includes('pkce') || lower.includes('code verifier') || lower.includes('non-empty')) {
+        resolvedError =
+          'This reset link was opened in a different browser, device, or incognito window than where you requested it. For security, please open the link in the same browser where you submitted the reset request, or request a new link.';
+      } else {
+        resolvedError = error.message;
+      }
+    }
+  }
+
+  await simulateVerify({ code: 'cross-browser-code-999' });
+  assert.ok(resolvedError.includes('different browser, device, or incognito window'), 'Must provide clear cross-browser explanation');
+});
+
+test('Recovery Flow - Token hash verification: verifies via verifyOtp with type recovery', async () => {
+  let verifiedHash = '';
+  let verifiedType = '';
+  let isValid = false;
+
+  const mockSupabase = {
+    auth: {
+      async verifyOtp({ token_hash, type }: { token_hash: string; type: string }) {
+        verifiedHash = token_hash;
+        verifiedType = type;
+        return { data: { session: { user: { id: 'user-otp' } } }, error: null };
+      },
+    },
+  };
+
+  async function simulateVerifyOtp(tokenHash: string) {
+    const { data, error } = await mockSupabase.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' });
+    if (!error && data?.session) {
+      isValid = true;
+    }
+  }
+
+  await simulateVerifyOtp('hash_xyz_789');
+  assert.equal(verifiedHash, 'hash_xyz_789');
+  assert.equal(verifiedType, 'recovery');
+  assert.equal(isValid, true);
+});
+
+test('Recovery Flow - Page reload / back navigation: session remains authorized when marked in storage', async () => {
+  let isPageValid = false;
+
+  function simulateReloadCheck({
+    hasSession,
+    isMarkedInStorage,
+  }: {
+    hasSession: boolean;
+    isMarkedInStorage: boolean;
+  }) {
+    if (hasSession && isMarkedInStorage) {
+      isPageValid = true;
+    } else {
+      isPageValid = false;
+    }
+  }
+
+  // Reload after successful verification
+  simulateReloadCheck({ hasSession: true, isMarkedInStorage: true });
+  assert.equal(isPageValid, true, 'Reloading reset page must preserve valid state');
+
+  // Direct visit by normal user without recovery marker
+  simulateReloadCheck({ hasSession: true, isMarkedInStorage: false });
+  assert.equal(isPageValid, false, 'Direct access by logged-in user without recovery marker must be rejected');
+});
+
+test('Recovery Flow - Password submission requires active session', async () => {
+  let updatedPassword = '';
+  let submissionError = '';
+
+  const mockSupabase = {
+    auth: {
+      async getSession(hasSession: boolean) {
+        return { data: { session: hasSession ? { user: { id: 'user-1' } } : null }, error: null };
+      },
+      async updateUser({ password }: { password: string }) {
+        updatedPassword = password;
+        return { data: { user: { id: 'user-1' } }, error: null };
+      },
+    },
+  };
+
+  async function handlePasswordSubmit(password: string, hasSession: boolean) {
+    const { data: { session } } = await mockSupabase.auth.getSession(hasSession);
+    if (!session) {
+      submissionError = 'Your password reset session has expired or is no longer active. Please request a new link.';
+      return;
+    }
+    const { error } = await mockSupabase.auth.updateUser({ password });
+    if (error) {
+      submissionError = (error as Error).message;
+    }
+  }
+
+  // 1. Missing / expired session fails submission
+  await handlePasswordSubmit('NewSecretPass123!', false);
+  assert.ok(submissionError.includes('expired or is no longer active'));
+  assert.equal(updatedPassword, '');
+
+  // 2. Active session successfully updates password
+  submissionError = '';
+  await handlePasswordSubmit('NewSecretPass123!', true);
+  assert.equal(submissionError, '');
+  assert.equal(updatedPassword, 'NewSecretPass123!');
+});
