@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
 import { todayISODate, toLocalISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import { orIlikeValue } from '@/lib/table/pagination';
@@ -1180,31 +1181,31 @@ export async function getPersonalExpenseOverviewStats(
   // Parallel queries for fast KPI cards
   const [todayRes, monthRes, yearRes, pendingRes] = await Promise.all([
     // Today
-    supabase()
+    fetchAllRows(() => supabase()
       .from('personal_expenses')
       .select('amount')
       .eq('user_id', userId)
-      .eq('expense_date', todayStr),
+      .eq('expense_date', todayStr).order('id')),
     // This Month
-    supabase()
+    fetchAllRows(() => supabase()
       .from('personal_expenses')
       .select('amount')
       .eq('user_id', userId)
       .gte('expense_date', monthStart)
-      .lte('expense_date', monthEnd),
+      .lte('expense_date', monthEnd).order('id')),
     // This Year
-    supabase()
+    fetchAllRows(() => supabase()
       .from('personal_expenses')
       .select('amount')
       .eq('user_id', userId)
       .gte('expense_date', yearStart)
-      .lte('expense_date', yearEnd),
+      .lte('expense_date', yearEnd).order('id')),
     // Pending / Unpaid total
-    supabase()
+    fetchAllRows(() => supabase()
       .from('personal_expenses')
       .select('pending_amount')
       .eq('user_id', userId)
-      .neq('payment_status', 'Paid'),
+      .neq('payment_status', 'Paid').order('id')),
   ]);
 
   const todayTotal = (todayRes.data || []).reduce((sum, r) => sum + num(r.amount), 0);
@@ -1249,12 +1250,12 @@ export async function getPersonalMonthlySummary(
   ];
   const monthLabel = `${monthNames[month - 1]} ${year}`;
 
-  const { data, error } = await supabase()
+  const { data, error } = await fetchAllRows(() => supabase()
     .from('personal_expenses')
     .select('amount, category_name, description, expense_date')
     .eq('user_id', userId)
     .gte('expense_date', monthStart)
-    .lte('expense_date', monthEnd);
+    .lte('expense_date', monthEnd).order('id'));
 
   if (error) {
     console.error('Error fetching monthly summary:', error);
@@ -1369,12 +1370,12 @@ export async function getPersonalYearlySummary(
     }));
   }
 
-  const { data, error } = await supabase()
+  const { data, error } = await fetchAllRows(() => supabase()
     .from('personal_expenses')
     .select('amount, category_name, expense_date')
     .eq('user_id', userId)
     .gte('expense_date', startDate)
-    .lte('expense_date', endDate);
+    .lte('expense_date', endDate).order('id'));
 
   if (error) {
     console.error('Error fetching yearly summary:', error);

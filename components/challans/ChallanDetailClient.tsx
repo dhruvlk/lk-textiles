@@ -23,6 +23,7 @@ import { PageTransition } from "@/components/common/motion"
 import { EmptyState } from "@/components/common/EmptyState"
 import { PaymentStatusBadge } from "@/components/challans/PaymentStatusBadge"
 import { UpdatePaymentDialog } from "@/components/challans/UpdatePaymentDialog"
+import { PermissionGate } from "@/components/auth/PermissionGate"
 import { DownloadChallanButton } from "@/components/challans/download-button"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -226,16 +227,19 @@ export default function ChallanDetailClient({ id }: { id: string }) {
               Print
             </Button>
             <DownloadChallanButton challan={challan} company={selectedCompany} />
-            <Button variant="outline" onClick={() => router.push(`/admin/invoices/${id}/edit`)}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
-            </Button>
-            {!isFullyPaid && (
-              <Button onClick={() => setPaymentDialogOpen(true)}>
-                <IndianRupee className="mr-2 h-4 w-4" />
-                Update Payment
+            {/* Editing and recording payments both need invoice edit rights (enforced by the database too). */}
+            <PermissionGate module="invoices" action="edit">
+              <Button variant="outline" onClick={() => router.push(`/admin/invoices/${id}/edit`)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
               </Button>
-            )}
+              {!isFullyPaid && (
+                <Button onClick={() => setPaymentDialogOpen(true)}>
+                  <IndianRupee className="mr-2 h-4 w-4" />
+                  Update Payment
+                </Button>
+              )}
+            </PermissionGate>
           </div>
         }
       />

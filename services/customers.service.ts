@@ -1,3 +1,4 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import { orIlikeValue } from '@/lib/table/pagination';
 import { formatPhoneToStorage } from '@/lib/validations/phone';
@@ -107,14 +108,16 @@ export async function updateCustomer(customer: Customer): Promise<Customer> {
     .update(toCustomerInsert({ ...rest, company_id: customer.company_id, name: customer.name }))
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return mapCustomer(data);
+  assertAffected(data ? [data] : [], 'edit this customer');
+  return mapCustomer(data!);
 }
 
 export async function deleteCustomer(id: string): Promise<void> {
-  const { error } = await supabase().from('customers').delete().eq('id', id);
+  const { data, error } = await supabase().from('customers').delete().eq('id', id).select('id');
   if (error) throw error;
+  assertAffected(data, 'delete this customer');
 }
 

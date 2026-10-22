@@ -1,3 +1,4 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import { orIlikeValue } from '@/lib/table/pagination';
 import type { Supplier, SupplierFilters } from '@/types';
@@ -133,20 +134,23 @@ export async function updateSupplier(
     .eq('company_id', companyId)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return mapSupplier(data);
+  assertAffected(data ? [data] : [], 'edit this supplier');
+  return mapSupplier(data!);
 }
 
 export async function deleteSupplier(companyId: string, id: string): Promise<void> {
-  const { error } = await supabase()
+  const { data, error } = await supabase()
     .from('suppliers')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
   if (error) throw error;
+  assertAffected(data, 'delete this supplier');
 }
 
 export async function getSupplierStats(companyId: string, supplierId: string) {

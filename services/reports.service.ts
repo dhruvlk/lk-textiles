@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
 import { createClient } from '@/lib/supabase/client';
 import {
   MONTH_LABELS,
@@ -393,30 +394,30 @@ export async function getReportsBundle(
   filters: ReportFilters
 ): Promise<ReportsBundle> {
   const [invoicesRes, deliveriesRes, customersRes, stocksRes, salaryRes] = await Promise.all([
-    supabase()
+    fetchAllRows(() => supabase()
       .from('challans')
       .select(
         'id, date, grand_total, customer_id, broker, payment_status, payment_amount_received, due_date'
       )
       .eq('company_id', companyId)
       .neq('status', 'Cancelled') // cancelled invoices are not sales (matches year-end report)
-      .order('date', { ascending: false }),
-    supabase()
+      .order('date', { ascending: false }).order('id')),
+    fetchAllRows(() => supabase()
       .from('delivery_challans')
       .select(
         'id, date, quality, stock_id, total_pieces, total_meters, total_weight, customer_id, broker'
       )
       .eq('company_id', companyId)
-      .order('date', { ascending: false }),
-    supabase().from('customers').select('id, name').eq('company_id', companyId).order('name'),
-    supabase()
+      .order('date', { ascending: false }).order('id')),
+    fetchAllRows(() => supabase().from('customers').select('id, name').eq('company_id', companyId).order('name').order('id')),
+    fetchAllRows(() => supabase()
       .from('stocks')
       .select('quality_name, available_taka, total_taka, sold_taka')
-      .eq('company_id', companyId),
-    supabase()
+      .eq('company_id', companyId).order('id')),
+    fetchAllRows(() => supabase()
       .from('salary_slips')
       .select('*')
-      .eq('company_id', companyId),
+      .eq('company_id', companyId).order('id')),
   ]);
 
   if (invoicesRes.error) throw invoicesRes.error;

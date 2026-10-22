@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
 import { createClient } from '@/lib/supabase/client';
 import { formatFinancialYearCode } from '@/types';
 import type {
@@ -90,7 +91,7 @@ export async function getPurchaseExpenseOverviewStats(
   const fy = financialYear || formatFinancialYearCode(new Date());
 
   // 1. Purchases query
-  const { data: purchases } = await supabase()
+  const { data: purchases } = await fetchAllRows(() => supabase()
     .from('purchases')
     .select(`
       id,
@@ -105,14 +106,14 @@ export async function getPurchaseExpenseOverviewStats(
       documents:documents (id)
     `)
     .eq('company_id', companyId)
-    .eq('financial_year', fy);
+    .eq('financial_year', fy).order('id'));
 
   // 2. Expenses query
-  const { data: expenses } = await supabase()
+  const { data: expenses } = await fetchAllRows(() => supabase()
     .from('expenses')
     .select('id, amount, taxable_amount, total_gst, total_amount, paid_amount, payment_status, is_gst_applicable')
     .eq('company_id', companyId)
-    .eq('financial_year', fy);
+    .eq('financial_year', fy).order('id'));
 
   let totalPurchases = 0;
   let totalPaidPurchases = 0;
@@ -193,29 +194,36 @@ export async function getGstInputReport(
   companyId: string,
   filters?: { financialYear?: string; dateFrom?: string; dateTo?: string }
 ): Promise<{ rows: GstInputReportRow[]; totals: { taxable: number; cgst: number; sgst: number; igst: number; totalGst: number } }> {
-  // Purchases
-  let pQuery = supabase()
-    .from('purchases')
-    .select('supplier_name, supplier_gstin, invoice_number, invoice_date, subtotal, cgst_amount, sgst_amount, igst_amount, total_gst, grand_total, is_gst_bill, status')
-    .eq('company_id', companyId)
-    .eq('is_gst_bill', true)
-    .neq('status', 'Cancelled')
-    .neq('status', 'Draft');
-
-  if (filters?.financialYear) pQuery = pQuery.eq('financial_year', filters.financialYear);
-  if (filters?.dateFrom) pQuery = pQuery.gte('invoice_date', filters.dateFrom);
-  if (filters?.dateTo) pQuery = pQuery.lte('invoice_date', filters.dateTo);
+  // Purchases (paged: a year can exceed the 1,000-row API cap)
+  const purchasesQuery = () => {
+    let q = supabase()
+      .from('purchases')
+      .select('supplier_name, supplier_gstin, invoice_number, invoice_date, subtotal, cgst_amount, sgst_amount, igst_amount, total_gst, grand_total, is_gst_bill, status')
+      .eq('company_id', companyId)
+      .eq('is_gst_bill', true)
+      .neq('status', 'Cancelled')
+      .neq('status', 'Draft');
+    if (filters?.financialYear) q = q.eq('financial_year', filters.financialYear);
+    if (filters?.dateFrom) q = q.gte('invoice_date', filters.dateFrom);
+    if (filters?.dateTo) q = q.lte('invoice_date', filters.dateTo);
+    return q.order('id');
+  };
 
   // Expenses with GST
-  let eQuery = supabase()
-    .from('expenses')
-    .select('paid_to, vendor_gstin, reference_number, expense_date, taxable_amount, cgst_amount, sgst_amount, igst_amount, total_gst, total_amount, is_gst_applicable')
-    .eq('company_id', companyId)
-    .eq('is_gst_applicable', true);
+  const expensesQuery = () => {
+    let q = supabase()
+      .from('expenses')
+      .select('paid_to, vendor_gstin, reference_number, expense_date, taxable_amount, cgst_amount, sgst_amount, igst_amount, total_gst, total_amount, is_gst_applicable')
+      .eq('company_id', companyId)
+      .eq('is_gst_applicable', true);
+    if (filters?.financialYear) q = q.eq('financial_year', filters.financialYear);
+    if (filters?.dateFrom) q = q.gte('expense_date', filters.dateFrom);
+    if (filters?.dateTo) q = q.lte('expense_date', filters.dateTo);
+    return q.order('id');
+  };
 
-  if (filters?.financialYear) eQuery = eQuery.eq('financial_year', filters.financialYear);
-  if (filters?.dateFrom) eQuery = eQuery.gte('expense_date', filters.dateFrom);
-  if (filters?.dateTo) eQuery = eQuery.lte('expense_date', filters.dateTo);
+  const pQuery = fetchAllRows(purchasesQuery);
+  const eQuery = fetchAllRows(expensesQuery);
 
   const [pRes, eRes] = await Promise.all([pQuery, eQuery]);
 
@@ -280,12 +288,12 @@ export async function getYearEndReviewData(
   const endDate = `${startYear + 1}-03-31`;
 
   // 1. Sales from Challans / Invoices
-  const { data: challans } = await supabase()
+  const { data: challans } = await fetchAllRows(() => supabase()
     .from('challans')
     .select('id, challan_number, date, subtotal, discount, grand_total, cgst_amount, sgst_amount, igst_amount, status')
     .eq('company_id', companyId)
     .gte('date', startDate)
-    .lte('date', endDate);
+    .lte('date', endDate).order('id'));
 
   let totalSales = 0;
   let totalInvoices = 0;
@@ -302,7 +310,7 @@ export async function getYearEndReviewData(
   });
 
   // 2. Purchases
-  const { data: purchases } = await supabase()
+  const { data: purchases } = await fetchAllRows(() => supabase()
     .from('purchases')
     .select(`
       id,
@@ -319,7 +327,7 @@ export async function getYearEndReviewData(
       documents:documents (id)
     `)
     .eq('company_id', companyId)
-    .eq('financial_year', financialYear);
+    .eq('financial_year', financialYear).order('id'));
 
   let totalPurchases = 0;
   let purchaseBillsCount = 0;
@@ -358,11 +366,11 @@ export async function getYearEndReviewData(
   });
 
   // 3. Expenses
-  const { data: expenses } = await supabase()
+  const { data: expenses } = await fetchAllRows(() => supabase()
     .from('expenses')
     .select('id, total_amount, paid_amount, total_gst, is_gst_applicable, payment_status')
     .eq('company_id', companyId)
-    .eq('financial_year', financialYear);
+    .eq('financial_year', financialYear).order('id'));
 
   let totalExpenses = 0;
   let paidExpenses = 0;
@@ -385,10 +393,10 @@ export async function getYearEndReviewData(
   });
 
   // 4. Stock
-  const { data: stocks } = await supabase()
+  const { data: stocks } = await fetchAllRows(() => supabase()
     .from('stocks')
     .select('id, available_taka, sold_taka, total_taka')
-    .eq('company_id', companyId);
+    .eq('company_id', companyId).order('id'));
 
   let totalQualities = 0;
   let closingStockTaka = 0;
@@ -543,27 +551,27 @@ export async function getCompleteYearEndReportData(
     salaryRes,
   ] = await Promise.all([
     supabase().from('companies').select('*').eq('id', companyId).single(),
-    supabase()
+    fetchAllRows(() => supabase()
       .from('challans')
       .select('id, challan_number, date, customer_id, subtotal, discount, grand_total, cgst_amount, sgst_amount, igst_amount, payment_amount_received, status')
       .eq('company_id', companyId)
       .gte('date', startDate)
-      .lte('date', endDate),
-    supabase().from('customers').select('id, name').eq('company_id', companyId),
-    supabase()
+      .lte('date', endDate).order('id')),
+    fetchAllRows(() => supabase().from('customers').select('id, name').eq('company_id', companyId).order('id')),
+    fetchAllRows(() => supabase()
       .from('purchases')
       .select('id, supplier_id, supplier_name, supplier_gstin, invoice_number, invoice_date, subtotal, grand_total, cgst_amount, sgst_amount, igst_amount, total_gst, paid_amount, balance_amount, payment_status, is_gst_bill, status, documents:documents(id)')
       .eq('company_id', companyId)
-      .eq('financial_year', financialYear),
-    supabase()
+      .eq('financial_year', financialYear).order('id')),
+    fetchAllRows(() => supabase()
       .from('expenses')
       .select('id, category_id, category_name, paid_to, vendor_gstin, amount, taxable_amount, cgst_amount, sgst_amount, igst_amount, total_gst, total_amount, paid_amount, is_gst_applicable, payment_status, documents:documents(id)')
       .eq('company_id', companyId)
-      .eq('financial_year', financialYear),
-    supabase().from('expense_categories').select('id, name').eq('company_id', companyId),
-    supabase().from('stocks').select('id, quality_name, available_taka, sold_taka, total_taka').eq('company_id', companyId),
+      .eq('financial_year', financialYear).order('id')),
+    fetchAllRows(() => supabase().from('expense_categories').select('id, name').eq('company_id', companyId).order('id')),
+    fetchAllRows(() => supabase().from('stocks').select('id, quality_name, available_taka, sold_taka, total_taka').eq('company_id', companyId).order('id')),
     supabase().from('company_members').select('id, user_id, is_active').eq('company_id', companyId),
-    supabase().from('salary_slips').select('id, net_salary, salary_year, salary_month').eq('company_id', companyId),
+    fetchAllRows(() => supabase().from('salary_slips').select('id, net_salary, salary_year, salary_month').eq('company_id', companyId).order('id')),
   ]);
 
   const companyData = companyRes.data;

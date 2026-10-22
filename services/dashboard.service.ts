@@ -1,3 +1,4 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
 import { todayISODate, toLocalISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import type { DashboardStats, Inquiry } from '@/types';
@@ -25,12 +26,15 @@ export async function getDashboardStats(companyId: string): Promise<DashboardSta
       .select('id', { count: 'exact', head: true })
       .eq('company_id', companyId)
       .eq('date', today),
-    supabase()
-      .from('challans')
-      .select('grand_total')
-      .eq('company_id', companyId)
-      .neq('status', 'Cancelled') // consistent with the year-end report
-      .gte('date', monthStartStr),
+    fetchAllRows(() =>
+      supabase()
+        .from('challans')
+        .select('grand_total')
+        .eq('company_id', companyId)
+        .neq('status', 'Cancelled') // consistent with the year-end report
+        .gte('date', monthStartStr)
+        .order('id')
+    ),
     supabase()
       .from('inquiries')
       .select('id', { count: 'exact', head: true }),

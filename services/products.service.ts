@@ -1,3 +1,4 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import { orIlikeValue } from '@/lib/table/pagination';
 import type { Product } from '@/types';
@@ -73,13 +74,15 @@ export async function updateProduct(product: Product): Promise<Product> {
     .update(toProductInsert({ ...rest, company_id: product.company_id, name: product.name }))
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return mapProduct(data);
+  assertAffected(data ? [data] : [], 'edit this product');
+  return mapProduct(data!);
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  const { error } = await supabase().from('products').delete().eq('id', id);
+  const { data, error } = await supabase().from('products').delete().eq('id', id).select('id');
   if (error) throw error;
+  assertAffected(data, 'delete this product');
 }

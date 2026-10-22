@@ -1,4 +1,6 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
+import { callTransactionalRpc } from '@/lib/supabase/rpc';
 import { parseQuantityNumeric } from '@/lib/challan-item';
 import { calculateTax, sumItemAmounts } from '@/lib/tax';
 import { resolvePaymentStatus } from '@/lib/payment-status';
@@ -350,35 +352,15 @@ export async function addChallan(
     companyRow?.default_gst_type
   );
 
-  const { data, error } = await supabase()
-    .from('challans')
-    .insert({
-      ...payload,
-      payment_status: 'Pending',
-      payment_amount_received: 0,
-      payment_received_date: null,
-      payment_reference: null,
-      payment_notes: null,
-      payment_mode: null,
-    })
-    .select('id')
-    .single();
+  // Header and items are written in one database transaction (save_invoice):
+  // either the whole invoice is saved or nothing is.
+  const id = await callTransactionalRpc('save_invoice', {
+    p_invoice_id: null,
+    p_header: payload,
+    p_items: challan.items.map((item) => buildItemPayload(item)),
+  });
 
-  if (error) throw error;
-
-  const itemsPayload = challan.items.map((item) => ({
-    ...buildItemPayload(item),
-    challan_id: data.id,
-  }));
-
-  const { error: itemsError } = await supabase().from('challan_items').insert(itemsPayload);
-  if (itemsError) {
-    // Don't leave an invoice header (and its consumed number) without items.
-    await supabase().from('challans').delete().eq('id', data.id);
-    throw itemsError;
-  }
-
-  const created = await getChallanById(data.id);
+  const created = await getChallanById(id);
   if (!created) throw new Error('Failed to load created challan');
 
   const { createNotification } = await import('@/services/notifications.service');
@@ -395,69 +377,15 @@ export async function addChallan(
 }
 
 export async function updateChallan(challan: Challan & { items: ChallanItem[] }): Promise<Challan> {
-  const existing = await getChallanById(challan.id);
-  if (!existing) throw new Error('Challan not found');
-
   const payload = buildChallanPayload(challan, challan.created_by ?? undefined);
 
-  const grandTotal = payload.grand_total;
-  const received = existing.payment_amount_received ?? 0;
-  const paymentStatus = resolvePaymentStatus({
-    grand_total: grandTotal,
-    payment_amount_received: received,
-    due_date: payload.due_date ?? existing.due_date,
+  // One transaction replaces header and items; payments already received are
+  // kept and the payment status is recomputed in the database.
+  await callTransactionalRpc('save_invoice', {
+    p_invoice_id: challan.id,
+    p_header: payload,
+    p_items: challan.items.map((item) => buildItemPayload(item)),
   });
-
-  // Replace items without a window where the invoice has none:
-  // 1) insert the new rows, 2) delete the old rows by id, 3) update the header.
-  // Each step compensates the previous ones if it fails.
-  const oldItemIds = (existing.items ?? []).map((item) => item.id).filter(Boolean) as string[];
-  const itemsPayload = challan.items.map((item) => ({
-    ...buildItemPayload(item),
-    challan_id: challan.id,
-  }));
-
-  const { data: insertedItems, error: itemsError } = await supabase()
-    .from('challan_items')
-    .insert(itemsPayload)
-    .select('id');
-  if (itemsError) throw itemsError;
-  const newItemIds = (insertedItems ?? []).map((row) => row.id as string);
-
-  if (oldItemIds.length > 0) {
-    const { error: deleteError } = await supabase()
-      .from('challan_items')
-      .delete()
-      .in('id', oldItemIds);
-    if (deleteError) {
-      if (newItemIds.length) await supabase().from('challan_items').delete().in('id', newItemIds);
-      throw deleteError;
-    }
-  }
-
-  const { error } = await supabase()
-    .from('challans')
-    .update({
-      ...payload,
-      payment_status: paymentStatus,
-      payment_amount_received: received,
-      payment_received_date: existing.payment_received_date,
-      payment_reference: existing.payment_reference,
-      payment_notes: existing.payment_notes,
-      payment_mode: existing.payment_mode,
-    })
-    .eq('id', challan.id);
-
-  if (error) {
-    // Restore the previous items so header and lines stay consistent.
-    if (newItemIds.length) await supabase().from('challan_items').delete().in('id', newItemIds);
-    const restore = (existing.items ?? []).map((item) => ({
-      ...buildItemPayload(item),
-      challan_id: challan.id,
-    }));
-    if (restore.length) await supabase().from('challan_items').insert(restore);
-    throw error;
-  }
 
   const updated = await getChallanById(challan.id);
   if (!updated) throw new Error('Failed to load updated challan');
@@ -465,8 +393,9 @@ export async function updateChallan(challan: Challan & { items: ChallanItem[] })
 }
 
 export async function deleteChallan(id: string): Promise<void> {
-  const { error } = await supabase().from('challans').delete().eq('id', id);
+  const { data, error } = await supabase().from('challans').delete().eq('id', id).select('id');
   if (error) throw error;
+  assertAffected(data, 'delete this invoice');
 }
 
 export async function duplicateChallan(

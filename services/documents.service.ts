@@ -1,3 +1,4 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import { orIlikeValue } from '@/lib/table/pagination';
 import type { DocumentFilters, VaultDocument } from '@/types';
@@ -241,15 +242,20 @@ export async function deleteVaultDocument(
 
   if (fetchErr) throw fetchErr;
 
-  if (doc?.storage_path) {
-    await supabase().storage.from(BUCKET_NAME).remove([doc.storage_path]);
-  }
-
-  const { error: deleteErr } = await supabase()
+  // Remove the record first: if the user may not delete it, nothing happens and
+  // the file is kept (previously the file was removed and the record stayed).
+  const { data: deleted, error: deleteErr } = await supabase()
     .from('documents')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', documentId);
+    .eq('id', documentId)
+    .select('id');
 
   if (deleteErr) throw deleteErr;
+  assertAffected(deleted, 'delete this document');
+
+  if (doc?.storage_path) {
+    const { error: storageErr } = await supabase().storage.from(BUCKET_NAME).remove([doc.storage_path]);
+    if (storageErr) console.warn('Document record deleted but file removal failed:', storageErr.message);
+  }
 }

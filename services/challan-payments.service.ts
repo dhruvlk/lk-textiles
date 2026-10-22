@@ -1,9 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import {
-  getAmountReceived,
-  getChallanTotal,
-  resolvePaymentStatus,
-} from '@/lib/payment-status';
+import { callTransactionalRpc } from '@/lib/supabase/rpc';
 import type { Challan, ChallanPayment } from '@/types';
 
 const supabase = () => createClient();
@@ -39,51 +35,18 @@ export async function recordChallanPayment(
   input: RecordChallanPaymentInput
 ): Promise<Challan> {
   const { getChallanById } = await import('@/services/challans.service');
-  const challan = await getChallanById(input.challanId);
-  if (!challan) throw new Error('Challan not found');
 
-  const grandTotal = getChallanTotal(challan);
-  const currentReceived = getAmountReceived(challan);
-  const newTotalReceived = currentReceived + input.amount;
-
-  if (newTotalReceived > grandTotal + 0.01) {
-    throw new Error(
-      `Payment amount exceeds remaining balance of ₹${(grandTotal - currentReceived).toFixed(2)}`
-    );
-  }
-
-  const { error: insertError } = await supabase().from('challan_payments').insert({
-    challan_id: input.challanId,
-    company_id: input.companyId,
-    amount: input.amount,
-    payment_date: input.paymentDate,
-    payment_mode: input.paymentMode ?? null,
-    reference_number: input.referenceNumber ?? null,
-    notes: input.notes ?? null,
-    created_by: input.userId ?? null,
+  // The ledger row and the invoice's running total are updated in one locked
+  // transaction (record_invoice_payment), so concurrent payments are never lost
+  // and the balance check uses the current total.
+  await callTransactionalRpc('record_invoice_payment', {
+    p_invoice_id: input.challanId,
+    p_amount: input.amount,
+    p_payment_date: input.paymentDate || null,
+    p_payment_mode: input.paymentMode ?? null,
+    p_reference: input.referenceNumber ?? null,
+    p_notes: input.notes ?? null,
   });
-
-  if (insertError) throw insertError;
-
-  const paymentStatus = resolvePaymentStatus({
-    grand_total: grandTotal,
-    payment_amount_received: newTotalReceived,
-    due_date: challan.due_date,
-  });
-
-  const { error: updateError } = await supabase()
-    .from('challans')
-    .update({
-      payment_amount_received: newTotalReceived,
-      payment_received_date: input.paymentDate,
-      payment_mode: input.paymentMode ?? null,
-      payment_reference: input.referenceNumber ?? null,
-      payment_notes: input.notes ?? null,
-      payment_status: paymentStatus,
-    })
-    .eq('id', input.challanId);
-
-  if (updateError) throw updateError;
 
   const updated = await getChallanById(input.challanId);
   if (!updated) throw new Error('Failed to load updated challan');

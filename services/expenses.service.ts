@@ -1,3 +1,4 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import {
   buildPaginatedResult,
@@ -264,22 +265,25 @@ export async function updateExpense(
     .eq('company_id', companyId)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return (await getExpenseById(companyId, data.id))!;
+  assertAffected(data ? [data] : [], 'edit this expense');
+  return (await getExpenseById(companyId, data!.id))!;
 }
 
 export async function deleteExpense(companyId: string, id: string, userId?: string | null): Promise<void> {
   const existing = await getExpenseById(companyId, id);
 
-  const { error } = await supabase()
+  const { data, error } = await supabase()
     .from('expenses')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
   if (error) throw error;
+  assertAffected(data, 'delete this expense');
 
   try {
     await supabase().from('audit_logs').insert({
