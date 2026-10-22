@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState, useRef } from "react"
 import {
   Dialog,
@@ -54,7 +55,7 @@ export function PersonalExpenseQuickUploadModal({
   const [description, setDescription] = useState("")
   const [paidTo, setPaidTo] = useState("")
   const [expenseDate, setExpenseDate] = useState(
-    new Date().toISOString().split("T")[0]
+    todayISODate()
   )
   const [paymentMethod, setPaymentMethod] = useState(paymentMethods[0] || "UPI")
   const [isSubmitting, setIsSubmitting] = useState(false)

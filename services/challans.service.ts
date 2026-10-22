@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/client';
 import { parseQuantityNumeric } from '@/lib/challan-item';
 import { calculateTax, sumItemAmounts } from '@/lib/tax';
 import { resolvePaymentStatus } from '@/lib/payment-status';
+import { todayISODate, toLocalISODate } from '@/lib/dates';
+import { calculateDueDate } from '@/utils/calculateDueDate';
+import { parseISO } from 'date-fns';
 import {
   appendInFilter,
   findChallanIdsByItemSearch,
@@ -11,6 +14,7 @@ import {
   buildPaginatedResult,
   ilikePattern,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   Challan,
@@ -104,6 +108,31 @@ async function resolveChallanSearchIds(companyId: string, search: string) {
   return { customerIds, itemChallanIds };
 }
 
+/**
+ * Payment status shown in the UI is derived (resolvePaymentStatus) from amounts
+ * and due date; the stored column is only refreshed when payments are recorded,
+ * so it never becomes "Overdue" on its own. Filter on the same inputs instead.
+ */
+function applyPaymentStatusFilter(
+  query: ReturnType<ReturnType<typeof supabase>['from']>,
+  status: NonNullable<ChallanFilters['paymentStatus']>
+) {
+  const today = todayISODate();
+  const notDue = `due_date.is.null,due_date.gte.${today}`;
+  switch (status) {
+    case 'Paid':
+      return query.eq('payment_status', 'Paid');
+    case 'Overdue':
+      return query.neq('payment_status', 'Paid').lt('due_date', today);
+    case 'Partially Paid':
+      return query.neq('payment_status', 'Paid').gt('payment_amount_received', 0.01).or(notDue);
+    case 'Pending':
+      return query.neq('payment_status', 'Paid').lte('payment_amount_received', 0.01).or(notDue);
+    default:
+      return query.eq('payment_status', status);
+  }
+}
+
 function applyChallanFilters(
   query: ReturnType<ReturnType<typeof supabase>['from']>,
   companyId: string,
@@ -116,14 +145,14 @@ function applyChallanFilters(
   let next = query.eq('company_id', companyId);
 
   if (filters.status) next = next.eq('status', filters.status);
-  if (filters.paymentStatus) next = next.eq('payment_status', filters.paymentStatus);
+  if (filters.paymentStatus) next = applyPaymentStatusFilter(next, filters.paymentStatus);
   if (filters.customerId) next = next.eq('customer_id', filters.customerId);
   if (filters.broker) next = next.ilike('broker', ilikePattern(filters.broker));
   if (filters.dateFrom) next = next.gte('date', filters.dateFrom);
   if (filters.dateTo) next = next.lte('date', filters.dateTo);
 
   if (filters.search?.trim()) {
-    const pattern = ilikePattern(filters.search);
+    const pattern = orIlikeValue(filters.search);
     const orParts = [`challan_number.ilike.${pattern}`, `broker.ilike.${pattern}`];
     appendInFilter(orParts, 'customer_id', searchIds.customerIds);
     appendInFilter(orParts, 'id', searchIds.itemChallanIds);
@@ -343,7 +372,11 @@ export async function addChallan(
   }));
 
   const { error: itemsError } = await supabase().from('challan_items').insert(itemsPayload);
-  if (itemsError) throw itemsError;
+  if (itemsError) {
+    // Don't leave an invoice header (and its consumed number) without items.
+    await supabase().from('challans').delete().eq('id', data.id);
+    throw itemsError;
+  }
 
   const created = await getChallanById(data.id);
   if (!created) throw new Error('Failed to load created challan');
@@ -375,6 +408,33 @@ export async function updateChallan(challan: Challan & { items: ChallanItem[] })
     due_date: payload.due_date ?? existing.due_date,
   });
 
+  // Replace items without a window where the invoice has none:
+  // 1) insert the new rows, 2) delete the old rows by id, 3) update the header.
+  // Each step compensates the previous ones if it fails.
+  const oldItemIds = (existing.items ?? []).map((item) => item.id).filter(Boolean) as string[];
+  const itemsPayload = challan.items.map((item) => ({
+    ...buildItemPayload(item),
+    challan_id: challan.id,
+  }));
+
+  const { data: insertedItems, error: itemsError } = await supabase()
+    .from('challan_items')
+    .insert(itemsPayload)
+    .select('id');
+  if (itemsError) throw itemsError;
+  const newItemIds = (insertedItems ?? []).map((row) => row.id as string);
+
+  if (oldItemIds.length > 0) {
+    const { error: deleteError } = await supabase()
+      .from('challan_items')
+      .delete()
+      .in('id', oldItemIds);
+    if (deleteError) {
+      if (newItemIds.length) await supabase().from('challan_items').delete().in('id', newItemIds);
+      throw deleteError;
+    }
+  }
+
   const { error } = await supabase()
     .from('challans')
     .update({
@@ -388,17 +448,16 @@ export async function updateChallan(challan: Challan & { items: ChallanItem[] })
     })
     .eq('id', challan.id);
 
-  if (error) throw error;
-
-  await supabase().from('challan_items').delete().eq('challan_id', challan.id);
-
-  const itemsPayload = challan.items.map((item) => ({
-    ...buildItemPayload(item),
-    challan_id: challan.id,
-  }));
-
-  const { error: itemsError } = await supabase().from('challan_items').insert(itemsPayload);
-  if (itemsError) throw itemsError;
+  if (error) {
+    // Restore the previous items so header and lines stay consistent.
+    if (newItemIds.length) await supabase().from('challan_items').delete().in('id', newItemIds);
+    const restore = (existing.items ?? []).map((item) => ({
+      ...buildItemPayload(item),
+      challan_id: challan.id,
+    }));
+    if (restore.length) await supabase().from('challan_items').insert(restore);
+    throw error;
+  }
 
   const updated = await getChallanById(challan.id);
   if (!updated) throw new Error('Failed to load updated challan');
@@ -419,20 +478,28 @@ export async function duplicateChallan(
   if (!source) throw new Error('Challan not found');
 
   const challanNumber = await generateChallanNumber(companyId);
+  const duplicateDate = todayISODate();
+  const duplicateDueDate = calculateDueDate(
+    parseISO(duplicateDate), // local midnight (a bare string parses as UTC)
+    source.payment_within_value,
+    source.payment_within_unit
+  );
 
   return addChallan(
     {
       company_id: companyId,
       customer_id: source.customer_id,
       challan_number: challanNumber,
-      date: new Date().toISOString().split('T')[0],
+      date: duplicateDate,
       bill_number: source.bill_number,
       delivered_by: source.delivered_by ?? source.driver_name,
       broker: source.broker,
       payment_within_value: source.payment_within_value,
       payment_within_unit: source.payment_within_unit,
       payment_terms: source.payment_terms,
-      due_date: source.due_date,
+      // Recompute from the new date; copying the source due date made fresh
+      // duplicates of old invoices immediately overdue.
+      due_date: duplicateDueDate ? toLocalISODate(duplicateDueDate) : null,
       amount_in_words: source.amount_in_words,
       notes: source.notes,
       status: 'Draft' as ChallanStatus,

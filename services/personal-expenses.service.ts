@@ -1,4 +1,11 @@
+import { todayISODate, toLocalISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
+import type {
+  PersonalExpenseCategoryRow,
+  PersonalExpenseRow,
+  PersonalExpenseSettingsRow,
+} from '@/types/database';
 import type {
   PersonalExpense,
   PersonalExpenseCategory,
@@ -12,6 +19,19 @@ import type {
 } from '@/types/personal-expenses';
 
 const supabase = () => createClient();
+/** Shape of an embedded personal_expense_documents row in select() results. */
+type EmbeddedPersonalDocRow = {
+  id: string;
+  expense_id: string;
+  user_id: string;
+  file_name: string;
+  storage_path: string;
+  file_type: string;
+  file_size: number | string | null;
+  created_at: string;
+};
+type WithEmbeddedDocs = { documents?: EmbeddedPersonalDocRow[] | null };
+
 const STORAGE_BUCKET = 'personal-documents';
 
 /** Format a number safely */
@@ -219,7 +239,7 @@ export async function updatePersonalCategory(
     parent_id?: string | null;
   }
 ): Promise<PersonalExpenseCategory> {
-  const payload: any = { updated_at: new Date().toISOString() };
+  const payload: Partial<PersonalExpenseCategoryRow> = { updated_at: new Date().toISOString() };
   if (input.name !== undefined) payload.name = input.name.trim();
   if (input.color !== undefined) payload.color = input.color;
   if (input.icon !== undefined) payload.icon = input.icon;
@@ -386,7 +406,7 @@ export async function updatePersonalExpenseSettings(
     custom_payment_methods?: string[];
   }
 ): Promise<PersonalExpenseSettings> {
-  const payload: any = { updated_at: new Date().toISOString() };
+  const payload: Partial<PersonalExpenseSettingsRow> = { updated_at: new Date().toISOString() };
   if (input.expense_number_prefix !== undefined) {
     payload.expense_number_prefix = input.expense_number_prefix.trim().toUpperCase();
   }
@@ -484,9 +504,9 @@ export async function getPersonalExpensesPaginated(
 
   // Search
   if (filters.search && filters.search.trim()) {
-    const q = filters.search.trim();
+    const q = orIlikeValue(filters.search);
     query = query.or(
-      `description.ilike.%${q}%,paid_to.ilike.%${q}%,notes.ilike.%${q}%,category_name.ilike.%${q}%,expense_number.ilike.%${q}%`
+      `description.ilike.${q},paid_to.ilike.${q},notes.ilike.${q},category_name.ilike.${q},expense_number.ilike.${q}`
     );
   }
 
@@ -601,7 +621,7 @@ export async function getPersonalExpensesPaginated(
     notes: row.notes,
     created_at: row.created_at,
     updated_at: row.updated_at,
-    documents: ((row as any).documents || []).map((doc: any) => ({
+    documents: ((((row as unknown) as WithEmbeddedDocs).documents) || []).map((doc) => ({
       id: doc.id,
       expense_id: doc.expense_id,
       user_id: doc.user_id,
@@ -673,7 +693,7 @@ export async function getPersonalExpenseById(
     notes: data.notes,
     created_at: data.created_at,
     updated_at: data.updated_at,
-    documents: ((data as any).documents || []).map((doc: any) => ({
+    documents: ((((data as unknown) as WithEmbeddedDocs).documents) || []).map((doc) => ({
       id: doc.id,
       expense_id: doc.expense_id,
       user_id: doc.user_id,
@@ -882,7 +902,7 @@ export async function updatePersonalExpense(
     throw new Error('Expense not found');
   }
 
-  const payload: any = { updated_at: new Date().toISOString() };
+  const payload: Partial<PersonalExpenseRow> = { updated_at: new Date().toISOString() };
   if (input.expense_date !== undefined) payload.expense_date = input.expense_date;
   if (input.category_id !== undefined) payload.category_id = input.category_id;
   if (input.category_name !== undefined) payload.category_name = input.category_name;
@@ -968,7 +988,7 @@ export async function updatePersonalExpense(
     notes: data.notes,
     created_at: data.created_at,
     updated_at: data.updated_at,
-    documents: ((data as any).documents || []).map((doc: any) => ({
+    documents: ((((data as unknown) as WithEmbeddedDocs).documents) || []).map((doc) => ({
       id: doc.id,
       expense_id: doc.expense_id,
       user_id: doc.user_id,
@@ -1017,7 +1037,7 @@ export async function duplicatePersonalExpense(
   }
 
   return createPersonalExpense(userId, {
-    expense_date: new Date().toISOString().split('T')[0],
+    expense_date: todayISODate(),
     category_id: current.category_id,
     category_name: current.category_name,
     subcategory_id: current.subcategory_id,
@@ -1152,7 +1172,8 @@ export async function getPersonalExpenseOverviewStats(
   const todayStr = `${year}-${month}-${day}`;
   const monthStart = `${year}-${month}-01`;
   const nextMonthFirst = new Date(year, now.getMonth() + 1, 1);
-  const monthEnd = new Date(nextMonthFirst.getTime() - 86400000).toISOString().split('T')[0];
+  // Last day of this month in local time (the UTC conversion dropped the 31st in IST).
+  const monthEnd = toLocalISODate(new Date(nextMonthFirst.getFullYear(), nextMonthFirst.getMonth(), 0));
   const yearStart = `${year}-01-01`;
   const yearEnd = `${year}-12-31`;
 

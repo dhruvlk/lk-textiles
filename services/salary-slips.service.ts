@@ -1,8 +1,10 @@
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import type { Database } from '@/types/database';
 import {
   buildPaginatedResult,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   PaginatedResult,
@@ -40,7 +42,7 @@ function mapSalarySlip(row: Record<string, unknown>): SalarySlip {
     salary_slip_number: (row.salary_slip_number as string) || '',
     salary_month: (row.salary_month as string) || '',
     salary_year: Number(row.salary_year || new Date().getFullYear()),
-    pay_date: (row.pay_date as string) || new Date().toISOString().split('T')[0],
+    pay_date: (row.pay_date as string) || todayISODate(),
     basic_salary: Number(row.basic_salary || 0),
     hra: Number(row.hra || 0),
     conveyance: Number(row.conveyance || 0),
@@ -107,8 +109,9 @@ export async function getSalarySlipsPaginated(
 
   if (filters.search?.trim()) {
     const s = filters.search.trim();
+    const sq = orIlikeValue(s);
     query = query.or(
-      `salary_slip_number.ilike.%${s}%,employee_name.ilike.%${s}%,employee_code.ilike.%${s}%`
+      `salary_slip_number.ilike.${sq},employee_name.ilike.${sq},employee_code.ilike.${sq}`
     );
   }
 
@@ -515,7 +518,7 @@ export async function bulkGenerateSalarySlips({
       salary_slip_number: slipNumber,
       salary_month: item.month,
       salary_year: item.year,
-      pay_date: item.pay_date || new Date().toISOString().split('T')[0],
+      pay_date: item.pay_date || todayISODate(),
       basic_salary: item.basic_salary,
       hra: item.hra,
       conveyance: item.conveyance,

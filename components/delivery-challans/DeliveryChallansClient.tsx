@@ -91,8 +91,13 @@ export default function DeliveryChallansClient() {
   const prevCompanyIdRef = useRef(companyId)
   const isInitialLoadRef = useRef(true)
 
+  // Monotonic request id: only the latest request may update state, so a slow
+  // response for an old search/filter/company can't overwrite newer results.
+  const requestSeqRef = useRef(0)
+
   const load = async (opts?: { silent?: boolean }) => {
     if (!companyId) return
+    const requestId = ++requestSeqRef.current
     const isCompanyChanged = prevCompanyIdRef.current !== companyId
     const silent = !isCompanyChanged && (opts?.silent ?? !isInitialLoadRef.current)
     if (!silent) {
@@ -105,6 +110,7 @@ export default function DeliveryChallansClient() {
         : getCustomers(companyId)
 
       const [result, customerList] = await Promise.all([resultPromise, customersPromise])
+      if (requestId !== requestSeqRef.current) return
       setChallans(result.data)
       setTotal(result.total)
       isInitialLoadRef.current = false
@@ -115,7 +121,7 @@ export default function DeliveryChallansClient() {
     } catch {
       toast.error("Failed to load delivery challans")
     } finally {
-      setIsLoading(false)
+      if (requestId === requestSeqRef.current) setIsLoading(false)
     }
   }
 

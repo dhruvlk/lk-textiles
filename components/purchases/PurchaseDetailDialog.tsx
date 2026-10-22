@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { format } from "date-fns"
 import type { Purchase, VaultDocument } from "@/types"
+import { openVaultDocument } from "@/services/documents.service"
 
 interface PurchaseDetailDialogProps {
   open: boolean
@@ -264,17 +265,16 @@ export function PurchaseDetailDialog({
                         <Eye className="h-3.5 w-3.5 mr-1" />
                         Preview
                       </Button>
-                      {doc.public_url && (
-                        <a
-                          href={doc.public_url}
-                          download={doc.file_name}
-                          target="_blank"
-                          rel="noreferrer"
+                      {(doc.storage_path || doc.public_url) && (
+                        <button
+                          type="button"
+                          onClick={() => void openVaultDocument(doc, { download: true })}
                           className="inline-flex items-center justify-center h-8 w-8 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground"
                           title="Download"
+                          aria-label={`Download ${doc.file_name}`}
                         >
                           <Download className="h-3.5 w-3.5" />
-                        </a>
+                        </button>
                       )}
                     </div>
                   </div>

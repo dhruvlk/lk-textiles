@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState } from "react"
 import {
   Dialog,
@@ -103,7 +104,7 @@ export function PersonalExpenseReportModal({
     `${currentYear}-01-01`
   )
   const [categoryDateTo, setCategoryDateTo] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    todayISODate()
   )
 
   // Custom filter state
@@ -111,7 +112,7 @@ export function PersonalExpenseReportModal({
     currentFilters?.dateFrom || `${currentYear}-01-01`
   )
   const [customDateTo, setCustomDateTo] = useState<string>(
-    currentFilters?.dateTo || new Date().toISOString().split("T")[0]
+    currentFilters?.dateTo || todayISODate()
   )
 
   const [isGenerating, setIsGenerating] = useState(false)

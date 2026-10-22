@@ -37,7 +37,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // 2. Persist to Supabase and local storage
-    const saveResult = await saveLandingContent(body, session.email || "lktextiles6165@gmail.com")
+    const saveResult = await saveLandingContent(body, session.email ?? "landing-admin")
     if (!saveResult.success) {
       return NextResponse.json(
         { error: saveResult.error || "Failed to persist landing content." },

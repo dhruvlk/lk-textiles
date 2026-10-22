@@ -34,3 +34,14 @@ export function buildPaginatedResult<T>(
 export function ilikePattern(value: string): string {
   return `%${value.trim()}%`;
 }
+
+/**
+ * Builds a quoted `%value%` operand for use inside PostgREST `.or()` filter strings.
+ * Unquoted values break the filter (HTTP 400) when the search text contains
+ * reserved characters such as `,` `.` `:` `(` `)`, and let input inject extra
+ * filter clauses. Double quotes and backslashes are escaped per PostgREST rules.
+ */
+export function orIlikeValue(value: string): string {
+  const escaped = value.trim().replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  return `"%${escaped}%"`;
+}

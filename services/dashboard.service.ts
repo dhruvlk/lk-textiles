@@ -1,3 +1,4 @@
+import { todayISODate, toLocalISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import type { DashboardStats, Inquiry } from '@/types';
 import { getChallans } from './challans.service';
@@ -5,10 +6,10 @@ import { getChallans } from './challans.service';
 const supabase = () => createClient();
 
 export async function getDashboardStats(companyId: string): Promise<DashboardStats> {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayISODate();
   const monthStart = new Date();
   monthStart.setDate(1);
-  const monthStartStr = monthStart.toISOString().split('T')[0];
+  const monthStartStr = toLocalISODate(monthStart);
 
   const [customersRes, challansRes, todayRes, monthlyRes, inquiriesCountRes, recentInquiriesRes] = await Promise.all([
     supabase()
@@ -28,6 +29,7 @@ export async function getDashboardStats(companyId: string): Promise<DashboardSta
       .from('challans')
       .select('grand_total')
       .eq('company_id', companyId)
+      .neq('status', 'Cancelled') // consistent with the year-end report
       .gte('date', monthStartStr),
     supabase()
       .from('inquiries')

@@ -61,7 +61,9 @@ export function CompanyProvider({ children }: { children: React.ReactNode }) {
 
       setSelectedCompanyState((prev) => {
         const next = found ?? storedCompanies[0] ?? null
-        if (prev?.id === next?.id) return prev
+        // Keep the same object when nothing changed (avoids needless re-renders),
+        // but pick up fresh data after edits (e.g. settings saved).
+        if (prev?.id === next?.id && prev?.updated_at === next?.updated_at) return prev
         return next
       })
     } catch {

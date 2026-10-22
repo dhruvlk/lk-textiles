@@ -68,7 +68,9 @@ export default async function HomeLandingPage() {
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        // Escape "<" so admin-edited text (brand name, SEO description) can't close
+        // the <script> element and inject markup.
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
       <LandingPageClient initialContent={content} />
     </>
