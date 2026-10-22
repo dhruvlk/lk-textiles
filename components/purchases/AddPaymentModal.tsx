@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -39,7 +40,7 @@ export function AddPaymentModal({
 }: AddPaymentModalProps) {
   const [amount, setAmount] = useState("")
   const [method, setMethod] = useState<PurchasePayment["payment_method"]>("Bank Transfer")
-  const [paymentDate, setPaymentDate] = useState(new Date().toISOString().slice(0, 10))
+  const [paymentDate, setPaymentDate] = useState(todayISODate())
   const [refNo, setRefNo] = useState("")
   const [notes, setNotes] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)

@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState, useEffect, useMemo, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { PageHeader } from "@/components/common/PageHeader"
@@ -87,7 +88,7 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
   const [supplierName, setSupplierName] = useState<string>("")
   const [supplierGstin, setSupplierGstin] = useState<string>("")
   const [invoiceNumber, setInvoiceNumber] = useState<string>("")
-  const [invoiceDate, setInvoiceDate] = useState<string>(new Date().toISOString().slice(0, 10))
+  const [invoiceDate, setInvoiceDate] = useState<string>(() => todayISODate())
   const [dueDate, setDueDate] = useState<string>("")
   const [purchaseType, setPurchaseType] = useState<PurchaseType>("Stock Purchase")
   const [isGstBill, setIsGstBill] = useState<boolean>(true)
@@ -100,22 +101,22 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
   const [paidAmountInput, setPaidAmountInput] = useState<string>("0")
 
   // Line items state
+  // Start with an empty line. The previous pre-filled "Yarn 100 Kg @ ₹240" sample
+  // was easy to save by accident (₹25,200 of phantom purchase and stock).
   const [items, setItems] = useState<FormItem[]>([
     {
       tempId: "item-1",
-      item_name: "Yarn",
+      item_name: "",
       description: "",
-      hsn_sac: "5205",
-      quantity: 100,
+      hsn_sac: "",
+      quantity: 0,
       unit: "Kg",
-      rate: 240,
+      rate: 0,
       discount: 0,
-      taxable_amount: 24000,
+      taxable_amount: 0,
       gst_rate: 5,
-      gst_amount: 1200,
-      total_amount: 25200,
-      count: "30s",
-      color: "Natural",
+      gst_amount: 0,
+      total_amount: 0,
     },
   ])
 
@@ -202,28 +203,37 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
     }
   }
 
-  // Calculations for items
+  // Calculations for items. The user's GST rate is kept on the line; for non-GST
+  // bills only the calculation uses 0% (overwriting gst_rate lost it when the
+  // bill was switched back to GST).
+  const recalcItem = (item: FormItem, gstBill: boolean): FormItem => {
+    const qty = Number(item.quantity) || 0
+    const rate = Number(item.rate) || 0
+    const disc = Number(item.discount) || 0
+    const taxable = Math.max(0, qty * rate - disc)
+    const gstPercent = gstBill ? Number(item.gst_rate) || 0 : 0
+    const gstAmt = (taxable * gstPercent) / 100
+    return {
+      ...item,
+      taxable_amount: taxable,
+      gst_amount: gstAmt,
+      total_amount: taxable + gstAmt,
+    }
+  }
+
   const updateItem = (index: number, patch: Partial<FormItem>) => {
     setItems((prev) => {
       const copy = [...prev]
-      const current = { ...copy[index], ...patch }
-
-      const qty = Number(current.quantity) || 0
-      const rate = Number(current.rate) || 0
-      const disc = Number(current.discount) || 0
-      const taxable = Math.max(0, qty * rate - disc)
-      const gstPercent = isGstBill ? Number(current.gst_rate) || 0 : 0
-      const gstAmt = (taxable * gstPercent) / 100
-      const total = taxable + gstAmt
-
-      current.taxable_amount = taxable
-      current.gst_rate = gstPercent
-      current.gst_amount = gstAmt
-      current.total_amount = total
-
-      copy[index] = current
+      copy[index] = recalcItem({ ...copy[index], ...patch }, isGstBill)
       return copy
     })
+  }
+
+  // Toggling GST / non-GST must recalculate every line, not only the edited one,
+  // otherwise saved items keep GST amounts that the header no longer includes.
+  const handleGstBillChange = (gstBill: boolean) => {
+    setIsGstBill(gstBill)
+    setItems((prev) => prev.map((item) => recalcItem(item, gstBill)))
   }
 
   const addItem = () => {
@@ -295,8 +305,16 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
       toast.error("Invoice number is required.")
       return
     }
+    if (paidAmount < 0 || paidAmount > grandTotal + 0.01) {
+      toast.error("Paid amount must be between 0 and the bill total.")
+      return
+    }
     if (items.length === 0) {
       toast.error("Please add at least one line item.")
+      return
+    }
+    if (items.some((it) => !it.item_name?.trim() || !(Number(it.quantity) > 0))) {
+      toast.error("Each line item needs a name and a quantity greater than 0.")
       return
     }
 
@@ -319,7 +337,7 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
           hsn_sac: hsnSac?.trim() || null,
           subtotal,
           discount: 0,
-          gst_rate: items[0]?.gst_rate || 5,
+          gst_rate: isGstBill ? items[0]?.gst_rate || 5 : 0,
           cgst_amount: cgst,
           sgst_amount: sgst,
           igst_amount: igst,
@@ -334,7 +352,8 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
           notes: notes.trim() || null,
           created_by: user?.id || null,
         },
-        items,
+        // Non-GST bills store 0% on every line (the UI keeps the rate for toggling back).
+        isGstBill ? items : items.map((it) => ({ ...it, gst_rate: 0, gst_amount: 0 })),
         {
           userId: user?.id,
           initialPayment:
@@ -599,7 +618,7 @@ export function PurchaseForm({ initialPurchaseId, isDuplicate }: PurchaseFormPro
               <Label className="text-xs font-semibold">GST Applicable?</Label>
               <Select
                 value={isGstBill ? "gst" : "non_gst"}
-                onValueChange={(val) => setIsGstBill(val === "gst")}
+                onValueChange={(val) => handleGstBillChange(val === "gst")}
               >
                 <SelectTrigger className="h-10 rounded-xl">
                   <SelectValue />

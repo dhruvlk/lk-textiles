@@ -164,6 +164,19 @@ export function moduleFromPathname(pathname: string): PermissionModule | null {
   return match?.module ?? null;
 }
 
+/**
+ * Action a route requires beyond `view`: creation pages (`/new`, `/create`)
+ * need `create`, edit pages (`/:id/edit`) need `edit`.
+ */
+export function actionFromPathname(pathname: string): PermissionAction {
+  if (!pathname) return 'view';
+  const segments = pathname.split('/').filter(Boolean);
+  const last = segments[segments.length - 1];
+  if (last === 'new' || last === 'create') return 'create';
+  if (last === 'edit') return 'edit';
+  return 'view';
+}
+
 export function emptyPermissionMatrix(): Record<
   PermissionModule,
   {

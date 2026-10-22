@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState, useEffect, useRef, useCallback } from "react"
 import {
   Dialog,
@@ -74,7 +75,7 @@ export function PersonalExpenseModal({
 
   // Form states
   const [expenseDate, setExpenseDate] = useState<string>(
-    new Date().toISOString().split("T")[0]
+    todayISODate()
   )
   const [categoryId, setCategoryId] = useState<string>("")
   const [categoryName, setCategoryName] = useState<string>("")
@@ -158,7 +159,7 @@ export function PersonalExpenseModal({
           setSubcategoryName("")
         }
       } else {
-        setExpenseDate(new Date().toISOString().split("T")[0])
+        setExpenseDate(todayISODate())
         const firstCat = categories.length > 0 ? categories[0] : null
         const initialCatId = firstCat ? firstCat.id : ""
         setCategoryId(initialCatId)

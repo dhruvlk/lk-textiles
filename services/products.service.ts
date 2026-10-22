@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import type { Product } from '@/types';
 import type { ProductRow } from '@/types/database';
 
@@ -29,7 +30,7 @@ export async function getProducts(companyId: string, search = ''): Promise<Produ
     .order('name');
 
   if (search.trim()) {
-    const q = `%${search.trim()}%`;
+    const q = orIlikeValue(search);
     query = query.or(`name.ilike.${q},hsn_code.ilike.${q},description.ilike.${q}`);
   }
 

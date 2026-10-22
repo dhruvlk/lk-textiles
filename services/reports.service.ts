@@ -399,6 +399,7 @@ export async function getReportsBundle(
         'id, date, grand_total, customer_id, broker, payment_status, payment_amount_received, due_date'
       )
       .eq('company_id', companyId)
+      .neq('status', 'Cancelled') // cancelled invoices are not sales (matches year-end report)
       .order('date', { ascending: false }),
     supabase()
       .from('delivery_challans')

@@ -1,7 +1,9 @@
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import {
   buildPaginatedResult,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   PaginatedResult,
@@ -33,6 +35,56 @@ type PurchaseRpcClient = {
     }
   ): PromiseLike<{ data: null; error: { message: string } | null }>;
 };
+
+type StockLine = { stock_id?: string | null; quantity: number };
+
+/**
+ * Applies purchase stock movements one by one. supabase-js `.rpc()` resolves
+ * with `{ error }` rather than throwing, so errors must be checked explicitly.
+ * If any movement fails, the ones already applied are compensated with the
+ * opposite movement and the error is re-thrown, keeping stock consistent.
+ */
+async function applyPurchaseStockMovements(
+  companyId: string,
+  lines: StockLine[],
+  type: 'Purchase' | 'Purchase Return',
+  purchaseId: string,
+  notes: string,
+  userId: string | null
+): Promise<void> {
+  const rpcClient = supabase() as unknown as PurchaseRpcClient;
+  const applied: StockLine[] = [];
+  const opposite = type === 'Purchase' ? 'Purchase Return' : 'Purchase';
+
+  for (const line of lines) {
+    if (!line.stock_id || !(line.quantity > 0)) continue;
+    const { error } = await rpcClient.rpc('process_purchase_stock_change', {
+      p_company_id: companyId,
+      p_stock_id: line.stock_id,
+      p_quantity: line.quantity,
+      p_transaction_type: type,
+      p_purchase_id: purchaseId,
+      p_notes: notes,
+      p_user_id: userId,
+    });
+    if (error) {
+      for (const done of applied) {
+        const { error: undoError } = await rpcClient.rpc('process_purchase_stock_change', {
+          p_company_id: companyId,
+          p_stock_id: done.stock_id!,
+          p_quantity: done.quantity,
+          p_transaction_type: opposite,
+          p_purchase_id: purchaseId,
+          p_notes: `Compensation for failed stock update: ${notes}`,
+          p_user_id: userId,
+        });
+        if (undoError) console.error('Stock compensation failed:', undoError);
+      }
+      throw new Error(`Stock update failed: ${error.message}`);
+    }
+    applied.push(line);
+  }
+}
 
 function mapPurchase(
   row: PurchaseRow & {
@@ -192,6 +244,7 @@ export async function getPurchasesPaginated(
         file_type,
         file_size,
         public_url,
+        storage_path,
         document_type
       ),
       items:purchase_items (
@@ -240,8 +293,9 @@ export async function getPurchasesPaginated(
 
   if (filters.search?.trim()) {
     const s = filters.search.trim();
+    const sq = orIlikeValue(s);
     query = query.or(
-      `invoice_number.ilike.%${s}%,supplier_name.ilike.%${s}%,supplier_gstin.ilike.%${s}%,notes.ilike.%${s}%`
+      `invoice_number.ilike.${sq},supplier_name.ilike.${sq},supplier_gstin.ilike.${sq},notes.ilike.${sq}`
     );
   }
 
@@ -261,7 +315,7 @@ export async function getPurchasesPaginated(
   }
 
   return buildPaginatedResult(
-    ((data as any[]) || []).map((row) => mapPurchase(row)),
+    ((data as unknown as Parameters<typeof mapPurchase>[0][]) || []).map((row) => mapPurchase(row)),
     count || 0,
     page,
     pageSize
@@ -288,7 +342,7 @@ export async function getPurchaseById(companyId: string, id: string): Promise<Pu
     console.error('Error fetching purchase by id:', error);
     throw error;
   }
-  return data ? mapPurchase(data as any) : null;
+  return data ? mapPurchase(data as unknown as Parameters<typeof mapPurchase>[0]) : null;
 }
 
 export async function createPurchase(
@@ -308,6 +362,11 @@ export async function createPurchase(
     };
   }
 ): Promise<Purchase> {
+  // When an initial payment is supplied, addPurchasePayment() below is the single
+  // source of truth for paid/balance/status. Writing paid_amount on the header as
+  // well would count the same payment twice.
+  const hasInitialPayment = Boolean(options?.initialPayment && options.initialPayment.amount > 0);
+
   // 1. Insert header
   const { data: purchase, error: purchaseError } = await supabase()
     .from('purchases')
@@ -332,9 +391,9 @@ export async function createPurchase(
       total_gst: purchaseData.total_gst,
       round_off: purchaseData.round_off,
       grand_total: purchaseData.grand_total,
-      payment_status: purchaseData.payment_status,
-      paid_amount: purchaseData.paid_amount,
-      balance_amount: purchaseData.balance_amount,
+      payment_status: hasInitialPayment ? 'Unpaid' : purchaseData.payment_status,
+      paid_amount: hasInitialPayment ? 0 : purchaseData.paid_amount,
+      balance_amount: hasInitialPayment ? purchaseData.grand_total : purchaseData.balance_amount,
       payment_method: purchaseData.payment_method || null,
       status: purchaseData.status || 'Active',
       notes: purchaseData.notes || null,
@@ -383,41 +442,47 @@ export async function createPurchase(
     const { error: itemsError } = await supabase().from('purchase_items').insert(itemsToInsert);
     if (itemsError) {
       console.error('Error inserting purchase items:', itemsError);
+      // Don't leave a header without items behind.
+      await supabase().from('purchases').delete().eq('company_id', companyId).eq('id', purchase.id);
       throw itemsError;
     }
 
     // 3. Stock Integration: if Stock Purchase and item linked to stock_id, increase stock
     if (purchaseData.purchase_type === 'Stock Purchase' && purchaseData.status !== 'Draft') {
-      for (const item of items) {
-        if (item.stock_id && item.quantity > 0) {
-          try {
-            await (supabase() as unknown as PurchaseRpcClient).rpc('process_purchase_stock_change', {
-              p_company_id: companyId,
-              p_stock_id: item.stock_id,
-              p_quantity: item.quantity,
-              p_transaction_type: 'Purchase',
-              p_purchase_id: purchase.id,
-              p_notes: `Purchase Bill #${purchase.invoice_number} from ${purchase.supplier_name}`,
-              p_user_id: options?.userId || null,
-            });
-          } catch (stkErr) {
-            console.error('Failed to update stock for item:', stkErr);
-          }
-        }
+      try {
+        await applyPurchaseStockMovements(
+          companyId,
+          items,
+          'Purchase',
+          purchase.id,
+          `Purchase Bill #${purchase.invoice_number} from ${purchase.supplier_name}`,
+          options?.userId || null
+        );
+      } catch (stkErr) {
+        console.error('Failed to update stock for purchase:', stkErr);
+        // Roll back the bill (items cascade) so stock and purchases stay in sync.
+        await supabase().from('purchases').delete().eq('company_id', companyId).eq('id', purchase.id);
+        throw stkErr;
       }
     }
   }
 
   // 4. Initial Payment if provided
   if (options?.initialPayment && options.initialPayment.amount > 0) {
-    await addPurchasePayment(companyId, purchase.id, {
-      amount: options.initialPayment.amount,
-      payment_method: options.initialPayment.method,
-      reference_number: options.initialPayment.reference || null,
-      notes: options.initialPayment.notes || 'Payment on bill creation',
-      payment_date: purchaseData.invoice_date,
-      created_by: options.userId || null,
-    });
+    try {
+      await addPurchasePayment(companyId, purchase.id, {
+        amount: options.initialPayment.amount,
+        payment_method: options.initialPayment.method,
+        reference_number: options.initialPayment.reference || null,
+        notes: options.initialPayment.notes || 'Payment on bill creation',
+        payment_date: purchaseData.invoice_date,
+        created_by: options.userId || null,
+      });
+    } catch (payErr) {
+      // The bill (and its stock) is already saved; don't report the whole create
+      // as failed (a retry would duplicate it). The payment can be added again.
+      console.error('Bill saved but initial payment could not be recorded:', payErr);
+    }
   }
 
   // 5. Audit Log
@@ -487,7 +552,7 @@ export async function addPurchasePayment(
       payment_method: payment.payment_method,
       reference_number: payment.reference_number || null,
       notes: payment.notes || null,
-      payment_date: payment.payment_date || new Date().toISOString().slice(0, 10),
+      payment_date: payment.payment_date || todayISODate(),
       created_by: payment.created_by || null,
     })
     .select()
@@ -496,7 +561,7 @@ export async function addPurchasePayment(
   if (payErr) throw payErr;
 
   // Update purchase status
-  await supabase()
+  const { error: updateErr } = await supabase()
     .from('purchases')
     .update({
       paid_amount: newPaid,
@@ -507,6 +572,12 @@ export async function addPurchasePayment(
     .eq('company_id', companyId)
     .eq('id', purchaseId);
 
+  if (updateErr) {
+    // Keep ledger and summary consistent: remove the ledger row we just added.
+    await supabase().from('purchase_payments').delete().eq('company_id', companyId).eq('id', paymentRow.id);
+    throw updateErr;
+  }
+
   return mapPayment(paymentRow);
 }
 
@@ -515,25 +586,19 @@ export async function deletePurchase(companyId: string, id: string, userId?: str
   const existing = await getPurchaseById(companyId, id);
   if (!existing) return;
 
-  // 2. Reverse stock if Stock Purchase
-  if (existing.purchase_type === 'Stock Purchase' && existing.items) {
-    for (const it of existing.items) {
-      if (it.stock_id && it.quantity > 0) {
-        try {
-          await (supabase() as unknown as PurchaseRpcClient).rpc('process_purchase_stock_change', {
-            p_company_id: companyId,
-            p_stock_id: it.stock_id,
-            p_quantity: it.quantity,
-            p_transaction_type: 'Purchase Return',
-            p_purchase_id: existing.id,
-            p_notes: `Stock reversed on deletion of Purchase Bill #${existing.invoice_number}`,
-            p_user_id: userId || null,
-          });
-        } catch (err) {
-          console.warn('Stock reversal error on purchase delete:', err);
-        }
-      }
-    }
+  // 2. Reverse stock if Stock Purchase. Mirrors createPurchase(): Draft bills
+  // never added stock, so they must not remove any either.
+  if (existing.purchase_type === 'Stock Purchase' && existing.status !== 'Draft' && existing.items) {
+    // Throws (and compensates) on failure so the bill isn't deleted while its
+    // stock remains booked.
+    await applyPurchaseStockMovements(
+      companyId,
+      existing.items,
+      'Purchase Return',
+      existing.id,
+      `Stock reversed on deletion of Purchase Bill #${existing.invoice_number}`,
+      userId || null
+    );
   }
 
   // 3. Delete purchase (cascade deletes items, documents records, payments)
@@ -543,7 +608,20 @@ export async function deletePurchase(companyId: string, id: string, userId?: str
     .eq('company_id', companyId)
     .eq('id', id);
 
-  if (error) throw error;
+  if (error) {
+    // Bill still exists: re-book the stock we just reversed.
+    if (existing.purchase_type === 'Stock Purchase' && existing.status !== 'Draft' && existing.items) {
+      await applyPurchaseStockMovements(
+        companyId,
+        existing.items,
+        'Purchase',
+        existing.id,
+        `Stock re-applied after failed deletion of Purchase Bill #${existing.invoice_number}`,
+        userId || null
+      ).catch((reErr) => console.error('Failed to re-apply stock after delete error:', reErr));
+    }
+    throw error;
+  }
 
   // 4. Audit Log
   try {

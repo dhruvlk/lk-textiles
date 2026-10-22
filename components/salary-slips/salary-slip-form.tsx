@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable */
 
+import { toLocalISODate } from "@/lib/dates"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -131,7 +132,7 @@ export function SalarySlipForm({ initialData }: SalarySlipFormProps) {
           salary_slip_number: "",
           salary_month: currentMonth,
           salary_year: currentYear,
-          pay_date: currentDate.toISOString().split("T")[0],
+          pay_date: toLocalISODate(currentDate),
           basic_salary: 0,
           hra: 0,
           conveyance: 0,

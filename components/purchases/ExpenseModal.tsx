@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -51,7 +52,7 @@ export function ExpenseModal({
 }: ExpenseModalProps) {
   const isEditing = Boolean(expenseToEdit)
 
-  const [expenseDate, setExpenseDate] = useState(new Date().toISOString().slice(0, 10))
+  const [expenseDate, setExpenseDate] = useState(todayISODate())
   const [categoryId, setCategoryId] = useState("")
   const [paidTo, setPaidTo] = useState("")
   const [supplierId, setSupplierId] = useState<string>("none")
@@ -92,7 +93,7 @@ export function ExpenseModal({
       setNotes(expenseToEdit.notes || "")
       setFile(null)
     } else {
-      setExpenseDate(new Date().toISOString().slice(0, 10))
+      setExpenseDate(todayISODate())
       setCategoryId(categories[0]?.id || "")
       setPaidTo("")
       setSupplierId("none")
@@ -115,7 +116,7 @@ export function ExpenseModal({
   let taxableAmount = numAmount
   let cgst = 0
   let sgst = 0
-  let igst = 0
+  const igst = 0
   let totalGst = 0
   let totalAmount = numAmount
 

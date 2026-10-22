@@ -282,7 +282,7 @@ export async function getYearEndReviewData(
   // 1. Sales from Challans / Invoices
   const { data: challans } = await supabase()
     .from('challans')
-    .select('id, challan_number, date, subtotal, grand_total, cgst_amount, sgst_amount, igst_amount, status')
+    .select('id, challan_number, date, subtotal, discount, grand_total, cgst_amount, sgst_amount, igst_amount, status')
     .eq('company_id', companyId)
     .gte('date', startDate)
     .lte('date', endDate);
@@ -296,7 +296,8 @@ export async function getYearEndReviewData(
     if (c.status === 'Cancelled') return;
     totalInvoices++;
     totalSales += Number(c.grand_total) || 0;
-    taxableSales += Number(c.subtotal) || 0;
+    // Taxable value is subtotal minus discount (see lib/tax.ts calculateTax).
+    taxableSales += Math.max(0, (Number(c.subtotal) || 0) - (Number(c.discount) || 0));
     outputGst += (Number(c.cgst_amount) || 0) + (Number(c.sgst_amount) || 0) + (Number(c.igst_amount) || 0);
   });
 
@@ -544,7 +545,7 @@ export async function getCompleteYearEndReportData(
     supabase().from('companies').select('*').eq('id', companyId).single(),
     supabase()
       .from('challans')
-      .select('id, challan_number, date, customer_id, subtotal, grand_total, cgst_amount, sgst_amount, igst_amount, payment_amount_received, status')
+      .select('id, challan_number, date, customer_id, subtotal, discount, grand_total, cgst_amount, sgst_amount, igst_amount, payment_amount_received, status')
       .eq('company_id', companyId)
       .gte('date', startDate)
       .lte('date', endDate),
@@ -588,7 +589,8 @@ export async function getCompleteYearEndReportData(
     if (c.status === 'Cancelled') return;
     totalInvoices++;
     const grand = Number(c.grand_total) || 0;
-    const sub = Number(c.subtotal) || 0;
+    // Taxable value is subtotal minus discount (see lib/tax.ts calculateTax).
+    const sub = Math.max(0, (Number(c.subtotal) || 0) - (Number(c.discount) || 0));
     const cgst = Number(c.cgst_amount) || 0;
     const sgst = Number(c.sgst_amount) || 0;
     const igst = Number(c.igst_amount) || 0;

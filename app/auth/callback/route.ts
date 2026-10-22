@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { safeNextPath } from '@/lib/security/safe-redirect';
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -8,7 +9,8 @@ export async function GET(request: NextRequest) {
   const type = (requestUrl.searchParams.get('type') ?? 'recovery') as 'recovery' | 'email';
   const error = requestUrl.searchParams.get('error');
   const errorDescription = requestUrl.searchParams.get('error_description');
-  const next = requestUrl.searchParams.get('next') ?? '/admin';
+  // Only allow same-origin relative paths to prevent open redirects.
+  const next = safeNextPath(requestUrl.searchParams.get('next'), '/admin');
 
   // Handle Supabase error redirect
   if (error) {

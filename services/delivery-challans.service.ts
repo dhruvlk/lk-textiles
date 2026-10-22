@@ -1,4 +1,6 @@
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
+import { isBlankTakaRow } from '@/lib/challan-item';
 import {
   appendInFilter,
   findCustomerIdsBySearch,
@@ -7,6 +9,7 @@ import {
   buildPaginatedResult,
   ilikePattern,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import {
   applyDeliveryStockDeltas,
@@ -105,7 +108,7 @@ function applyDeliveryChallanFilters(
   if (filters.dateTo) next = next.lte('date', filters.dateTo);
 
   if (filters.search?.trim()) {
-    const pattern = ilikePattern(filters.search);
+    const pattern = orIlikeValue(filters.search);
     const orParts = [
       `challan_number.ilike.${pattern}`,
       `quality.ilike.${pattern}`,
@@ -265,7 +268,7 @@ function deliveryStockUsage(stockId: string | null | undefined, pieceCount: numb
 }
 
 function computeTotals(items: DeliveryChallanInput['items']) {
-  const normalized = items.map((item, index) => ({
+  const normalized = items.filter((item) => !isBlankTakaRow(item)).map((item, index) => ({
     sort_order: index,
     taka_no: item.taka_no?.trim() || null,
     meters: Number(item.meters) || 0,
@@ -455,7 +458,7 @@ export async function duplicateDeliveryChallan(
       company_id: companyId,
       customer_id: source.customer_id,
       challan_number: challanNumber,
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
       quality: source.quality,
       stock_id: source.stock_id,
       broker: source.broker,

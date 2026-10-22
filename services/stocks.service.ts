@@ -3,6 +3,7 @@ import {
   buildPaginatedResult,
   ilikePattern,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   Stock,
@@ -178,7 +179,7 @@ function applyStockFilters(query: StockListQuery, companyId: string, filters: St
   let next = query.eq('company_id', companyId);
 
   if (filters.search?.trim()) {
-    const pattern = ilikePattern(filters.search);
+    const pattern = orIlikeValue(filters.search);
     next = next.or(`quality_name.ilike.${pattern},hsn_code.ilike.${pattern}`);
   }
 

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/client';
 import {
   buildPaginatedResult,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   Expense,
@@ -76,6 +77,7 @@ export async function getExpensesPaginated(
         file_type,
         file_size,
         public_url,
+        storage_path,
         document_type
       )
     `,
@@ -111,8 +113,9 @@ export async function getExpensesPaginated(
 
   if (filters.search?.trim()) {
     const s = filters.search.trim();
+    const sq = orIlikeValue(s);
     query = query.or(
-      `paid_to.ilike.%${s}%,category_name.ilike.%${s}%,reference_number.ilike.%${s}%,notes.ilike.%${s}%`
+      `paid_to.ilike.${sq},category_name.ilike.${sq},reference_number.ilike.${sq},notes.ilike.${sq}`
     );
   }
 
@@ -132,7 +135,7 @@ export async function getExpensesPaginated(
   }
 
   return buildPaginatedResult(
-    ((data as any[]) || []).map((row) => mapExpense(row)),
+    ((data as unknown as Parameters<typeof mapExpense>[0][]) || []).map((row) => mapExpense(row)),
     count || 0,
     page,
     pageSize
@@ -154,7 +157,7 @@ export async function getExpenseById(companyId: string, id: string): Promise<Exp
     .maybeSingle();
 
   if (error) throw error;
-  return data ? mapExpense(data as any) : null;
+  return data ? mapExpense(data as unknown as Parameters<typeof mapExpense>[0]) : null;
 }
 
 export async function createExpense(

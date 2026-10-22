@@ -1,5 +1,7 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
+import { isBlankTakaRow } from "@/lib/challan-item"
 import { memo, useCallback, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import {
@@ -228,7 +230,7 @@ export function DeliveryChallanForm({ initialData }: { initialData?: DeliveryCha
         }
       : {
           challan_number: "",
-          date: new Date().toISOString().split("T")[0],
+          date: todayISODate(),
           customer_id: "",
           stock_id: "",
           quality: "",
@@ -391,7 +393,14 @@ export function DeliveryChallanForm({ initialData }: { initialData?: DeliveryCha
         return
       }
 
-      const pieceCount = values.items.length
+      // Ignore empty trailing rows (added by the Enter shortcut).
+      const filledItems = values.items.filter((item) => !isBlankTakaRow(item))
+      if (filledItems.length === 0) {
+        toast.error("Add at least one taka with details.")
+        setIsSubmitting(false)
+        return
+      }
+      const pieceCount = filledItems.length
       const reserved =
         isEditMode && initialData?.stock_id === values.stock_id
           ? Number(initialData.total_pieces) || 0
@@ -415,7 +424,7 @@ export function DeliveryChallanForm({ initialData }: { initialData?: DeliveryCha
         remarks: values.remarks || null,
         notes: values.notes || null,
         status: values.status as DeliveryChallanStatus,
-        items: values.items,
+        items: filledItems,
       }
 
       if (initialData) {

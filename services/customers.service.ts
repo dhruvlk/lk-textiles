@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import { formatPhoneToStorage } from '@/lib/validations/phone';
 import type { Customer, PaginatedResult, PaginationParams } from '@/types';
 import type { CustomerRow } from '@/types/database';
@@ -53,7 +54,7 @@ export async function getCustomersPaginated(
     .range(from, to);
 
   if (search.trim()) {
-    const q = `%${search.trim()}%`;
+    const q = orIlikeValue(search);
     query = query.or(
       `name.ilike.${q},gst_number.ilike.${q},mobile.ilike.${q},broker.ilike.${q}`
     );

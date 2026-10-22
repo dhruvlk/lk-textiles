@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import type { Inquiry, InquiryFilters, InquiryStatus } from '@/types';
 import type { InquiryRow } from '@/types/database';
 
@@ -29,7 +30,7 @@ export async function getInquiries(filters?: InquiryFilters): Promise<Inquiry[]>
   }
 
   if (filters?.search?.trim()) {
-    const q = `%${filters.search.trim()}%`;
+    const q = orIlikeValue(filters.search);
     query = query.or(
       `full_name.ilike.${q},email.ilike.${q},phone.ilike.${q},company.ilike.${q},subject.ilike.${q},message.ilike.${q}`
     );

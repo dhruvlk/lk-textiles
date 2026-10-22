@@ -104,18 +104,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     async function init() {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (authUser && mounted) {
-        const appUser = await hydrateUser(authUser);
-        if (appUser) {
-          setUserStable(appUser);
-          setIsAuthenticated(true);
-        } else {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser && mounted) {
+          const appUser = await hydrateUser(authUser);
+          if (!mounted) return;
+          if (appUser) {
+            setUserStable(appUser);
+            setIsAuthenticated(true);
+          } else {
+            setUserStable(null);
+            setIsAuthenticated(false);
+          }
+        }
+      } catch (error) {
+        // A transient profile/membership fetch error must not leave the whole
+        // app on an endless loading spinner.
+        console.error('[auth] Failed to initialise session:', error);
+        if (mounted) {
           setUserStable(null);
           setIsAuthenticated(false);
         }
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-      if (mounted) setIsLoading(false);
     }
 
     init();
@@ -135,7 +147,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (session?.user) {
           const isRecovery = event === 'PASSWORD_RECOVERY';
-          const appUser = await hydrateUser(session.user, { isRecovery });
+          let appUser: Awaited<ReturnType<typeof hydrateUser>> = null;
+          try {
+            appUser = await hydrateUser(session.user, { isRecovery });
+          } catch (error) {
+            console.error('[auth] Failed to load user after auth change:', error);
+          }
           if (!mounted) return;
           if (appUser) {
             setUserStable(appUser);

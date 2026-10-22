@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import type { Supplier, SupplierFilters } from '@/types';
 import type { SupplierRow } from '@/types/database';
 
@@ -39,7 +40,8 @@ export async function getSuppliers(
 
   if (filters?.search?.trim()) {
     const s = filters.search.trim();
-    query = query.or(`name.ilike.%${s}%,contact_person.ilike.%${s}%,mobile.ilike.%${s}%,gstin.ilike.%${s}%`);
+    const sq = orIlikeValue(s);
+    query = query.or(`name.ilike.${sq},contact_person.ilike.${sq},mobile.ilike.${sq},gstin.ilike.${sq}`);
   }
   if (filters?.city?.trim()) {
     query = query.ilike('city', `%${filters.city.trim()}%`);

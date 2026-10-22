@@ -808,10 +808,10 @@ export function PersonalExpensesSettingsSection({
                           <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] bg-muted/60 border border-border/60">
                             <span
                               className="w-2 h-2 rounded-full shrink-0"
-                              style={{ backgroundColor: (sub as any).parent_color || "#4f46e5" }}
+                              style={{ backgroundColor: (sub as { parent_color?: string }).parent_color || "#4f46e5" }}
                             />
                             <span className="text-foreground font-medium">
-                              {(sub as any).parent_name}
+                              {(sub as { parent_name?: string }).parent_name}
                             </span>
                           </span>
                         </td>
