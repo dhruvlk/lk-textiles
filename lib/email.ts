@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import { escapeHtml, toSingleLine } from '@/lib/security/html';
 
 // Create a transporter using environment variables
 const transporter = nodemailer.createTransport({
@@ -21,7 +22,23 @@ export interface ContactFormData {
   message: string;
 }
 
-export const sendAdminEmail = async (data: ContactFormData) => {
+/** HTML-escaped copy of user-submitted fields for safe interpolation into email templates. */
+function escapeContactData(data: ContactFormData): ContactFormData {
+  return {
+    fullName: escapeHtml(data.fullName),
+    email: escapeHtml(data.email),
+    phone: data.phone ? escapeHtml(data.phone) : undefined,
+    company: data.company ? escapeHtml(data.company) : undefined,
+    subject: data.subject ? escapeHtml(data.subject) : undefined,
+    message: escapeHtml(data.message),
+  };
+}
+
+export const sendAdminEmail = async (rawData: ContactFormData) => {
+  // Visitor input is untrusted: escape it before it is placed into HTML.
+  const data = escapeContactData(rawData);
+  const plainName = toSingleLine(rawData.fullName).replace(/["\\<>]/g, '');
+  const plainCompany = toSingleLine(rawData.company);
   const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER;
   const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
@@ -85,16 +102,17 @@ export const sendAdminEmail = async (data: ContactFormData) => {
   `;
 
   await transporter.sendMail({
-    from: `"${data.fullName}" <${process.env.SMTP_USER}>`,
+    from: `"${plainName || 'Website Visitor'}" <${process.env.SMTP_USER}>`,
     to: adminEmail,
-    subject: `New Inquiry from ${data.fullName}${data.company ? ` (${data.company})` : ''}`,
-    text: `New Contact Form Submission from ${data.fullName} (${data.email}).\nPhone: ${data.phone || 'N/A'}\nCompany: ${data.company || 'N/A'}\nSubject: ${data.subject || 'New Inquiry'}\nMessage: ${data.message}`,
+    subject: `New Inquiry from ${toSingleLine(rawData.fullName)}${plainCompany ? ` (${plainCompany})` : ''}`,
+    text: `New Contact Form Submission from ${rawData.fullName} (${rawData.email}).\nPhone: ${rawData.phone || 'N/A'}\nCompany: ${rawData.company || 'N/A'}\nSubject: ${rawData.subject || 'New Inquiry'}\nMessage: ${rawData.message}`,
     html: htmlContent,
-    replyTo: data.email,
+    replyTo: rawData.email,
   });
 };
 
-export const sendUserConfirmationEmail = async (data: ContactFormData) => {
+export const sendUserConfirmationEmail = async (rawData: ContactFormData) => {
+  const data = escapeContactData(rawData);
   const timestamp = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
 
   const htmlContent = `
@@ -152,9 +170,9 @@ export const sendUserConfirmationEmail = async (data: ContactFormData) => {
 
   await transporter.sendMail({
     from: `"Lk Textiles" <${process.env.SMTP_USER}>`,
-    to: data.email,
-    subject: `Thank you for your inquiry, ${data.fullName} - Lk Textiles`,
-    text: `Dear ${data.fullName},\n\nWe have successfully received your inquiry regarding "${data.subject || 'your project'}". Our sales team is currently reviewing your details and will get back to you within 24 hours.\n\nBest Regards,\nThe Lk Textiles Team`,
+    to: rawData.email,
+    subject: `Thank you for your inquiry, ${toSingleLine(rawData.fullName)} - Lk Textiles`,
+    text: `Dear ${rawData.fullName},\n\nWe have successfully received your inquiry regarding "${rawData.subject || 'your project'}". Our sales team is currently reviewing your details and will get back to you within 24 hours.\n\nBest Regards,\nThe Lk Textiles Team`,
     html: htmlContent,
     replyTo: process.env.ADMIN_EMAIL || process.env.SMTP_USER,
   });

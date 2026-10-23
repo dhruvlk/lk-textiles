@@ -3,8 +3,21 @@ import { sendAdminEmail, sendUserConfirmationEmail } from '@/lib/email';
 import { contactFormSchema } from '@/lib/validations/contact';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { ZodError } from 'zod';
+import { checkRateLimit, getClientIp } from '@/lib/security/rate-limit';
+
+// Public endpoint that sends email: throttle to limit spam / SMTP abuse.
+const CONTACT_LIMIT = 5;
+const CONTACT_WINDOW_MS = 10 * 60 * 1000;
 
 export async function POST(req: Request) {
+  const rate = checkRateLimit(`contact:${getClientIp(req.headers)}`, CONTACT_LIMIT, CONTACT_WINDOW_MS);
+  if (!rate.allowed) {
+    return NextResponse.json(
+      { error: 'Too many messages. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': String(rate.retryAfterSeconds) } }
+    );
+  }
+
   try {
     const body = await req.json();
     const validatedData = contactFormSchema.parse(body);

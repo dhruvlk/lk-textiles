@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable react-hooks/set-state-in-effect */
 
+import { todayISODate } from "@/lib/dates"
 import { useEffect, useMemo, useState, useTransition } from "react"
 import {
   Banknote,
@@ -94,7 +95,7 @@ export default function ReportsClient() {
   const handleExport = async (type: "csv" | "excel" | "pdf") => {
     if (!bundle || !selectedCompany) return
 
-    const stamp = new Date().toISOString().slice(0, 10)
+    const stamp = todayISODate()
     const periodLabel = PERIOD_PRESET_LABELS[filters.period]
     const title = `${selectedCompany.name} Reports`
 

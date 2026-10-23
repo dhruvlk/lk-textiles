@@ -1,7 +1,10 @@
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
+import { callTransactionalRpc } from '@/lib/supabase/rpc';
 import {
   buildPaginatedResult,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   PaginatedResult,
@@ -18,21 +21,6 @@ import type {
 } from '@/types/database';
 
 const supabase = () => createClient();
-
-type PurchaseRpcClient = {
-  rpc(
-    fn: 'process_purchase_stock_change',
-    args: {
-      p_company_id: string;
-      p_stock_id: string;
-      p_quantity: number;
-      p_transaction_type: string;
-      p_purchase_id?: string | null;
-      p_notes?: string | null;
-      p_user_id?: string | null;
-    }
-  ): PromiseLike<{ data: null; error: { message: string } | null }>;
-};
 
 function mapPurchase(
   row: PurchaseRow & {
@@ -192,6 +180,7 @@ export async function getPurchasesPaginated(
         file_type,
         file_size,
         public_url,
+        storage_path,
         document_type
       ),
       items:purchase_items (
@@ -240,8 +229,9 @@ export async function getPurchasesPaginated(
 
   if (filters.search?.trim()) {
     const s = filters.search.trim();
+    const sq = orIlikeValue(s);
     query = query.or(
-      `invoice_number.ilike.%${s}%,supplier_name.ilike.%${s}%,supplier_gstin.ilike.%${s}%,notes.ilike.%${s}%`
+      `invoice_number.ilike.${sq},supplier_name.ilike.${sq},supplier_gstin.ilike.${sq},notes.ilike.${sq}`
     );
   }
 
@@ -261,7 +251,7 @@ export async function getPurchasesPaginated(
   }
 
   return buildPaginatedResult(
-    ((data as any[]) || []).map((row) => mapPurchase(row)),
+    ((data as unknown as Parameters<typeof mapPurchase>[0][]) || []).map((row) => mapPurchase(row)),
     count || 0,
     page,
     pageSize
@@ -288,7 +278,7 @@ export async function getPurchaseById(companyId: string, id: string): Promise<Pu
     console.error('Error fetching purchase by id:', error);
     throw error;
   }
-  return data ? mapPurchase(data as any) : null;
+  return data ? mapPurchase(data as unknown as Parameters<typeof mapPurchase>[0]) : null;
 }
 
 export async function createPurchase(
@@ -308,117 +298,81 @@ export async function createPurchase(
     };
   }
 ): Promise<Purchase> {
-  // 1. Insert header
-  const { data: purchase, error: purchaseError } = await supabase()
-    .from('purchases')
-    .insert({
-      company_id: companyId,
-      supplier_id: purchaseData.supplier_id || null,
-      supplier_name: purchaseData.supplier_name.trim(),
-      supplier_gstin: purchaseData.supplier_gstin?.trim()?.toUpperCase() || null,
-      invoice_number: purchaseData.invoice_number.trim(),
-      invoice_date: purchaseData.invoice_date,
-      due_date: purchaseData.due_date || null,
-      financial_year: purchaseData.financial_year,
-      purchase_type: purchaseData.purchase_type,
-      is_gst_bill: purchaseData.is_gst_bill,
-      hsn_sac: purchaseData.hsn_sac?.trim() || null,
-      subtotal: purchaseData.subtotal,
-      discount: purchaseData.discount,
-      gst_rate: purchaseData.gst_rate,
-      cgst_amount: purchaseData.cgst_amount,
-      sgst_amount: purchaseData.sgst_amount,
-      igst_amount: purchaseData.igst_amount,
-      total_gst: purchaseData.total_gst,
-      round_off: purchaseData.round_off,
-      grand_total: purchaseData.grand_total,
-      payment_status: purchaseData.payment_status,
-      paid_amount: purchaseData.paid_amount,
-      balance_amount: purchaseData.balance_amount,
-      payment_method: purchaseData.payment_method || null,
-      status: purchaseData.status || 'Active',
-      notes: purchaseData.notes || null,
-      created_by: options?.userId || null,
-    })
-    .select()
-    .single();
-
-  if (purchaseError) {
-    console.error('Error inserting purchase:', purchaseError);
-    throw purchaseError;
-  }
-
-  // 2. Insert items
-  if (items && items.length > 0) {
-    const itemsToInsert = items.map((it) => ({
-      purchase_id: purchase.id,
-      product_id: it.product_id || null,
-      stock_id: it.stock_id || null,
-      item_name: it.item_name.trim(),
-      description: it.description?.trim() || null,
-      hsn_sac: it.hsn_sac?.trim() || null,
-      quantity: Number(it.quantity) || 1,
-      unit: it.unit || 'Kg',
-      rate: Number(it.rate) || 0,
-      discount: Number(it.discount) || 0,
-      taxable_amount: Number(it.taxable_amount) || 0,
-      gst_rate: Number(it.gst_rate) || 0,
-      gst_amount: Number(it.gst_amount) || 0,
-      total_amount: Number(it.total_amount) || 0,
-      yarn_type: it.yarn_type || null,
-      count: it.count || null,
-      denier: it.denier || null,
-      color: it.color || null,
-      lot_number: it.lot_number || null,
-      batch_number: it.batch_number || null,
-      roll_number: it.roll_number || null,
-      beam_number: it.beam_number || null,
-      quality: it.quality || null,
-      width: it.width || null,
-      gsm: it.gsm || null,
-      meters: it.meters !== null && it.meters !== undefined ? Number(it.meters) : null,
-      weight: it.weight !== null && it.weight !== undefined ? Number(it.weight) : null,
-    }));
-
-    const { error: itemsError } = await supabase().from('purchase_items').insert(itemsToInsert);
-    if (itemsError) {
-      console.error('Error inserting purchase items:', itemsError);
-      throw itemsError;
-    }
-
-    // 3. Stock Integration: if Stock Purchase and item linked to stock_id, increase stock
-    if (purchaseData.purchase_type === 'Stock Purchase' && purchaseData.status !== 'Draft') {
-      for (const item of items) {
-        if (item.stock_id && item.quantity > 0) {
-          try {
-            await (supabase() as unknown as PurchaseRpcClient).rpc('process_purchase_stock_change', {
-              p_company_id: companyId,
-              p_stock_id: item.stock_id,
-              p_quantity: item.quantity,
-              p_transaction_type: 'Purchase',
-              p_purchase_id: purchase.id,
-              p_notes: `Purchase Bill #${purchase.invoice_number} from ${purchase.supplier_name}`,
-              p_user_id: options?.userId || null,
-            });
-          } catch (stkErr) {
-            console.error('Failed to update stock for item:', stkErr);
-          }
+  // Header, items, stock additions and the initial payment are one database
+  // transaction (save_purchase). The header's paid / balance / status are
+  // derived from the payment there, so it can never be counted twice.
+  const header = {
+    company_id: companyId,
+    supplier_id: purchaseData.supplier_id || null,
+    supplier_name: purchaseData.supplier_name,
+    supplier_gstin: purchaseData.supplier_gstin || null,
+    invoice_number: purchaseData.invoice_number,
+    invoice_date: purchaseData.invoice_date,
+    due_date: purchaseData.due_date || null,
+    financial_year: purchaseData.financial_year,
+    purchase_type: purchaseData.purchase_type,
+    is_gst_bill: purchaseData.is_gst_bill,
+    hsn_sac: purchaseData.hsn_sac || null,
+    subtotal: purchaseData.subtotal,
+    discount: purchaseData.discount,
+    gst_rate: purchaseData.gst_rate,
+    cgst_amount: purchaseData.cgst_amount,
+    sgst_amount: purchaseData.sgst_amount,
+    igst_amount: purchaseData.igst_amount,
+    total_gst: purchaseData.total_gst,
+    round_off: purchaseData.round_off,
+    grand_total: purchaseData.grand_total,
+    paid_amount: purchaseData.paid_amount,
+    payment_method: purchaseData.payment_method || null,
+    status: purchaseData.status || 'Active',
+    notes: purchaseData.notes || null,
+    created_by: options?.userId || null,
+  };
+  const itemRows = items.map((it) => ({
+    product_id: it.product_id || null,
+    stock_id: it.stock_id || null,
+    item_name: it.item_name,
+    description: it.description || null,
+    hsn_sac: it.hsn_sac || null,
+    quantity: Number(it.quantity) || 1,
+    unit: it.unit || 'Kg',
+    rate: Number(it.rate) || 0,
+    discount: Number(it.discount) || 0,
+    taxable_amount: Number(it.taxable_amount) || 0,
+    gst_rate: Number(it.gst_rate) || 0,
+    gst_amount: Number(it.gst_amount) || 0,
+    total_amount: Number(it.total_amount) || 0,
+    yarn_type: it.yarn_type || null,
+    count: it.count || null,
+    denier: it.denier || null,
+    color: it.color || null,
+    lot_number: it.lot_number || null,
+    batch_number: it.batch_number || null,
+    roll_number: it.roll_number || null,
+    beam_number: it.beam_number || null,
+    quality: it.quality || null,
+    width: it.width || null,
+    gsm: it.gsm || null,
+    meters: it.meters !== null && it.meters !== undefined ? Number(it.meters) : null,
+    weight: it.weight !== null && it.weight !== undefined ? Number(it.weight) : null,
+  }));
+  const initialPayment =
+    options?.initialPayment && options.initialPayment.amount > 0
+      ? {
+          amount: options.initialPayment.amount,
+          payment_method: options.initialPayment.method,
+          reference_number: options.initialPayment.reference || null,
+          notes: options.initialPayment.notes || 'Payment on bill creation',
+          payment_date: purchaseData.invoice_date,
         }
-      }
-    }
-  }
+      : null;
 
-  // 4. Initial Payment if provided
-  if (options?.initialPayment && options.initialPayment.amount > 0) {
-    await addPurchasePayment(companyId, purchase.id, {
-      amount: options.initialPayment.amount,
-      payment_method: options.initialPayment.method,
-      reference_number: options.initialPayment.reference || null,
-      notes: options.initialPayment.notes || 'Payment on bill creation',
-      payment_date: purchaseData.invoice_date,
-      created_by: options.userId || null,
-    });
-  }
+  const purchaseId = await callTransactionalRpc('save_purchase', {
+    p_header: header,
+    p_items: itemRows,
+    p_initial_payment: initialPayment,
+  });
+  const purchase = { id: purchaseId, invoice_number: header.invoice_number, supplier_name: header.supplier_name, grand_total: header.grand_total };
 
   // 5. Audit Log
   try {
@@ -455,95 +409,34 @@ export async function addPurchasePayment(
     created_by?: string | null;
   }
 ): Promise<PurchasePayment> {
-  const { data: purchase, error: pErr } = await supabase()
-    .from('purchases')
-    .select('grand_total, paid_amount')
-    .eq('company_id', companyId)
-    .eq('id', purchaseId)
-    .single();
+  // Ledger row and bill totals in one locked transaction (record_purchase_payment):
+  // no lost updates, and no ledger row without the matching bill balance.
+  const paymentId = await callTransactionalRpc('record_purchase_payment', {
+    p_purchase_id: purchaseId,
+    p_amount: payment.amount,
+    p_payment_method: payment.payment_method,
+    p_payment_date: payment.payment_date || null,
+    p_reference: payment.reference_number || null,
+    p_notes: payment.notes || null,
+  });
 
-  if (pErr) throw pErr;
-
-  const currentPaid = Number(purchase.paid_amount) || 0;
-  const grandTotal = Number(purchase.grand_total) || 0;
-  const newPaid = currentPaid + payment.amount;
-  const newBalance = Math.max(0, grandTotal - newPaid);
-
-  let newStatus: Purchase['payment_status'] = 'Partially Paid';
-  if (newBalance <= 0) {
-    newStatus = 'Paid';
-  } else if (newPaid <= 0) {
-    newStatus = 'Unpaid';
-  }
-
-  // Insert payment ledger
-  const { data: paymentRow, error: payErr } = await supabase()
+  const { data: paymentRow, error } = await supabase()
     .from('purchase_payments')
-    .insert({
-      company_id: companyId,
-      purchase_id: purchaseId,
-      expense_id: null,
-      amount: payment.amount,
-      payment_method: payment.payment_method,
-      reference_number: payment.reference_number || null,
-      notes: payment.notes || null,
-      payment_date: payment.payment_date || new Date().toISOString().slice(0, 10),
-      created_by: payment.created_by || null,
-    })
-    .select()
-    .single();
-
-  if (payErr) throw payErr;
-
-  // Update purchase status
-  await supabase()
-    .from('purchases')
-    .update({
-      paid_amount: newPaid,
-      balance_amount: newBalance,
-      payment_status: newStatus,
-      updated_at: new Date().toISOString(),
-    })
+    .select('*')
     .eq('company_id', companyId)
-    .eq('id', purchaseId);
-
+    .eq('id', paymentId)
+    .single();
+  if (error) throw error;
   return mapPayment(paymentRow);
 }
 
 export async function deletePurchase(companyId: string, id: string, userId?: string | null): Promise<void> {
-  // 1. Fetch purchase to check for stock reversal
   const existing = await getPurchaseById(companyId, id);
   if (!existing) return;
 
-  // 2. Reverse stock if Stock Purchase
-  if (existing.purchase_type === 'Stock Purchase' && existing.items) {
-    for (const it of existing.items) {
-      if (it.stock_id && it.quantity > 0) {
-        try {
-          await (supabase() as unknown as PurchaseRpcClient).rpc('process_purchase_stock_change', {
-            p_company_id: companyId,
-            p_stock_id: it.stock_id,
-            p_quantity: it.quantity,
-            p_transaction_type: 'Purchase Return',
-            p_purchase_id: existing.id,
-            p_notes: `Stock reversed on deletion of Purchase Bill #${existing.invoice_number}`,
-            p_user_id: userId || null,
-          });
-        } catch (err) {
-          console.warn('Stock reversal error on purchase delete:', err);
-        }
-      }
-    }
-  }
-
-  // 3. Delete purchase (cascade deletes items, documents records, payments)
-  const { error } = await supabase()
-    .from('purchases')
-    .delete()
-    .eq('company_id', companyId)
-    .eq('id', id);
-
-  if (error) throw error;
+  // Stock reversal (skipped for Drafts) and the delete are one transaction
+  // (delete_purchase); stock already delivered blocks the delete with a reason.
+  await callTransactionalRpc('delete_purchase', { p_purchase_id: id });
 
   // 4. Audit Log
   try {

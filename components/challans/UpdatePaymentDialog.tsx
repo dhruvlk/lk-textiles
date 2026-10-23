@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable */
 
+import { todayISODate } from "@/lib/dates"
 import { useEffect, useState } from "react"
 import {
   Dialog,
@@ -56,7 +57,7 @@ export function UpdatePaymentDialog({
 
   const [amount, setAmount] = useState("")
   const [paymentDate, setPaymentDate] = useState(
-    new Date().toISOString().split("T")[0]
+    todayISODate()
   )
   const [paymentMode, setPaymentMode] = useState<string>("")
   const [reference, setReference] = useState("")
@@ -66,7 +67,7 @@ export function UpdatePaymentDialog({
   useEffect(() => {
     if (open) {
       setAmount(remaining > 0 ? remaining.toFixed(2) : "")
-      setPaymentDate(new Date().toISOString().split("T")[0])
+      setPaymentDate(todayISODate())
       setPaymentMode("")
       setReference("")
       setNotes("")

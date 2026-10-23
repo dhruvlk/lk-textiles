@@ -28,7 +28,19 @@ export async function assertCompanyOwner(companyId: string) {
   const isMembershipOwner =
     Boolean(membership) && membership!.is_active && membership!.role === 'Owner';
 
-  // Fallback: company.user_id is the registering owner
+  // Fallback for legacy companies created before company_members existed:
+  // company.user_id is the registering owner. Only applies when the caller has
+  // NO membership row for this company — a Staff/Admin member must never be
+  // promoted to owner just because companies.user_id matches.
+  if (!isMembershipOwner && membership) {
+    return {
+      ok: false as const,
+      status: 403,
+      error: 'Only the company owner can manage employees',
+      user: null,
+    };
+  }
+
   if (!isMembershipOwner) {
     const { data: company, error: companyError } = await supabase
       .from('companies')
@@ -120,4 +132,27 @@ export async function rollbackEmployeeUser(userId: string) {
   } catch (error) {
     console.error('[rollbackEmployeeUser]', error);
   }
+}
+
+/**
+ * True when the user belongs to any company other than `companyId`.
+ * Used to stop the owner of one company from changing the credentials or
+ * profile of a user whose account is also used in another tenant.
+ */
+export async function userHasOtherCompanyMemberships(
+  userId: string,
+  companyId: string
+): Promise<boolean> {
+  const admin = createAdminClient();
+  const { count, error } = await admin
+    .from('company_members')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .neq('company_id', companyId);
+  if (error) {
+    // Fail closed: treat lookup errors as "shared account".
+    console.error('[userHasOtherCompanyMemberships]', error.message);
+    return true;
+  }
+  return (count ?? 0) > 0;
 }

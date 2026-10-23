@@ -635,7 +635,7 @@ export default function PersonalExpensesDashboardClient() {
                         tickFormatter={(v) => `₹${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`}
                       />
                       <RechartsTooltip
-                        formatter={(val: any) => [`₹${Number(val).toLocaleString("en-IN")}`, "Spent"]}
+                        formatter={(val: unknown) => [`₹${Number(val).toLocaleString("en-IN")}`, "Spent"]}
                         contentStyle={{
                           borderRadius: "8px",
                           border: "1px solid var(--border)",

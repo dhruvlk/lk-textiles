@@ -1,4 +1,6 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import type { DocumentFilters, VaultDocument } from '@/types';
 import type { DocumentRow } from '@/types/database';
 
@@ -105,6 +107,53 @@ export async function uploadVaultDocument(
   return mapDocument(data);
 }
 
+const SIGNED_URL_TTL_SECONDS = 10 * 60;
+
+/**
+ * Resolves a short-lived signed URL for a vault document so the
+ * `company-documents` bucket can stay private (storage RLS restricts reads to
+ * company members). Falls back to the stored public URL for legacy rows.
+ */
+export async function getVaultDocumentUrl(
+  doc: Pick<VaultDocument, 'storage_path' | 'public_url' | 'file_name'>,
+  options?: { download?: boolean }
+): Promise<string | null> {
+  if (doc.storage_path) {
+    const { data, error } = await supabase()
+      .storage.from(BUCKET_NAME)
+      .createSignedUrl(
+        doc.storage_path,
+        SIGNED_URL_TTL_SECONDS,
+        options?.download ? { download: doc.file_name || true } : undefined
+      );
+    if (!error && data?.signedUrl) return data.signedUrl;
+    if (error) console.warn('Signed URL error for vault document:', error.message);
+  }
+  return doc.public_url || null;
+}
+
+/** Opens or downloads a vault document via a signed URL. */
+export async function openVaultDocument(
+  doc: Pick<VaultDocument, 'storage_path' | 'public_url' | 'file_name'>,
+  options?: { download?: boolean }
+): Promise<boolean> {
+  // Open the tab synchronously (inside the click) so pop-up blockers allow it,
+  // then point it at the signed URL once it has been generated.
+  const win = window.open('', '_blank');
+  const url = await getVaultDocumentUrl(doc, options);
+  if (!url) {
+    win?.close();
+    return false;
+  }
+  if (win) {
+    win.opener = null;
+    win.location.href = url;
+  } else {
+    window.location.assign(url);
+  }
+  return true;
+}
+
 export async function getVaultDocuments(
   companyId: string,
   filters?: DocumentFilters
@@ -136,7 +185,8 @@ export async function getVaultDocuments(
 
   if (filters?.search?.trim()) {
     const s = filters.search.trim();
-    query = query.or(`file_name.ilike.%${s}%,description.ilike.%${s}%`);
+    const sq = orIlikeValue(s);
+    query = query.or(`file_name.ilike.${sq},description.ilike.${sq}`);
   }
 
   const { data, error } = await query;
@@ -192,15 +242,20 @@ export async function deleteVaultDocument(
 
   if (fetchErr) throw fetchErr;
 
-  if (doc?.storage_path) {
-    await supabase().storage.from(BUCKET_NAME).remove([doc.storage_path]);
-  }
-
-  const { error: deleteErr } = await supabase()
+  // Remove the record first: if the user may not delete it, nothing happens and
+  // the file is kept (previously the file was removed and the record stayed).
+  const { data: deleted, error: deleteErr } = await supabase()
     .from('documents')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', documentId);
+    .eq('id', documentId)
+    .select('id');
 
   if (deleteErr) throw deleteErr;
+  assertAffected(deleted, 'delete this document');
+
+  if (doc?.storage_path) {
+    const { error: storageErr } = await supabase().storage.from(BUCKET_NAME).remove([doc.storage_path]);
+    if (storageErr) console.warn('Document record deleted but file removal failed:', storageErr.message);
+  }
 }

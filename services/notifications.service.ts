@@ -1,3 +1,5 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import { isPastDue, resolvePaymentStatus } from '@/lib/payment-status';
 import { STOCK_LOW_THRESHOLD } from '@/types';
@@ -147,15 +149,15 @@ export async function syncPaymentDueNotifications(
   }
 
   const run = async () => {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = todayISODate();
 
-    const { data, error } = await supabase()
+    const { data, error } = await fetchAllRows(() => supabase()
       .from('challans')
       .select('id, challan_number, due_date, grand_total, payment_amount_received, payment_status')
       .eq('company_id', companyId)
       .neq('payment_status', 'Paid')
       .not('due_date', 'is', null)
-      .lte('due_date', today);
+      .lte('due_date', today).order('id'));
 
     if (error || !data?.length) {
       lastPaymentSyncAt.set(companyId, Date.now());

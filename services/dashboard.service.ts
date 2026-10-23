@@ -1,3 +1,5 @@
+import { fetchAllRows } from '@/lib/supabase/fetch-all';
+import { todayISODate, toLocalISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
 import type { DashboardStats, Inquiry } from '@/types';
 import { getChallans } from './challans.service';
@@ -5,10 +7,10 @@ import { getChallans } from './challans.service';
 const supabase = () => createClient();
 
 export async function getDashboardStats(companyId: string): Promise<DashboardStats> {
-  const today = new Date().toISOString().split('T')[0];
+  const today = todayISODate();
   const monthStart = new Date();
   monthStart.setDate(1);
-  const monthStartStr = monthStart.toISOString().split('T')[0];
+  const monthStartStr = toLocalISODate(monthStart);
 
   const [customersRes, challansRes, todayRes, monthlyRes, inquiriesCountRes, recentInquiriesRes] = await Promise.all([
     supabase()
@@ -24,11 +26,15 @@ export async function getDashboardStats(companyId: string): Promise<DashboardSta
       .select('id', { count: 'exact', head: true })
       .eq('company_id', companyId)
       .eq('date', today),
-    supabase()
-      .from('challans')
-      .select('grand_total')
-      .eq('company_id', companyId)
-      .gte('date', monthStartStr),
+    fetchAllRows(() =>
+      supabase()
+        .from('challans')
+        .select('grand_total')
+        .eq('company_id', companyId)
+        .neq('status', 'Cancelled') // consistent with the year-end report
+        .gte('date', monthStartStr)
+        .order('id')
+    ),
     supabase()
       .from('inquiries')
       .select('id', { count: 'exact', head: true }),

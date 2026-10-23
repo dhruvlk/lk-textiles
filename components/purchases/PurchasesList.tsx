@@ -88,7 +88,8 @@ export function PurchasesList({
       onRefresh()
     } catch (err) {
       console.error("Delete error:", err)
-      toast.error("Failed to delete purchase.")
+      // Surface the reason, e.g. stock from this bill has already been delivered.
+      toast.error(err instanceof Error && err.message ? `Failed to delete purchase: ${err.message}` : "Failed to delete purchase.")
     } finally {
       setIsDeleting(false)
     }

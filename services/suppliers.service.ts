@@ -1,4 +1,6 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
+import { orIlikeValue } from '@/lib/table/pagination';
 import type { Supplier, SupplierFilters } from '@/types';
 import type { SupplierRow } from '@/types/database';
 
@@ -39,7 +41,8 @@ export async function getSuppliers(
 
   if (filters?.search?.trim()) {
     const s = filters.search.trim();
-    query = query.or(`name.ilike.%${s}%,contact_person.ilike.%${s}%,mobile.ilike.%${s}%,gstin.ilike.%${s}%`);
+    const sq = orIlikeValue(s);
+    query = query.or(`name.ilike.${sq},contact_person.ilike.${sq},mobile.ilike.${sq},gstin.ilike.${sq}`);
   }
   if (filters?.city?.trim()) {
     query = query.ilike('city', `%${filters.city.trim()}%`);
@@ -131,20 +134,23 @@ export async function updateSupplier(
     .eq('company_id', companyId)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return mapSupplier(data);
+  assertAffected(data ? [data] : [], 'edit this supplier');
+  return mapSupplier(data!);
 }
 
 export async function deleteSupplier(companyId: string, id: string): Promise<void> {
-  const { error } = await supabase()
+  const { data, error } = await supabase()
     .from('suppliers')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
   if (error) throw error;
+  assertAffected(data, 'delete this supplier');
 }
 
 export async function getSupplierStats(companyId: string, supplierId: string) {

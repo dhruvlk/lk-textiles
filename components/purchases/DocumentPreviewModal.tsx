@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button"
 import { Download, ExternalLink, FileText, Image as ImageIcon, X } from "lucide-react"
 import type { VaultDocument } from "@/types"
+import { useEffect, useState } from "react"
+import { getVaultDocumentUrl, openVaultDocument } from "@/services/documents.service"
 
 interface DocumentPreviewModalProps {
   open: boolean
@@ -16,7 +18,29 @@ export function DocumentPreviewModal({
   onOpenChange,
   document: doc,
 }: DocumentPreviewModalProps) {
+  const docKey = doc ? `${doc.id}:${doc.storage_path}` : null
+  const [resolved, setResolved] = useState<{ key: string; url: string | null } | null>(null)
+
+  useEffect(() => {
+    if (!open || !doc || !docKey) return
+    let cancelled = false
+    getVaultDocumentUrl(doc)
+      .then((url) => {
+        if (!cancelled) setResolved({ key: docKey, url })
+      })
+      .catch(() => {
+        if (!cancelled) setResolved({ key: docKey, url: null })
+      })
+    return () => {
+      cancelled = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- docKey captures the identity of `doc`
+  }, [open, docKey])
+
   if (!doc) return null
+
+  const previewUrl = resolved && resolved.key === docKey ? resolved.url : null
+  const isResolving = !resolved || resolved.key !== docKey
 
   const isPdf =
     doc.file_type?.toLowerCase().includes("pdf") ||
@@ -26,20 +50,11 @@ export function DocumentPreviewModal({
     /\.(jpg|jpeg|png|webp|gif)$/i.test(doc.file_name)
 
   const downloadFile = () => {
-    if (!doc.public_url) return
-    const a = window.document.createElement("a")
-    a.href = doc.public_url
-    a.download = doc.file_name
-    a.target = "_blank"
-    a.rel = "noreferrer"
-    window.document.body.appendChild(a)
-    a.click()
-    window.document.body.removeChild(a)
+    void openVaultDocument(doc, { download: true })
   }
 
   const openNewTab = () => {
-    if (!doc.public_url) return
-    window.open(doc.public_url, "_blank", "noopener,noreferrer")
+    void openVaultDocument(doc)
   }
 
   return (
@@ -72,10 +87,12 @@ export function DocumentPreviewModal({
         </DialogHeader>
 
         <div className="flex-1 w-full h-full min-h-0 bg-muted/10 p-2 sm:p-4 flex items-center justify-center overflow-auto">
-          {doc.public_url ? (
+          {isResolving ? (
+            <p className="text-sm text-muted-foreground">Loading preview…</p>
+          ) : previewUrl ? (
             isPdf ? (
               <iframe
-                src={`${doc.public_url}#toolbar=1&navpanes=0`}
+                src={`${previewUrl}#toolbar=1&navpanes=0`}
                 className="w-full h-full rounded-lg border bg-white shadow-inner"
                 title={doc.file_name}
               />
@@ -83,7 +100,7 @@ export function DocumentPreviewModal({
               <div className="max-w-full max-h-full flex items-center justify-center">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={doc.public_url}
+                  src={previewUrl}
                   alt={doc.file_name}
                   className="max-w-full max-h-[72vh] object-contain rounded-lg shadow-md border"
                 />

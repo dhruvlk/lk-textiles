@@ -1,5 +1,6 @@
 "use client"
 
+import { todayISODate } from "@/lib/dates"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useForm, useFieldArray, useWatch } from "react-hook-form"
@@ -110,7 +111,7 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
     } : {
       challan_number: "",
       bill_number: "",
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
       delivered_by: "",
       broker: "",
       payment_within_value: 45,
@@ -439,9 +440,11 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         <Input
                           {...form.register(`items.${index}.quantity_display`, {
                             onChange: (e) => {
-                              const qtyNum = parseQuantityNumeric(e.target.value);
-                              const rate = form.getValues(`items.${index}.rate`) || 0;
-                              if (qtyNum && rate) {
+                              const qtyNum = parseQuantityNumeric(e.target.value) || 0;
+                              const rate = Number(form.getValues(`items.${index}.rate`)) || 0;
+                              // Recompute whenever a rate is set, including when the quantity
+                              // is cleared (previously the stale amount was kept).
+                              if (rate > 0) {
                                 form.setValue(`items.${index}.amount`, Number((qtyNum * rate).toFixed(2)));
                               }
                             }
@@ -457,10 +460,12 @@ export function ChallanForm({ initialData }: { initialData?: Challan }) {
                         <Input type="number" step="0.01" {...form.register(`items.${index}.rate`, {
                           valueAsNumber: true,
                           onChange: (e) => {
-                            const rate = Number(e.target.value);
+                            const rate = Number(e.target.value) || 0;
                             const qtyText = form.getValues(`items.${index}.quantity_display`) || "";
-                            const qtyNum = parseQuantityNumeric(qtyText);
-                            if (qtyNum && rate) {
+                            const qtyNum = parseQuantityNumeric(qtyText) || 0;
+                            // Recompute whenever a quantity exists, including when the rate
+                            // is cleared (previously the stale amount was kept).
+                            if (qtyNum > 0) {
                               form.setValue(`items.${index}.amount`, Number((qtyNum * rate).toFixed(2)));
                             }
                           }

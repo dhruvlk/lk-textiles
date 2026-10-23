@@ -192,6 +192,9 @@ CHECK (module IN (
 ));
 
 -- 8. Enhanced list_company_employees to return the new employee profile columns
+-- The return type changes here; Postgres cannot alter it in place, so drop first
+-- (needed to build a fresh database from migrations).
+DROP FUNCTION IF EXISTS public.list_company_employees(uuid);
 CREATE OR REPLACE FUNCTION public.list_company_employees(p_company_id uuid)
 RETURNS table (
   membership_id uuid,

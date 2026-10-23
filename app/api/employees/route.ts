@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import {
   assertCompanyOwner,
   rollbackEmployeeUser,
+  userHasOtherCompanyMemberships,
   writeAuditLog,
   writeEmployeePermissions,
 } from '@/lib/employees-api';
@@ -376,6 +377,11 @@ export async function PATCH(request: Request) {
       return apiError('Cannot modify the company owner through employees', 400);
     }
 
+    // Validate before any write so a bad password doesn't leave a half-applied update.
+    if (body.password?.trim() && body.password.trim().length < 6) {
+      return apiError('Password must be at least 6 characters', 400);
+    }
+
     if (body.statusOnly) {
       const { error } = await admin
         .from('company_members')
@@ -391,6 +397,22 @@ export async function PATCH(request: Request) {
         entityId: userId,
       });
       return NextResponse.json({ ok: true });
+    }
+
+    // Account-level changes (password, name, mobile) affect every company the user
+    // belongs to. Only allow them when this company is the user's only tenant.
+    const wantsAccountChange =
+      Boolean(body.password?.trim()) || Boolean(body.fullName?.trim()) || body.mobile !== undefined;
+    if (wantsAccountChange && (await userHasOtherCompanyMemberships(userId, companyId))) {
+      if (body.password?.trim()) {
+        return apiError(
+          'This employee also belongs to another company. Ask them to reset their own password.',
+          403
+        );
+      }
+      // Silently skip shared profile fields; company-scoped fields below still update.
+      body.fullName = undefined;
+      body.mobile = undefined;
     }
 
     const fullName = body.fullName?.trim();
@@ -445,9 +467,6 @@ export async function PATCH(request: Request) {
     }
 
     if (body.password?.trim()) {
-      if (body.password.trim().length < 6) {
-        return apiError('Password must be at least 6 characters', 400);
-      }
       const { error: passwordError } = await admin.auth.admin.updateUserById(userId, {
         password: body.password.trim(),
       });

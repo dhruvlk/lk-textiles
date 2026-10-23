@@ -65,22 +65,29 @@ export async function getActiveCompany(companyId: string): Promise<Company | und
 
 export async function getSelectedCompanyId(): Promise<string | null> {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem(SELECTED_KEY);
+  try {
+    return localStorage.getItem(SELECTED_KEY);
+  } catch {
+    return null;
+  }
 }
 
+/**
+ * Remembers the user's selected company on this device.
+ *
+ * Previously this also flipped `companies.is_active` for every company the user
+ * could update. That column is shared by all members, so one user switching
+ * companies changed the "active" company for everyone else (and ran an
+ * unscoped bulk UPDATE). The selection is per-user UI state, so it now lives
+ * only in localStorage.
+ */
 export async function setSelectedCompanyId(id: string): Promise<void> {
   if (typeof window === 'undefined') return;
-  localStorage.setItem(SELECTED_KEY, id);
-
-  await supabase()
-    .from('companies')
-    .update({ is_active: false })
-    .neq('id', id);
-
-  await supabase()
-    .from('companies')
-    .update({ is_active: true })
-    .eq('id', id);
+  try {
+    localStorage.setItem(SELECTED_KEY, id);
+  } catch {
+    // Storage can be unavailable (private mode / blocked); selection stays in memory.
+  }
 }
 
 export async function addCompany(company: Omit<Company, 'id' | 'created_at' | 'updated_at'> & { user_id: string }): Promise<Company> {
@@ -105,7 +112,9 @@ export async function updateCompany(company: Company): Promise<Company> {
     default_gst_type: rest.default_gst_type ?? 'cgst_sgst',
     terms_conditions: rest.terms_conditions ?? null,
     invoice_terms: null,
-    delivery_challan_terms: null,
+    // invoice_terms is intentionally folded into terms_conditions by the settings
+    // form; delivery challan terms have no such fallback and must be preserved.
+    delivery_challan_terms: rest.delivery_challan_terms ?? null,
   };
   const { data, error } = await supabase()
     .from('companies')

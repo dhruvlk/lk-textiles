@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/client';
-import { ilikePattern } from '@/lib/table/pagination';
+import { orIlikeValue } from '@/lib/table/pagination';
 
 const supabase = () => createClient();
 
@@ -7,7 +7,7 @@ export async function findCustomerIdsBySearch(
   companyId: string,
   search: string
 ): Promise<string[]> {
-  const pattern = ilikePattern(search);
+  const pattern = orIlikeValue(search);
   const { data, error } = await supabase()
     .from('customers')
     .select('id')
@@ -19,7 +19,7 @@ export async function findCustomerIdsBySearch(
 }
 
 export async function findChallanIdsByItemSearch(search: string): Promise<string[]> {
-  const pattern = ilikePattern(search);
+  const pattern = orIlikeValue(search);
   const { data, error } = await supabase()
     .from('challan_items')
     .select('challan_id')

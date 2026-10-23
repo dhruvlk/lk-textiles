@@ -1,7 +1,9 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
 import {
   buildPaginatedResult,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   Expense,
@@ -76,6 +78,7 @@ export async function getExpensesPaginated(
         file_type,
         file_size,
         public_url,
+        storage_path,
         document_type
       )
     `,
@@ -111,8 +114,9 @@ export async function getExpensesPaginated(
 
   if (filters.search?.trim()) {
     const s = filters.search.trim();
+    const sq = orIlikeValue(s);
     query = query.or(
-      `paid_to.ilike.%${s}%,category_name.ilike.%${s}%,reference_number.ilike.%${s}%,notes.ilike.%${s}%`
+      `paid_to.ilike.${sq},category_name.ilike.${sq},reference_number.ilike.${sq},notes.ilike.${sq}`
     );
   }
 
@@ -132,7 +136,7 @@ export async function getExpensesPaginated(
   }
 
   return buildPaginatedResult(
-    ((data as any[]) || []).map((row) => mapExpense(row)),
+    ((data as unknown as Parameters<typeof mapExpense>[0][]) || []).map((row) => mapExpense(row)),
     count || 0,
     page,
     pageSize
@@ -154,7 +158,7 @@ export async function getExpenseById(companyId: string, id: string): Promise<Exp
     .maybeSingle();
 
   if (error) throw error;
-  return data ? mapExpense(data as any) : null;
+  return data ? mapExpense(data as unknown as Parameters<typeof mapExpense>[0]) : null;
 }
 
 export async function createExpense(
@@ -261,22 +265,25 @@ export async function updateExpense(
     .eq('company_id', companyId)
     .eq('id', id)
     .select()
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
-  return (await getExpenseById(companyId, data.id))!;
+  assertAffected(data ? [data] : [], 'edit this expense');
+  return (await getExpenseById(companyId, data!.id))!;
 }
 
 export async function deleteExpense(companyId: string, id: string, userId?: string | null): Promise<void> {
   const existing = await getExpenseById(companyId, id);
 
-  const { error } = await supabase()
+  const { data, error } = await supabase()
     .from('expenses')
     .delete()
     .eq('company_id', companyId)
-    .eq('id', id);
+    .eq('id', id)
+    .select('id');
 
   if (error) throw error;
+  assertAffected(data, 'delete this expense');
 
   try {
     await supabase().from('audit_logs').insert({

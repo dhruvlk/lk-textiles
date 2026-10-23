@@ -39,7 +39,9 @@ export async function POST(request: NextRequest) {
     const isMimeValid = file.type ? validMimes.includes(file.type.toLowerCase()) : false
     const isExtValid = validExtensions.includes(ext)
 
-    if (!isMimeValid && !isExtValid) {
+    // Both checks must pass: accepting either one let e.g. "x.html" with an image
+    // MIME (or a non-image MIME with ".png") through to a public bucket.
+    if (!isExtValid || (file.type && !isMimeValid)) {
       return NextResponse.json(
         { error: "Invalid file type. Only JPEG, PNG, WebP, AVIF, SVG, and GIF are permitted." },
         { status: 400 }
@@ -118,8 +120,9 @@ export async function POST(request: NextRequest) {
     // Clean up old image if it belonged to our bucket
     if (oldUrl && oldUrl.includes(`/${BUCKET_NAME}/`)) {
       try {
-        const oldPath = oldUrl.split(`/${BUCKET_NAME}/`)[1]
-        if (oldPath) {
+        const oldPath = decodeURIComponent(oldUrl.split(`/${BUCKET_NAME}/`)[1]?.split(/[?#]/)[0] ?? "")
+        // Only ever delete files this route created (images/<name>), never other paths.
+        if (/^images\/[A-Za-z0-9._-]+$/.test(oldPath)) {
           await supabase.storage.from(BUCKET_NAME).remove([oldPath])
         }
       } catch (err) {

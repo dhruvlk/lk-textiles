@@ -25,7 +25,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ConfirmationDialog } from "@/components/dialogs/ConfirmationDialog"
 import { format } from "date-fns"
 import { toast } from "sonner"
-import { deleteVaultDocument } from "@/services/documents.service"
+import { deleteVaultDocument, openVaultDocument } from "@/services/documents.service"
 import { formatFinancialYearLabel } from "@/types"
 import type { DocumentFilters, VaultDocument } from "@/types"
 
@@ -127,15 +127,9 @@ export function DocumentVault({
 
   const downloadFile = (doc: VaultDocument, e: React.MouseEvent) => {
     e.stopPropagation()
-    if (!doc.public_url) return
-    const a = window.document.createElement("a")
-    a.href = doc.public_url
-    a.download = doc.file_name
-    a.target = "_blank"
-    a.rel = "noreferrer"
-    window.document.body.appendChild(a)
-    a.click()
-    window.document.body.removeChild(a)
+    void openVaultDocument(doc, { download: true }).then((ok) => {
+      if (!ok) toast.error("Could not generate a download link for this document.")
+    })
   }
 
   return (

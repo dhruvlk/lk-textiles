@@ -16,6 +16,7 @@ import { useCompany } from '@/components/company-provider'
 import { getUserRoleForCompany } from '@/services/company-members.service'
 import { getPermissionsForSessionUser } from '@/services/permissions.service'
 import {
+  actionFromPathname,
   moduleFromPathname,
   type PermissionAction,
   type PermissionModule,
@@ -44,18 +45,27 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
   const [isLoading, setIsLoading] = useState(true)
   const lastKeyRef = useRef<string | null>(null)
   const hasDataRef = useRef(false)
+  // Key of the request whose result may be applied (ignores stale responses).
+  const inFlightKeyRef = useRef<string | null>(null)
+  // Key (user + company) the current matrix belongs to.
+  const [loadedKey, setLoadedKey] = useState<string | null>(null)
 
   const userId = user?.id ?? null
   const userRole = user?.role ?? null
   const companyId = selectedCompany?.id ?? null
   const companyOwnerId = selectedCompany?.user_id ?? null
 
+  const currentKey =
+    userId && companyId ? `${userId}:${companyId}:${userRole}:${companyOwnerId}` : null
+
   const refreshPermissions = useCallback(async (force = false) => {
     if (!userId || !companyId) {
       lastKeyRef.current = null
+      inFlightKeyRef.current = null
       hasDataRef.current = false
       setMatrix(null)
       setRole(null)
+      setLoadedKey(null)
       setIsLoading(false)
       return
     }
@@ -65,30 +75,44 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
       return
     }
 
+    // Switching user/company: drop the previous company's permissions immediately
+    // instead of applying them to the new company while the request is pending.
+    if (lastKeyRef.current !== cacheKey) {
+      hasDataRef.current = false
+      setMatrix(null)
+      setRole(null)
+    }
+    inFlightKeyRef.current = cacheKey
     if (!hasDataRef.current) setIsLoading(true)
+    const isStale = () => inFlightKeyRef.current !== cacheKey
 
     try {
       const companyRole = await getUserRoleForCompany(userId, companyId)
+      if (isStale()) return
       const ownsCompany = companyOwnerId === userId
       const effectiveRole =
         companyRole === 'Owner' || ownsCompany
           ? 'Owner'
           : (companyRole ?? userRole ?? 'Staff')
-      setRole(effectiveRole)
+      let nextMatrix: PermissionMatrix
       if (effectiveRole === 'Owner') {
-        setMatrix(ownerMatrix())
+        nextMatrix = ownerMatrix()
       } else {
-        const next = await getPermissionsForSessionUser(
+        nextMatrix = await getPermissionsForSessionUser(
           companyId,
           userId,
           effectiveRole
         )
-        setMatrix(next)
+        if (isStale()) return
       }
+      setRole(effectiveRole)
+      setMatrix(nextMatrix)
       lastKeyRef.current = cacheKey
       hasDataRef.current = true
+      setLoadedKey(cacheKey)
     } catch (error) {
       console.error('[permissions]', error)
+      if (isStale()) return
       if (userRole === 'Owner' || companyOwnerId === userId) {
         setRole('Owner')
         setMatrix(ownerMatrix())
@@ -99,8 +123,9 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
         setRole(userRole)
         hasDataRef.current = false
       }
+      setLoadedKey(cacheKey)
     } finally {
-      setIsLoading(false)
+      if (!isStale()) setIsLoading(false)
     }
   }, [userId, companyId, userRole, companyOwnerId])
 
@@ -124,17 +149,20 @@ export function PermissionProvider({ children }: { children: React.ReactNode }) 
 
   const refresh = useCallback(() => refreshPermissions(true), [refreshPermissions])
 
+  // Also "loading" while the matrix belongs to a different user/company.
+  const effectiveLoading = isLoading || (currentKey !== null && loadedKey !== currentKey)
+
   const value = useMemo(
     () => ({
       matrix,
       role,
       isOwner,
-      isLoading,
+      isLoading: effectiveLoading,
       can,
       canView,
       refreshPermissions: refresh,
     }),
-    [matrix, role, isOwner, isLoading, can, canView, refresh]
+    [matrix, role, isOwner, effectiveLoading, can, canView, refresh]
   )
 
   return (
@@ -148,15 +176,26 @@ export function RoutePermissionGate({ children }: { children: React.ReactNode })
   const pathname = usePathname()
   const { user } = useAuth()
   const { selectedCompany } = useCompany()
-  const { canView, isLoading } = usePermissions()
+  const { can, isLoading } = usePermissions()
 
   const routeModule = moduleFromPathname(pathname)
+  const routeAction = actionFromPathname(pathname)
 
-  if (isLoading || !user || !selectedCompany || !routeModule) {
+  if (!user || !selectedCompany || !routeModule) {
     return <>{children}</>
   }
 
-  if (!canView(routeModule)) {
+  // Don't mount protected pages (and fire their data fetches) before the
+  // permission check for the current company has resolved.
+  if (isLoading) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center" role="status" aria-live="polite">
+        <span className="text-sm text-muted-foreground">Checking access…</span>
+      </div>
+    )
+  }
+
+  if (!can(routeModule, 'view') || (routeAction !== 'view' && !can(routeModule, routeAction))) {
     return <AccessDenied />
   }
 

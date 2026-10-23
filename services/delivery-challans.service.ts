@@ -1,4 +1,7 @@
+import { todayISODate } from '@/lib/dates';
 import { createClient } from '@/lib/supabase/client';
+import { callTransactionalRpc } from '@/lib/supabase/rpc';
+import { isBlankTakaRow } from '@/lib/challan-item';
 import {
   appendInFilter,
   findCustomerIdsBySearch,
@@ -7,11 +10,9 @@ import {
   buildPaginatedResult,
   ilikePattern,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
-import {
-  applyDeliveryStockDeltas,
-  parseStockError,
-} from '@/services/stocks.service';
+import { getStockById, parseStockError } from '@/services/stocks.service';
 import type {
   Customer,
   DeliveryChallan,
@@ -105,7 +106,7 @@ function applyDeliveryChallanFilters(
   if (filters.dateTo) next = next.lte('date', filters.dateTo);
 
   if (filters.search?.trim()) {
-    const pattern = ilikePattern(filters.search);
+    const pattern = orIlikeValue(filters.search);
     const orParts = [
       `challan_number.ilike.${pattern}`,
       `quality.ilike.${pattern}`,
@@ -256,16 +257,8 @@ type DeliveryChallanInput = {
   }>;
 };
 
-function deliveryStockUsage(stockId: string | null | undefined, pieceCount: number): Map<string, number> {
-  const map = new Map<string, number>();
-  if (stockId && pieceCount > 0) {
-    map.set(stockId, pieceCount);
-  }
-  return map;
-}
-
 function computeTotals(items: DeliveryChallanInput['items']) {
-  const normalized = items.map((item, index) => ({
+  const normalized = items.filter((item) => !isBlankTakaRow(item)).map((item, index) => ({
     sort_order: index,
     taka_no: item.taka_no?.trim() || null,
     meters: Number(item.meters) || 0,
@@ -280,68 +273,61 @@ function computeTotals(items: DeliveryChallanInput['items']) {
   };
 }
 
+function deliveryHeaderPayload(input: DeliveryChallanInput, userId?: string | null) {
+  return {
+    company_id: input.company_id,
+    customer_id: input.customer_id,
+    challan_number: input.challan_number,
+    date: input.date,
+    quality: input.quality ?? null,
+    stock_id: input.stock_id ?? null,
+    broker: input.broker ?? null,
+    delivered_by: input.delivered_by ?? null,
+    remarks: input.remarks ?? null,
+    notes: input.notes ?? null,
+    status: input.status,
+    created_by: userId ?? null,
+  };
+}
+
+/** Raises low / out-of-stock notifications for the qualities a challan touched. */
+async function notifyStocksTouched(stockIds: Array<string | null | undefined>): Promise<void> {
+  const ids = [...new Set(stockIds.filter((id): id is string => Boolean(id)))];
+  if (ids.length === 0) return;
+  const { notifyStockStatus } = await import('@/services/notifications.service');
+  for (const stockId of ids) {
+    const stock = await getStockById(stockId);
+    if (!stock) continue;
+    await notifyStockStatus({
+      companyId: stock.company_id,
+      stockId: stock.id,
+      quality: stock.quality_name,
+      availableTaka: stock.available_taka,
+    }).catch(() => undefined);
+  }
+}
+
 export async function addDeliveryChallan(
   input: DeliveryChallanInput,
   userId?: string
 ): Promise<DeliveryChallan> {
-  const totals = computeTotals(input.items);
-
-  const { data, error } = await supabase()
-    .from('delivery_challans')
-    .insert({
-      company_id: input.company_id,
-      customer_id: input.customer_id,
-      challan_number: input.challan_number,
-      date: input.date,
-      quality: input.quality ?? null,
-      stock_id: input.stock_id ?? null,
-      broker: input.broker ?? null,
-      delivered_by: input.delivered_by ?? null,
-      remarks: input.remarks ?? null,
-      notes: input.notes ?? null,
-      status: input.status,
-      total_pieces: totals.total_pieces,
-      total_meters: totals.total_meters,
-      total_weight: totals.total_weight,
-      created_by: userId ?? null,
-    })
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  const itemsPayload = totals.items.map((item) => ({
-    ...item,
-    delivery_challan_id: data.id,
-  }));
-
-  if (itemsPayload.length > 0) {
-    const { error: itemsError } = await supabase()
-      .from('delivery_challan_items')
-      .insert(itemsPayload);
-    if (itemsError) {
-      await supabase().from('delivery_challans').delete().eq('id', data.id);
-      throw itemsError;
-    }
-  }
-
+  // Header, taka rows and the stock deduction are one database transaction
+  // (save_delivery_challan): a stock shortfall saves nothing at all.
+  let id: string;
   try {
-    await applyDeliveryStockDeltas({
-      companyId: input.company_id,
-      previous: new Map(),
-      next: deliveryStockUsage(input.stock_id, totals.total_pieces),
-      deliveryChallanId: data.id,
-      userId,
-      isCreate: true,
+    id = await callTransactionalRpc('save_delivery_challan', {
+      p_challan_id: null,
+      p_header: deliveryHeaderPayload(input, userId),
+      p_items: computeTotals(input.items).items,
     });
-  } catch (stockError) {
-    await supabase().from('delivery_challan_items').delete().eq('delivery_challan_id', data.id);
-    await supabase().from('delivery_challans').delete().eq('id', data.id);
-    throw new Error(parseStockError(stockError));
+  } catch (error) {
+    throw new Error(parseStockError(error));
   }
 
-  const created = await getDeliveryChallanById(data.id);
+  const created = await getDeliveryChallanById(id);
   if (!created) throw new Error('Failed to load created delivery challan');
+
+  await notifyStocksTouched([created.stock_id]);
 
   const { createNotification } = await import('@/services/notifications.service');
   await createNotification({
@@ -363,59 +349,19 @@ export async function updateDeliveryChallan(
   const existing = await getDeliveryChallanById(id);
   if (!existing) throw new Error('Delivery challan not found');
 
-  const totals = computeTotals(input.items);
-  const previousUsage = deliveryStockUsage(existing.stock_id, existing.total_pieces);
-  const nextUsage = deliveryStockUsage(input.stock_id, totals.total_pieces);
-
-  const { error } = await supabase()
-    .from('delivery_challans')
-    .update({
-      customer_id: input.customer_id,
-      challan_number: input.challan_number,
-      date: input.date,
-      quality: input.quality ?? null,
-      stock_id: input.stock_id ?? null,
-      broker: input.broker ?? null,
-      delivered_by: input.delivered_by ?? null,
-      remarks: input.remarks ?? null,
-      notes: input.notes ?? null,
-      status: input.status,
-      total_pieces: totals.total_pieces,
-      total_meters: totals.total_meters,
-      total_weight: totals.total_weight,
-    })
-    .eq('id', id);
-
-  if (error) throw error;
-
-  await supabase().from('delivery_challan_items').delete().eq('delivery_challan_id', id);
-
-  const itemsPayload = totals.items.map((item) => ({
-    ...item,
-    delivery_challan_id: id,
-  }));
-
-  if (itemsPayload.length > 0) {
-    const { error: itemsError } = await supabase()
-      .from('delivery_challan_items')
-      .insert(itemsPayload);
-    if (itemsError) throw itemsError;
-  }
-
   try {
-    await applyDeliveryStockDeltas({
-      companyId: input.company_id,
-      previous: previousUsage,
-      next: nextUsage,
-      deliveryChallanId: id,
-      userId: existing.created_by,
+    await callTransactionalRpc('save_delivery_challan', {
+      p_challan_id: id,
+      p_header: deliveryHeaderPayload(input, existing.created_by),
+      p_items: computeTotals(input.items).items,
     });
-  } catch (stockError) {
-    throw new Error(parseStockError(stockError));
+  } catch (error) {
+    throw new Error(parseStockError(error));
   }
 
   const updated = await getDeliveryChallanById(id);
   if (!updated) throw new Error('Failed to load updated delivery challan');
+  await notifyStocksTouched([existing.stock_id, updated.stock_id]);
   return updated;
 }
 
@@ -423,21 +369,14 @@ export async function deleteDeliveryChallan(id: string): Promise<void> {
   const existing = await getDeliveryChallanById(id);
   if (!existing) throw new Error('Delivery challan not found');
 
+  // Stock reversal and delete happen together; if the delete is not allowed the
+  // reversal is rolled back as well.
   try {
-    await applyDeliveryStockDeltas({
-      companyId: existing.company_id,
-      previous: deliveryStockUsage(existing.stock_id, existing.total_pieces),
-      next: new Map(),
-      deliveryChallanId: id,
-      userId: existing.created_by,
-      isDelete: true,
-    });
-  } catch (stockError) {
-    throw new Error(parseStockError(stockError));
+    await callTransactionalRpc('delete_delivery_challan', { p_challan_id: id });
+  } catch (error) {
+    throw new Error(parseStockError(error));
   }
-
-  const { error } = await supabase().from('delivery_challans').delete().eq('id', id);
-  if (error) throw error;
+  await notifyStocksTouched([existing.stock_id]);
 }
 
 export async function duplicateDeliveryChallan(
@@ -455,7 +394,7 @@ export async function duplicateDeliveryChallan(
       company_id: companyId,
       customer_id: source.customer_id,
       challan_number: challanNumber,
-      date: new Date().toISOString().split('T')[0],
+      date: todayISODate(),
       quality: source.quality,
       stock_id: source.stock_id,
       broker: source.broker,

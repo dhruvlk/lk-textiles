@@ -1,8 +1,11 @@
+import { assertAffected } from '@/lib/supabase/require-affected';
 import { createClient } from '@/lib/supabase/client';
+import { callTransactionalRpc } from '@/lib/supabase/rpc';
 import {
   buildPaginatedResult,
   ilikePattern,
   paginatedRange,
+  orIlikeValue,
 } from '@/lib/table/pagination';
 import type {
   Stock,
@@ -17,24 +20,6 @@ import { getStockStatus, STOCK_LOW_THRESHOLD } from '@/types';
 import type { StockMovementRow, StockRow } from '@/types/database';
 
 const supabase = () => createClient();
-
-type QualityStockRpcClient = {
-  rpc(
-    fn: 'process_quality_stock_change',
-    args: {
-      p_company_id: string;
-      p_stock_id: string;
-      p_delta: number;
-      p_transaction_type: string;
-      p_reference_type?: string | null;
-      p_reference_id?: string | null;
-      p_challan_id?: string | null;
-      p_delivery_challan_id?: string | null;
-      p_notes?: string | null;
-      p_user_id?: string | null;
-    }
-  ): PromiseLike<{ data: null; error: { message: string } | null }>;
-};
 
 function mapStock(row: StockRow): Stock {
   const total = Number(row.total_taka) || 0;
@@ -83,92 +68,6 @@ export function parseStockError(error: unknown): string {
   return message;
 }
 
-export async function processQualityStockChange(params: {
-  companyId: string;
-  stockId: string;
-  delta: number;
-  transactionType: StockTransactionType;
-  referenceType?: 'delivery_challan' | 'manual' | null;
-  referenceId?: string | null;
-  deliveryChallanId?: string | null;
-  notes?: string | null;
-  userId?: string | null;
-}): Promise<void> {
-  if (params.delta === 0) return;
-
-  const { error } = await (supabase() as unknown as QualityStockRpcClient).rpc(
-    'process_quality_stock_change',
-    {
-      p_company_id: params.companyId,
-      p_stock_id: params.stockId,
-      p_delta: params.delta,
-      p_transaction_type: params.transactionType,
-      p_reference_type: params.referenceType ?? null,
-      p_reference_id: params.referenceId ?? null,
-      p_challan_id: null,
-      p_delivery_challan_id: params.deliveryChallanId ?? null,
-      p_notes: params.notes ?? null,
-      p_user_id: params.userId ?? null,
-    }
-  );
-
-  if (error) throw new Error(parseStockError(error));
-}
-
-/**
- * Apply delivery challan stock deltas.
- * Positive delta increases Sold Taka and decreases Available Taka.
- */
-export async function applyDeliveryStockDeltas(params: {
-  companyId: string;
-  previous: Map<string, number>;
-  next: Map<string, number>;
-  deliveryChallanId: string;
-  userId?: string | null;
-  isCreate?: boolean;
-  isDelete?: boolean;
-}): Promise<void> {
-  const stockIds = new Set([...params.previous.keys(), ...params.next.keys()]);
-
-  for (const stockId of stockIds) {
-    const prevQty = params.previous.get(stockId) || 0;
-    const nextQty = params.next.get(stockId) || 0;
-    const delta = nextQty - prevQty;
-    if (delta === 0) continue;
-
-    let transactionType: StockTransactionType;
-    if (params.isDelete) {
-      transactionType = 'Delivery Challan Delete';
-    } else if (params.isCreate) {
-      transactionType = 'Delivery Challan';
-    } else {
-      transactionType = 'Delivery Challan Edit';
-    }
-
-    await processQualityStockChange({
-      companyId: params.companyId,
-      stockId,
-      delta,
-      transactionType,
-      referenceType: 'delivery_challan',
-      referenceId: params.deliveryChallanId,
-      deliveryChallanId: params.deliveryChallanId,
-      userId: params.userId,
-    });
-
-    const stock = await getStockById(stockId);
-    if (stock) {
-      const { notifyStockStatus } = await import('@/services/notifications.service');
-      await notifyStockStatus({
-        companyId: stock.company_id,
-        stockId: stock.id,
-        quality: stock.quality_name,
-        availableTaka: stock.available_taka,
-      }).catch(() => undefined);
-    }
-  }
-}
-
 const STOCK_LIST_COLUMNS =
   'id, company_id, quality_name, total_taka, sold_taka, available_taka, hsn_code, remarks, created_by, created_at, updated_at';
 
@@ -178,7 +77,7 @@ function applyStockFilters(query: StockListQuery, companyId: string, filters: St
   let next = query.eq('company_id', companyId);
 
   if (filters.search?.trim()) {
-    const pattern = ilikePattern(filters.search);
+    const pattern = orIlikeValue(filters.search);
     next = next.or(`quality_name.ilike.${pattern},hsn_code.ilike.${pattern}`);
   }
 
@@ -359,59 +258,22 @@ export async function addStock(input: StockInput, userId?: string): Promise<Stoc
 export async function updateStock(
   id: string,
   input: StockInput,
-  userId?: string
+  _userId?: string
 ): Promise<Stock> {
-  const existing = await getStockById(id);
-  if (!existing) throw new Error('Stock not found');
+  // Total, available and the adjustment movement are computed under a row lock
+  // (update_stock_details), so a delivery challan saved at the same moment can't
+  // be overwritten by a stale sold_taka.
+  await callTransactionalRpc('update_stock_details', {
+    p_stock_id: id,
+    p_quality_name: input.quality_name.trim(),
+    p_total_taka: Math.max(0, Number(input.total_taka) || 0),
+    p_hsn_code: input.hsn_code?.trim() || null,
+    p_remarks: input.remarks?.trim() || null,
+  });
 
-  const nextTotal = Math.max(0, Number(input.total_taka) || 0);
-  if (nextTotal < existing.sold_taka) {
-    throw new Error(
-      `Total Taka cannot be less than Sold Taka (${existing.sold_taka}).`
-    );
-  }
+  const stock = await getStockById(id);
+  if (!stock) throw new Error('Stock not found');
 
-  const nextAvailable = nextTotal - existing.sold_taka;
-  const prevAvailable = existing.available_taka;
-
-  const { data, error } = await supabase()
-    .from('stocks')
-    .update({
-      quality_name: input.quality_name.trim(),
-      total_taka: nextTotal,
-      sold_taka: existing.sold_taka,
-      available_taka: nextAvailable,
-      hsn_code: input.hsn_code?.trim() || null,
-      remarks: input.remarks?.trim() || null,
-    })
-    .eq('id', id)
-    .select()
-    .single();
-
-  if (error) throw error;
-
-  if (nextTotal !== existing.total_taka) {
-    const { error: movementError } = await supabase()
-      .from('stock_movements')
-      .insert({
-        company_id: existing.company_id,
-        stock_id: id,
-        transaction_type: 'Manual Stock Adjustment',
-        quantity: Math.abs(nextTotal - existing.total_taka),
-        previous_stock: prevAvailable,
-        current_stock: nextAvailable,
-        reference_type: 'manual',
-        reference_id: null,
-        challan_id: null,
-        delivery_challan_id: null,
-        notes: 'Manual total stock adjustment',
-        created_by: userId ?? null,
-      });
-
-    if (movementError) throw movementError;
-  }
-
-  const stock = mapStock(data);
   const { notifyStockStatus } = await import('@/services/notifications.service');
   await notifyStockStatus({
     companyId: stock.company_id,
@@ -424,6 +286,7 @@ export async function updateStock(
 }
 
 export async function deleteStock(id: string): Promise<void> {
-  const { error } = await supabase().from('stocks').delete().eq('id', id);
+  const { data, error } = await supabase().from('stocks').delete().eq('id', id).select('id');
   if (error) throw error;
+  assertAffected(data, 'delete this stock quality');
 }

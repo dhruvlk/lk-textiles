@@ -1,5 +1,6 @@
 "use client"
 
+import { assertAffected } from "@/lib/supabase/require-affected"
 import { useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import {
@@ -90,8 +91,9 @@ export function LetterPadsClient() {
     if (!letterPadToDelete) return
     setIsDeleting(true)
     try {
-      const { error } = await supabase.from("letter_pads").delete().eq("id", letterPadToDelete)
+      const { data, error } = await supabase.from("letter_pads").delete().eq("id", letterPadToDelete).select("id")
       if (error) throw error
+      assertAffected(data, "delete this letter pad")
       toast.success("Letter pad deleted")
       fetchLetterPads()
     } catch (error) {

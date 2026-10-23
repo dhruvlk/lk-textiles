@@ -1,6 +1,7 @@
 "use client"
 /* eslint-disable */
 
+import { assertAffected } from "@/lib/supabase/require-affected"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
@@ -70,12 +71,14 @@ export function LetterPadForm({ initialData }: LetterPadFormProps) {
 
       if (initialData?.id) {
         // Update
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from("letter_pads")
           .update(payload)
           .eq("id", initialData.id)
+          .select("id")
 
         if (error) throw error
+        assertAffected(data, "edit this letter pad")
         toast.success("Letter Pad updated successfully")
       } else {
         // Create
